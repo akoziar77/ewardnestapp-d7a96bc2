@@ -527,6 +527,16 @@ export default function Brands() {
                           </div>
                         </div>
                       </div>
+                      {/* Widget display toggles */}
+                      <div className="pt-3 border-t border-border">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowWidgetSettings((v) => !v);
+                          }}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 active:scale-[0.98]"
+                        >
+                          <Eye className="h-3 w-3" />
                           Home widget fields
                           <ChevronDown className={`h-3 w-3 transition-transform ${showWidgetSettings ? "rotate-180" : ""}`} />
                         </button>
