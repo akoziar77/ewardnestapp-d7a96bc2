@@ -281,49 +281,13 @@ export default function LoyaltyConnectDialog({
           </div>
         ) : (
           <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Loyalty program *
-              </Label>
-              <Select
-                value={isCustomProvider ? "__custom__" : providerName}
-                onValueChange={(val) => {
-                  if (val === "__custom__") {
-                    setIsCustomProvider(true);
-                    setProviderName("");
-                    setApiEndpoint("");
-                  } else {
-                    setIsCustomProvider(false);
-                    setProviderName(val);
-                    const preset = LOYALTY_PRESETS.find((p) => p.name === val);
-                    if (preset) setApiEndpoint(preset.endpoint);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a program…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LOYALTY_PRESETS.map((p) => (
-                    <SelectItem key={p.name} value={p.name}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="__custom__">Other (custom)</SelectItem>
-                </SelectContent>
-              </Select>
-              {isCustomProvider && (
-                <div className="relative">
-                  <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={providerName}
-                    onChange={(e) => setProviderName(e.target.value)}
-                    placeholder="Enter program name"
-                    className="pl-10"
-                  />
-                </div>
-              )}
-            </div>
+            {/* Loyalty program is auto-set from brand data, show as read-only label */}
+            {providerName && (
+              <div className="rounded-xl bg-muted p-3 flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{providerName}</span>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
