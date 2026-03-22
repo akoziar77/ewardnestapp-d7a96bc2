@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { getGeofenceRadiusMeters } from "@/pages/BrandSettings";
 
 interface BrandLocation {
   id: string;
@@ -86,8 +87,9 @@ export function useGeofence() {
           latitude, longitude,
           brand.latitude, brand.longitude
         );
-
-        const isInside = distance <= brand.geofence_radius_meters;
+        const userRadius = getGeofenceRadiusMeters();
+        const effectiveRadius = Math.min(brand.geofence_radius_meters, userRadius);
+        const isInside = distance <= effectiveRadius;
         const wasInside = insideFencesRef.current.has(brand.id);
 
         if (isInside && !wasInside) {

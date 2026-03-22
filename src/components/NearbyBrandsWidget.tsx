@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MapPin, Navigation } from "lucide-react";
+import { getGeofenceRadiusMeters } from "@/pages/BrandSettings";
 
 interface BrandWithDistance {
   id: string;
@@ -75,7 +76,8 @@ export default function NearbyBrandsWidget() {
         .slice(0, 5)
     : [];
 
-  const isInRange = (b: BrandWithDistance) => b.distance <= b.geofence_radius_meters;
+  const userRadiusM = getGeofenceRadiusMeters();
+  const isInRange = (b: BrandWithDistance) => b.distance <= Math.min(b.geofence_radius_meters, userRadiusM);
 
   if (locationDenied) {
     return (
