@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import LoyaltyConnectDialog from "@/components/LoyaltyConnectDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone } from "lucide-react";
+import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
 import { getHiddenCategories } from "@/pages/BrandSettings";
 import { format } from "date-fns";
 import {
@@ -602,18 +603,39 @@ export default function Brands() {
                             Visit website
                           </a>
                         )}
-                        {brand.loyalty_api_url && (
-                          <a
-                            href={brand.loyalty_api_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex items-center gap-1.5 text-xs font-medium text-secondary-foreground bg-secondary/10 rounded-lg px-2.5 py-1 hover:bg-secondary/20 active:scale-[0.98] transition-colors"
-                          >
-                            <Sparkles className="h-3 w-3" />
-                            Join {brand.loyalty_provider ?? "program"}
-                          </a>
-                        )}
+                        {(() => {
+                          const brandProviderLinks = getProviderLinks(brand.loyalty_provider);
+                          const brandProviderLink = getProviderLink(brand.loyalty_provider);
+                          const brandAppUrl = brandProviderLink ? getOpenAppUrl(brandProviderLink) : brand.loyalty_api_url;
+                          return (
+                            <>
+                              {brandAppUrl && (
+                                <a
+                                  href={brandAppUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1.5 text-xs font-medium text-primary-foreground bg-primary rounded-lg px-2.5 py-1 hover:bg-primary/90 active:scale-[0.98] transition-colors"
+                                >
+                                  {brandProviderLinks.appUrl ? <Download className="h-3 w-3" /> : <Smartphone className="h-3 w-3" />}
+                                  {brandProviderLinks.appUrl ? `Get ${brandProviderLinks.appName ?? ""} app` : `Open ${brand.loyalty_provider ?? "app"}`}
+                                </a>
+                              )}
+                              {brandProviderLinks.webUrl && (
+                                <a
+                                  href={brandProviderLinks.webUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1.5 text-xs font-medium text-secondary-foreground bg-secondary/10 rounded-lg px-2.5 py-1 hover:bg-secondary/20 active:scale-[0.98] transition-colors"
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                  {brand.loyalty_provider ?? "Program"}
+                                </a>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* Visit history */}

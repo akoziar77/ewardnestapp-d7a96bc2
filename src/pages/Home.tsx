@@ -4,7 +4,8 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw } from "lucide-react";
+import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw, Download } from "lucide-react";
+import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -136,7 +137,7 @@ export default function Home() {
     queryFn: async () => {
       const { data } = await supabase
         .from("brands")
-        .select("id, name, loyalty_api_url")
+        .select("id, name, loyalty_api_url, loyalty_provider, website_url, logo_emoji")
         .in("id", connBrandIds);
       return (data ?? []) as any[];
     },
@@ -469,7 +470,9 @@ export default function Home() {
           <div className="space-y-2 pt-1">
             {(() => {
               const brand = connBrands.find((b: any) => b.id === loyaltyChoiceConn?.brand_id);
-              const appUrl = brand?.loyalty_api_url;
+              const providerLinks = getProviderLinks(brand?.loyalty_provider);
+              const providerLink = getProviderLink(brand?.loyalty_provider);
+              const appUrl = providerLink ? getOpenAppUrl(providerLink) : brand?.loyalty_api_url;
               return (
                 <>
                   {appUrl && (
@@ -481,11 +484,32 @@ export default function Home() {
                       className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                        <Smartphone className="h-5 w-5 text-primary" />
+                        {providerLinks.appUrl ? <Download className="h-5 w-5 text-primary" /> : <Smartphone className="h-5 w-5 text-primary" />}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">Open app</p>
-                        <p className="text-[11px] text-muted-foreground">Launch the loyalty program</p>
+                        <p className="text-sm font-semibold">
+                          {providerLinks.appUrl ? `Get ${providerLinks.appName ?? "the"} app` : "Open app"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {providerLinks.appUrl ? "Download from app store" : "Launch the loyalty program"}
+                        </p>
+                      </div>
+                    </button>
+                  )}
+                  {providerLinks.webUrl && (
+                    <button
+                      onClick={() => {
+                        window.open(providerLinks.webUrl!, "_blank", "noopener");
+                        setLoyaltyChoiceConn(null);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Open website</p>
+                        <p className="text-[11px] text-muted-foreground">View in browser</p>
                       </div>
                     </button>
                   )}
@@ -633,40 +657,70 @@ export default function Home() {
                   </p>
                 </div>
               </button>
-              {favChoiceBrand?.loyalty_api_url && (
-                <button
-                  onClick={() => {
-                    window.open(favChoiceBrand.loyalty_api_url, "_blank", "noopener");
-                    setFavChoiceBrand(null);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                    <Smartphone className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">Open app</p>
-                    <p className="text-[11px] text-muted-foreground">Launch the loyalty program</p>
-                  </div>
-                </button>
-              )}
-              {favChoiceBrand?.website_url && (
-                <button
-                  onClick={() => {
-                    window.open(favChoiceBrand.website_url, "_blank", "noopener");
-                    setFavChoiceBrand(null);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                    <Globe className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">Visit website</p>
-                    <p className="text-[11px] text-muted-foreground">{favChoiceBrand.website_url}</p>
-                  </div>
-                </button>
-              )}
+              {(() => {
+                const favProviderLinks = getProviderLinks(favChoiceBrand?.loyalty_provider);
+                const favProviderLink = getProviderLink(favChoiceBrand?.loyalty_provider);
+                const favAppUrl = favProviderLink ? getOpenAppUrl(favProviderLink) : favChoiceBrand?.loyalty_api_url;
+                return (
+                  <>
+                    {favAppUrl && (
+                      <button
+                        onClick={() => {
+                          window.open(favAppUrl, "_blank", "noopener");
+                          setFavChoiceBrand(null);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                          {favProviderLinks.appUrl ? <Download className="h-5 w-5 text-primary" /> : <Smartphone className="h-5 w-5 text-primary" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {favProviderLinks.appUrl ? `Get ${favProviderLinks.appName ?? "the"} app` : "Open app"}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {favProviderLinks.appUrl ? "Download from app store" : "Launch the loyalty program"}
+                          </p>
+                        </div>
+                      </button>
+                    )}
+                    {favProviderLinks.webUrl && (
+                      <button
+                        onClick={() => {
+                          window.open(favProviderLinks.webUrl!, "_blank", "noopener");
+                          setFavChoiceBrand(null);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                          <Globe className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">Visit website</p>
+                          <p className="text-[11px] text-muted-foreground">{favProviderLinks.webUrl}</p>
+                        </div>
+                      </button>
+                    )}
+                    {!favProviderLinks.webUrl && favChoiceBrand?.website_url && (
+                      <button
+                        onClick={() => {
+                          window.open(favChoiceBrand.website_url, "_blank", "noopener");
+                          setFavChoiceBrand(null);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                          <Globe className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">Visit website</p>
+                          <p className="text-[11px] text-muted-foreground">{favChoiceBrand.website_url}</p>
+                        </div>
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
               <button
                 onClick={() => {
                   navigate(`/brands?brand=${favChoiceBrand?.id}`);
