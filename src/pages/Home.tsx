@@ -516,10 +516,10 @@ export default function Home() {
                     <span className="font-medium tabular-nums">{favChoiceBrand.milestone_points} pts</span>
                   </div>
                 )}
-                {visibleFields.includes("loyaltyProvider") && favChoiceBrand.loyalty_provider && (
+                {visibleFields.includes("loyaltyProvider") && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Program</span>
-                    <span className="font-medium">{favChoiceBrand.loyalty_provider}</span>
+                    <span className="font-medium">{favChoiceBrand.loyalty_provider || "—"}</span>
                   </div>
                 )}
                 {visibleFields.includes("visitExpiry") && (
@@ -528,17 +528,26 @@ export default function Home() {
                     <span className="font-medium">{favChoiceBrand.visit_expiry_months}mo</span>
                   </div>
                 )}
-                {visibleFields.includes("externalPoints") && extPts > 0 && (
+                {visibleFields.includes("externalPoints") && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">External pts</span>
-                    <span className="font-medium tabular-nums">{extPts.toLocaleString()}</span>
+                    <span className="font-medium tabular-nums">{extPts > 0 ? extPts.toLocaleString() : "0"}</span>
                   </div>
                 )}
-                {visibleFields.includes("expiringPoints") && expPts > 0 && (
+                {visibleFields.includes("expiringPoints") && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Expiring</span>
-                    <span className="font-medium text-destructive tabular-nums">{expPts} pts</span>
+                    <span className={`font-medium tabular-nums ${expPts > 0 ? "text-destructive" : ""}`}>{expPts > 0 ? `${expPts} pts` : "—"}</span>
                   </div>
+                )}
+                {visibleFields.includes("websiteLink") && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Website</span>
+                    <span className="font-medium">{favChoiceBrand.website_url ? "Available" : "—"}</span>
+                  </div>
+                )}
+                {visibleFields.length === 0 && (
+                  <p className="text-muted-foreground text-center py-1">No fields selected — toggle fields in brand settings</p>
                 )}
               </div>
             );
