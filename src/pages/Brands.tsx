@@ -659,6 +659,8 @@ export default function Brands() {
             brandId={b.id}
             brandName={b.name}
             brandEmoji={b.logo_emoji}
+            loyaltyProvider={b.loyalty_provider}
+            loyaltyApiUrl={b.loyalty_api_url}
             connection={getLoyaltyConnection(b.id)}
             onConnectionChange={() =>
               queryClient.invalidateQueries({ queryKey: ["loyalty-connections", user?.id] })

@@ -49,6 +49,8 @@ interface Props {
   brandId: string;
   brandName: string;
   brandEmoji: string;
+  loyaltyProvider?: string | null;
+  loyaltyApiUrl?: string | null;
   connection: LoyaltyConnection | null;
   onConnectionChange: () => void;
 }
@@ -59,13 +61,25 @@ export default function LoyaltyConnectDialog({
   brandId,
   brandName,
   brandEmoji,
+  loyaltyProvider,
+  loyaltyApiUrl,
   connection,
   onConnectionChange,
 }: Props) {
   const { user } = useAuth();
-  const [providerName, setProviderName] = useState("");
-  const [isCustomProvider, setIsCustomProvider] = useState(false);
-  const [apiEndpoint, setApiEndpoint] = useState("");
+  
+  // Auto-populate from brand's loyalty_provider
+  const initialProvider = loyaltyProvider || "";
+  const isPreset = LOYALTY_PRESETS.some((p) => p.name === initialProvider);
+  
+  const [providerName, setProviderName] = useState(initialProvider);
+  const [isCustomProvider, setIsCustomProvider] = useState(!isPreset && !!initialProvider);
+  const [apiEndpoint, setApiEndpoint] = useState(() => {
+    if (isPreset) {
+      return LOYALTY_PRESETS.find((p) => p.name === initialProvider)?.endpoint || "";
+    }
+    return loyaltyApiUrl || "";
+  });
   const [accessToken, setAccessToken] = useState("");
   const [memberId, setMemberId] = useState("");
   const [password, setPassword] = useState("");
@@ -162,9 +176,12 @@ export default function LoyaltyConnectDialog({
   };
 
   const resetForm = () => {
-    setProviderName("");
-    setIsCustomProvider(false);
-    setApiEndpoint("");
+    setProviderName(initialProvider);
+    setIsCustomProvider(!isPreset && !!initialProvider);
+    setApiEndpoint(() => {
+      if (isPreset) return LOYALTY_PRESETS.find((p) => p.name === initialProvider)?.endpoint || "";
+      return loyaltyApiUrl || "";
+    });
     setAccessToken("");
     setMemberId("");
     setPassword("");
