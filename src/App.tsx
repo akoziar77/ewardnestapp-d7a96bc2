@@ -64,6 +64,7 @@ function AppRoutes() {
         <Route path="/profile" element={<PageGate pageKey="profile"><Profile /></PageGate>} />
         <Route path="/brands" element={<PageGate pageKey="brands"><Brands /></PageGate>} />
         <Route path="/brands/settings" element={<PageGate pageKey="brands_settings"><BrandSettings /></PageGate>} />
+        <Route path="/engage" element={<PageGate pageKey="engage"><Engage /></PageGate>} />
       </Route>
 
       {/* Manager or admin */}
