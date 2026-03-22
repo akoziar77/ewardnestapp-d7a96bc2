@@ -200,6 +200,12 @@ export default function Brands() {
     ).length;
   };
 
+  const expiringPointsForBrand = (brandId: string) => {
+    return expiringEntries
+      .filter((e: any) => (e.metadata as any)?.brand_id === brandId)
+      .reduce((sum: number, e: any) => sum + e.delta_points, 0);
+  };
+
   const categories = [...new Set(brands.map((b) => b.category).filter(Boolean))] as string[];
 
   const filtered = filter
