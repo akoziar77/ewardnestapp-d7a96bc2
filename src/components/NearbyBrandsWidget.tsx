@@ -33,8 +33,10 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
 }
 
 function formatDistance(meters: number): string {
-  if (meters < 1000) return `${Math.round(meters)}m`;
-  return `${(meters / 1000).toFixed(1)}km`;
+  const miles = meters / 1609.344;
+  if (miles < 0.1) return `${Math.round(meters * 3.28084)} ft`;
+  if (miles < 10) return `${miles.toFixed(1)} mi`;
+  return `${Math.round(miles)} mi`;
 }
 
 function createEmojiIcon(emoji: string) {
