@@ -55,6 +55,7 @@ export type Database = {
           milestone_points: number
           milestone_visits: number
           name: string
+          visit_expiry_months: number
         }
         Insert: {
           category?: string | null
@@ -64,6 +65,7 @@ export type Database = {
           milestone_points?: number
           milestone_visits?: number
           name: string
+          visit_expiry_months?: number
         }
         Update: {
           category?: string | null
@@ -73,6 +75,7 @@ export type Database = {
           milestone_points?: number
           milestone_visits?: number
           name?: string
+          visit_expiry_months?: number
         }
         Relationships: []
       }
@@ -110,6 +113,7 @@ export type Database = {
           balance_after: number
           created_at: string
           delta_points: number
+          expires_at: string | null
           external_txn_id: string | null
           id: string
           idempotency_key: string | null
@@ -122,6 +126,7 @@ export type Database = {
           balance_after: number
           created_at?: string
           delta_points: number
+          expires_at?: string | null
           external_txn_id?: string | null
           id?: string
           idempotency_key?: string | null
@@ -134,6 +139,7 @@ export type Database = {
           balance_after?: number
           created_at?: string
           delta_points?: number
+          expires_at?: string | null
           external_txn_id?: string | null
           id?: string
           idempotency_key?: string | null
