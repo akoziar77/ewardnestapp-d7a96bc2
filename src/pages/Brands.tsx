@@ -360,9 +360,9 @@ export default function Brands() {
         </button>
       </header>
 
-      {/* Search bar */}
-      <div className="px-6 pb-2">
-        <div className="relative">
+      {/* Search bar + sort */}
+      <div className="flex gap-2 px-6 pb-2">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
@@ -372,6 +372,18 @@ export default function Brands() {
             className="pl-9 h-9 text-sm rounded-xl bg-muted border-0 focus-visible:ring-1"
           />
         </div>
+        <button
+          onClick={() => setSortByDistance(!sortByDistance)}
+          className={`flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium transition-all active:scale-[0.96] shrink-0 ${
+            sortByDistance
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+          title="Sort by distance"
+        >
+          <Navigation className="h-3.5 w-3.5" />
+          Nearby
+        </button>
       </div>
 
       {/* Category filters */}
