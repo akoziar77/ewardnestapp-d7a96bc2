@@ -18,7 +18,7 @@ function haversineDistance(
   lat1: number, lon1: number,
   lat2: number, lon2: number
 ): number {
-  const R = 6371000; // Earth radius in meters
+  const R = 6371000;
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
@@ -28,7 +28,7 @@ function haversineDistance(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes between notifications per brand
+const COOLDOWN_MS = 30 * 60 * 1000;
 
 function getNotifiedKey(brandId: string): string {
   return `geofence_notified_${brandId}`;
@@ -46,14 +46,33 @@ function markNotified(brandId: string) {
 
 async function sendNotification(brand: BrandLocation) {
   if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
 
-  if (Notification.permission === "granted") {
-    new Notification(`${brand.logo_emoji} ${brand.name} nearby!`, {
-      body: `You're near ${brand.name}. Open the app to earn rewards!`,
-      icon: "/placeholder.svg",
-      tag: `geofence-${brand.id}`,
-    });
+  const title = `${brand.logo_emoji} ${brand.name} nearby!`;
+  const body = `You're near ${brand.name}. Open the app to earn rewards!`;
+
+  // Try service worker notification first (works in background)
+  try {
+    if ("serviceWorker" in navigator) {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(title, {
+        body,
+        icon: "/pwa-192.png",
+        badge: "/pwa-192.png",
+        tag: `geofence-${brand.id}`,
+        data: { url: `/brands?brand=${brand.id}` },
+      } as any);
+      return;
+    }
+  } catch {
+    // Fall through to regular Notification API
   }
+
+  new Notification(title, {
+    body,
+    icon: "/pwa-192.png",
+    tag: `geofence-${brand.id}`,
+  });
 }
 
 export function useGeofence() {
@@ -87,13 +106,13 @@ export function useGeofence() {
           latitude, longitude,
           brand.latitude, brand.longitude
         );
+
         const userRadius = getGeofenceRadiusMeters();
         const effectiveRadius = Math.min(brand.geofence_radius_meters, userRadius);
         const isInside = distance <= effectiveRadius;
         const wasInside = insideFencesRef.current.has(brand.id);
 
         if (isInside && !wasInside) {
-          // Entered geofence
           insideFencesRef.current.add(brand.id);
 
           if (!wasRecentlyNotified(brand.id)) {
@@ -105,7 +124,6 @@ export function useGeofence() {
             });
           }
         } else if (!isInside && wasInside) {
-          // Left geofence
           insideFencesRef.current.delete(brand.id);
         }
       }
