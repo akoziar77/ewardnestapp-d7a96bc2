@@ -41,6 +41,7 @@ import {
   FileText,
   Settings,
   Store,
+  Layout,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/hooks/useGeofence";
 import { hasFeatureAccess } from "@/lib/featureGates";
