@@ -30,6 +30,8 @@ import Pricing from "./pages/Pricing";
 import ManageTiers from "./pages/ManageTiers";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminPageAccess from "./pages/admin/AdminPageAccess";
+import AdminPrivacyPolicy from "./pages/admin/AdminPrivacyPolicy";
+import ConsentBanner from "./components/ConsentBanner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
