@@ -69,6 +69,7 @@ export default function LoyaltyConnectDialog({
   const [accessToken, setAccessToken] = useState("");
   const [memberId, setMemberId] = useState("");
   const [password, setPassword] = useState("");
+  const [pointsBalance, setPointsBalance] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleConnect = async () => {
