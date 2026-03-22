@@ -581,7 +581,7 @@ export default function Brands() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   const defaults = resetVisibleWidgetFields();
-                                  setWidgetFields(defaults);
+                                  setWidgetFieldsState(defaults);
                                   toast.success("Fields reset to defaults");
                                 }}
                                 className="text-[10px] font-medium text-primary active:scale-95 shrink-0"
