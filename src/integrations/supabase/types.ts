@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      booster_activity_log: {
+        Row: {
+          action: string
+          base_points: number
+          bonus_points: number
+          booster_id: string
+          created_at: string
+          id: string
+          total_points: number
+          user_id: string
+        }
+        Insert: {
+          action: string
+          base_points?: number
+          bonus_points?: number
+          booster_id: string
+          created_at?: string
+          id?: string
+          total_points?: number
+          user_id: string
+        }
+        Update: {
+          action?: string
+          base_points?: number
+          bonus_points?: number
+          booster_id?: string
+          created_at?: string
+          id?: string
+          total_points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_activity_log_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booster_user_targets: {
+        Row: {
+          booster_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          booster_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          booster_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_user_targets_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boosters: {
+        Row: {
+          active: boolean
+          bonus_value: number
+          brand_id: string | null
+          created_at: string
+          description: string | null
+          end_at: string | null
+          id: string
+          multiplier_value: number
+          name: string
+          required_action: string
+          required_tier: string
+          start_at: string
+          type: string
+        }
+        Insert: {
+          active?: boolean
+          bonus_value?: number
+          brand_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_at?: string | null
+          id?: string
+          multiplier_value?: number
+          name: string
+          required_action?: string
+          required_tier?: string
+          start_at?: string
+          type?: string
+        }
+        Update: {
+          active?: boolean
+          bonus_value?: number
+          brand_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_at?: string | null
+          id?: string
+          multiplier_value?: number
+          name?: string
+          required_action?: string
+          required_tier?: string
+          start_at?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boosters_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_gem_mapping: {
         Row: {
           brand_id: string
