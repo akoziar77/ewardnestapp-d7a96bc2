@@ -13,7 +13,7 @@ import {
   History, TrendingUp, UserPlus, Sparkles, Shield, Bell,
   Home, Search, Calendar, Camera, Bookmark,
   ShoppingCart, Coffee, Wallet, Music, Plane, Trophy,
-  Utensils, Ticket, Tag, Package,
+  Utensils, Ticket, Tag, Package, Rocket,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -66,6 +66,7 @@ const ICON_OPTIONS = [
   { name: "Tag", icon: Tag },
   { name: "Package", icon: Package },
   { name: "Zap", icon: Zap },
+  { name: "Rocket", icon: Rocket },
 ] as const;
 
 export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = Object.fromEntries(
