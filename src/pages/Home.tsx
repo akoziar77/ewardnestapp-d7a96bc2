@@ -124,6 +124,8 @@ export default function Home() {
     enabled: connBrandIds.length > 0,
   });
 
+  const [favChoiceBrand, setFavChoiceBrand] = useState<any | null>(null);
+
   const [loyaltyChoiceConn, setLoyaltyChoiceConn] = useState<any | null>(null);
   const totalPoints = (() => {
     if (!recentEntries?.length) return 0;
