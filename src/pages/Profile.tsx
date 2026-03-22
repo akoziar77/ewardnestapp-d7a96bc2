@@ -11,6 +11,17 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowLeft,
   User,
   Mail,
@@ -24,6 +35,7 @@ import {
   Save,
   MapPin,
   Locate,
+  Trash2,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/hooks/useGeofence";
 
