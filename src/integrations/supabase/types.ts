@@ -48,6 +48,7 @@ export type Database = {
       }
       brands: {
         Row: {
+          api_field_name: string | null
           category: string | null
           created_at: string
           id: string
@@ -61,6 +62,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          api_field_name?: string | null
           category?: string | null
           created_at?: string
           id?: string
@@ -74,6 +76,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          api_field_name?: string | null
           category?: string | null
           created_at?: string
           id?: string
