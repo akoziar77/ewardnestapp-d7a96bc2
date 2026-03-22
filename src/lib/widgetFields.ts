@@ -28,6 +28,7 @@ export interface FieldContext {
   profile: any;
   visits: BrandVisitData[];
   expiringPts: number;
+  userEmail?: string | null;
 }
 
 export interface LoyaltyFieldDef {
