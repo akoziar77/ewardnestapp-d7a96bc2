@@ -46,8 +46,8 @@ Deno.serve(async (req) => {
     }
 
     const { action } = await req.json();
-    const points = ACTION_POINTS[action];
-    if (!points) {
+    const basePoints = ACTION_POINTS[action];
+    if (!basePoints) {
       return new Response(
         JSON.stringify({ error: "invalid_action", valid_actions: Object.keys(ACTION_POINTS) }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -57,12 +57,89 @@ Deno.serve(async (req) => {
     // Get current profile
     const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("nest_points")
+      .select("nest_points, tier, challenges_completed")
       .eq("user_id", user.id)
       .single();
 
     const currentPoints = profile?.nest_points ?? 0;
-    const newPoints = currentPoints + points;
+    const userTier = profile?.tier ?? "Hatchling";
+
+    // --- Booster logic ---
+    const now = new Date().toISOString();
+
+    // Fetch active boosters within their time window
+    const { data: activeBoosters } = await supabaseAdmin
+      .from("boosters")
+      .select("*")
+      .eq("active", true)
+      .lte("start_at", now)
+      .or(`end_at.is.null,end_at.gte.${now}`);
+
+    let totalMultiplier = 1;
+    let totalBonus = 0;
+    const appliedBoosterIds: string[] = [];
+
+    for (const b of activeBoosters ?? []) {
+      // Action match
+      if (b.required_action !== "any" && b.required_action !== action) continue;
+      // Tier match
+      if (b.required_tier !== "any" && b.required_tier !== userTier) continue;
+
+      // Check user targeting (if targets exist, user must be in the list)
+      const { count } = await supabaseAdmin
+        .from("booster_user_targets")
+        .select("id", { count: "exact", head: true })
+        .eq("booster_id", b.id);
+
+      if ((count ?? 0) > 0) {
+        const { data: targeted } = await supabaseAdmin
+          .from("booster_user_targets")
+          .select("id")
+          .eq("booster_id", b.id)
+          .eq("user_id", user.id)
+          .limit(1);
+        if (!targeted || targeted.length === 0) continue;
+      }
+
+      appliedBoosterIds.push(b.id);
+
+      // Apply booster type
+      if (b.type === "multiplier") {
+        totalMultiplier *= Number(b.multiplier_value) || 1;
+      }
+      if (b.type === "flat_bonus") {
+        totalBonus += b.bonus_value || 0;
+      }
+
+      // Tier rules for this booster
+      const { data: tierRules } = await supabaseAdmin
+        .from("booster_tier_rules")
+        .select("multiplier, bonus")
+        .eq("booster_id", b.id)
+        .eq("tier", userTier);
+
+      for (const r of tierRules ?? []) {
+        if (r.multiplier && Number(r.multiplier) !== 0) totalMultiplier *= Number(r.multiplier);
+        if (r.bonus) totalBonus += r.bonus;
+      }
+
+      // Action rules for this booster
+      const { data: actionRules } = await supabaseAdmin
+        .from("booster_action_rules")
+        .select("multiplier, bonus")
+        .eq("booster_id", b.id)
+        .eq("action", action);
+
+      for (const r of actionRules ?? []) {
+        if (r.multiplier && Number(r.multiplier) !== 0) totalMultiplier *= Number(r.multiplier);
+        if (r.bonus) totalBonus += r.bonus;
+      }
+    }
+
+    // Final points calculation
+    const boostedPoints = Math.floor(basePoints * totalMultiplier) + totalBonus;
+    const bonusPoints = boostedPoints - basePoints;
+    const newPoints = currentPoints + boostedPoints;
 
     // Update nest_points
     await supabaseAdmin
@@ -74,8 +151,21 @@ Deno.serve(async (req) => {
     await supabaseAdmin.from("nest_activities").insert({
       user_id: user.id,
       type: action,
-      points,
+      points: boostedPoints,
     });
+
+    // Log booster activity for each applied booster
+    if (appliedBoosterIds.length > 0) {
+      const boosterLogs = appliedBoosterIds.map((bid) => ({
+        user_id: user.id,
+        booster_id: bid,
+        action,
+        base_points: basePoints,
+        bonus_points: bonusPoints,
+        total_points: boostedPoints,
+      }));
+      await supabaseAdmin.from("booster_activity_log").insert(boosterLogs);
+    }
 
     // Update tier
     let tier = "Hatchling";
@@ -113,12 +203,11 @@ Deno.serve(async (req) => {
 
         if (isComplete) {
           completedChallenges.push(uc.challenge_id);
-          // Award challenge bonus
           await supabaseAdmin
             .from("profiles")
             .update({
               nest_points: newPoints + ch.reward_points,
-              challenges_completed: (profile as any)?.challenges_completed + 1 || 1,
+              challenges_completed: (profile?.challenges_completed ?? 0) + 1,
             })
             .eq("user_id", user.id);
         }
@@ -128,7 +217,10 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        pointsAwarded: points,
+        basePoints,
+        boostedPoints,
+        bonus: bonusPoints,
+        appliedBoosters: appliedBoosterIds.length,
         newTotal: newPoints,
         tier,
         completedChallenges,
