@@ -12,6 +12,8 @@ import {
   QrCode, Gift, Store, Clock, Heart, MapPin, Star, Settings,
   History, TrendingUp, UserPlus, Sparkles, Shield, Bell,
   Home, Search, Calendar, Camera, Bookmark,
+  ShoppingCart, Coffee, Wallet, Music, Plane, Trophy,
+  Utensils, Ticket, Tag, Package,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -44,6 +46,16 @@ const ICON_OPTIONS = [
   { name: "Calendar", icon: Calendar },
   { name: "Camera", icon: Camera },
   { name: "Bookmark", icon: Bookmark },
+  { name: "ShoppingCart", icon: ShoppingCart },
+  { name: "Coffee", icon: Coffee },
+  { name: "Wallet", icon: Wallet },
+  { name: "Music", icon: Music },
+  { name: "Plane", icon: Plane },
+  { name: "Trophy", icon: Trophy },
+  { name: "Utensils", icon: Utensils },
+  { name: "Ticket", icon: Ticket },
+  { name: "Tag", icon: Tag },
+  { name: "Package", icon: Package },
   { name: "Zap", icon: Zap },
 ] as const;
 
