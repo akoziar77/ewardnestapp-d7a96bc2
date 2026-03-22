@@ -203,6 +203,42 @@ export type Database = {
         }
         Relationships: []
       }
+      challenges: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          icon_name: string
+          id: string
+          name: string
+          requirement: number
+          reward_points: number
+          type: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          icon_name?: string
+          id?: string
+          name: string
+          requirement?: number
+          reward_points?: number
+          type?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          icon_name?: string
+          id?: string
+          name?: string
+          requirement?: number
+          reward_points?: number
+          type?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -634,6 +670,30 @@ export type Database = {
         }
         Relationships: []
       }
+      nest_activities: {
+        Row: {
+          created_at: string
+          id: string
+          points: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points?: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding_steps: {
         Row: {
           active: boolean
@@ -728,13 +788,18 @@ export type Database = {
         Row: {
           address: string | null
           avatar_url: string | null
+          challenges_completed: number
           city: string | null
           created_at: string
           display_name: string | null
           id: string
+          last_check_in: string | null
+          nest_points: number
           onboarding_completed: boolean
           phone: string | null
           state: string | null
+          streak_count: number
+          tier: string
           updated_at: string
           user_id: string
           zip_code: string | null
@@ -742,13 +807,18 @@ export type Database = {
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          challenges_completed?: number
           city?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          last_check_in?: string | null
+          nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
           state?: string | null
+          streak_count?: number
+          tier?: string
           updated_at?: string
           user_id: string
           zip_code?: string | null
@@ -756,13 +826,18 @@ export type Database = {
         Update: {
           address?: string | null
           avatar_url?: string | null
+          challenges_completed?: number
           city?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          last_check_in?: string | null
+          nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
           state?: string | null
+          streak_count?: number
+          tier?: string
           updated_at?: string
           user_id?: string
           zip_code?: string | null
@@ -1043,6 +1118,44 @@ export type Database = {
             columns: ["tier_id"]
             isOneToOne: false
             referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_challenges: {
+        Row: {
+          challenge_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          progress: number
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: number
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenges_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
             referencedColumns: ["id"]
           },
         ]
