@@ -21,6 +21,7 @@ import MerchantRewards from "./pages/merchant/MerchantRewards";
 import MerchantRedemptions from "./pages/merchant/MerchantRedemptions";
 import MerchantQR from "./pages/merchant/MerchantQR";
 import MerchantOnboarding from "./pages/merchant/MerchantOnboarding";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/brands" element={<Brands />} />
             <Route path="/brands/settings" element={<BrandSettings />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/merchant/login" element={<MerchantLogin />} />
             <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
             <Route path="/merchant" element={<MerchantLayout />}>
