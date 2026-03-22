@@ -99,6 +99,16 @@ export default function Brands() {
     enabled: !!user,
   });
 
+  // Scroll to brand from query param once brands are loaded
+  useEffect(() => {
+    const brandParam = searchParams.get("brand");
+    if (!brandParam || scrolledToParam.current || !brands.length) return;
+    scrolledToParam.current = true;
+    setTimeout(() => {
+      brandCardRefs.current[brandParam]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+  }, [searchParams, brands]);
+
   const { data: visits = [] } = useQuery({
     queryKey: ["brand-visits", user?.id],
     queryFn: async () => {
