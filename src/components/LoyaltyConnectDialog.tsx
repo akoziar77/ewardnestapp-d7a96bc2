@@ -258,17 +258,44 @@ export default function LoyaltyConnectDialog({
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Program name *
+                Loyalty program *
               </Label>
-              <div className="relative">
-                <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={providerName}
-                  onChange={(e) => setProviderName(e.target.value)}
-                  placeholder="e.g. Starbucks Rewards"
-                  className="pl-10"
-                />
-              </div>
+              <Select
+                value={providerName}
+                onValueChange={(val) => {
+                  setProviderName(val);
+                  if (val !== "__custom__") {
+                    const preset = LOYALTY_PRESETS.find((p) => p.name === val);
+                    if (preset) setApiEndpoint(preset.endpoint);
+                  } else {
+                    setProviderName("");
+                    setApiEndpoint("");
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a program…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOYALTY_PRESETS.map((p) => (
+                    <SelectItem key={p.name} value={p.name}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__custom__">Other (custom)</SelectItem>
+                </SelectContent>
+              </Select>
+              {providerName === "" && (
+                <div className="relative">
+                  <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={providerName}
+                    onChange={(e) => setProviderName(e.target.value)}
+                    placeholder="Enter program name"
+                    className="pl-10"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
