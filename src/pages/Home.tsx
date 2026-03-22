@@ -3,11 +3,11 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bird, QrCode, Gift, LogOut, TrendingUp, History } from "lucide-react";
+import { QrCode, Gift, TrendingUp, History, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -63,10 +63,10 @@ export default function Home() {
           <h1 className="text-xl font-bold tracking-tight">{greeting}</h1>
         </div>
         <button
-          onClick={signOut}
+          onClick={() => navigate("/profile")}
           className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors hover:text-foreground active:scale-95"
         >
-          <LogOut className="h-5 w-5" />
+          <UserCircle className="h-5 w-5" />
         </button>
       </header>
 

@@ -10,6 +10,7 @@ import Onboarding from "./pages/Onboarding";
 import Scan from "./pages/Scan";
 import Rewards from "./pages/Rewards";
 import History from "./pages/History";
+import Profile from "./pages/Profile";
 import MerchantLogin from "./pages/merchant/MerchantLogin";
 import MerchantLayout from "./pages/merchant/MerchantLayout";
 import MerchantOverview from "./pages/merchant/MerchantOverview";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/scan" element={<Scan />} />
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/history" element={<History />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/merchant/login" element={<MerchantLogin />} />
             <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
             <Route path="/merchant" element={<MerchantLayout />}>
