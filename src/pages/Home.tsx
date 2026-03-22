@@ -37,6 +37,11 @@ export default function Home() {
   const [widgetLayout, setWidgetLayout] = useState<HomeWidget[]>(getWidgetLayout);
   const [editorOpen, setEditorOpen] = useState(false);
 
+  // Activate geofence monitoring when enabled in settings
+  const geofenceActive = typeof window !== "undefined" && localStorage.getItem("geofence_enabled") === "true";
+  useGeofence();
+
+
   const handleSaveLayout = (widgets: HomeWidget[]) => {
     setWidgetLayout(widgets);
     saveWidgetLayout(widgets);
