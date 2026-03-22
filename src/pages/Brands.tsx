@@ -151,11 +151,36 @@ export default function Brands() {
 
   if (loading || !user) return null;
 
-  const visitCountForBrand = (brandId: string) =>
-    visits.filter((v) => v.brand_id === brandId).length;
+  const getExpiryDate = (brand: Brand) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - brand.visit_expiry_months);
+    return d;
+  };
 
-  const visitsForBrand = (brandId: string) =>
-    visits.filter((v) => v.brand_id === brandId);
+  const visitCountForBrand = (brandId: string) => {
+    const brand = brands.find((b) => b.id === brandId);
+    if (!brand) return 0;
+    const cutoff = getExpiryDate(brand);
+    return visits.filter((v) => v.brand_id === brandId && new Date(v.created_at) > cutoff).length;
+  };
+
+  const visitsForBrand = (brandId: string) => {
+    const brand = brands.find((b) => b.id === brandId);
+    if (!brand) return visits.filter((v) => v.brand_id === brandId);
+    const cutoff = getExpiryDate(brand);
+    return visits.filter((v) => v.brand_id === brandId && new Date(v.created_at) > cutoff);
+  };
+
+  const expiringVisitsNextMonth = (brandId: string) => {
+    const brand = brands.find((b) => b.id === brandId);
+    if (!brand) return 0;
+    const cutoff = getExpiryDate(brand);
+    const nextMonthCutoff = new Date(cutoff);
+    nextMonthCutoff.setMonth(nextMonthCutoff.getMonth() + 1);
+    return visits.filter(
+      (v) => v.brand_id === brandId && new Date(v.created_at) > cutoff && new Date(v.created_at) <= nextMonthCutoff
+    ).length;
+  };
 
   const categories = [...new Set(brands.map((b) => b.category).filter(Boolean))] as string[];
 
