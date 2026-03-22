@@ -27,6 +27,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import ManageTiers from "./pages/ManageTiers";
 import AdminRoles from "./pages/admin/AdminRoles";
+import AdminPageAccess from "./pages/admin/AdminPageAccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ function AppRoutes() {
       {/* Admin only */}
       <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} />}>
         <Route path="/admin/roles" element={<AdminRoles />} />
+        <Route path="/admin/page-access" element={<AdminPageAccess />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

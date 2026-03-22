@@ -634,6 +634,30 @@ export type Database = {
         }
         Relationships: []
       }
+      page_access: {
+        Row: {
+          allowed: boolean
+          id: string
+          page_key: string
+          page_label: string
+          role_name: string
+        }
+        Insert: {
+          allowed?: boolean
+          id?: string
+          page_key: string
+          page_label: string
+          role_name: string
+        }
+        Update: {
+          allowed?: boolean
+          id?: string
+          page_key?: string
+          page_label?: string
+          role_name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
