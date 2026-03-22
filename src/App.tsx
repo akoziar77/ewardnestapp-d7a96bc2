@@ -73,6 +73,7 @@ function AppRoutes() {
       {/* Admin only */}
       <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} />}>
         <Route path="/admin/roles" element={<AdminRoles />} />
+        <Route path="/admin/page-access" element={<AdminPageAccess />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
