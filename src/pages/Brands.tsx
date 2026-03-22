@@ -27,6 +27,7 @@ interface Brand {
   milestone_visits: number;
   milestone_points: number;
   visit_expiry_months: number;
+  website_url: string | null;
 }
 
 interface BrandVisit {
