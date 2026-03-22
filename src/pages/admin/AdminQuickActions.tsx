@@ -66,6 +66,7 @@ const ICON_OPTIONS = [
   { name: "Tag", icon: Tag },
   { name: "Package", icon: Package },
   { name: "Zap", icon: Zap },
+  { name: "Rocket", icon: Rocket },
 ] as const;
 
 export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = Object.fromEntries(
