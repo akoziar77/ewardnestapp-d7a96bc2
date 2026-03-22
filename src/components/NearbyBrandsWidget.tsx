@@ -76,7 +76,8 @@ export default function NearbyBrandsWidget() {
         .slice(0, 5)
     : [];
 
-  const isInRange = (b: BrandWithDistance) => b.distance <= b.geofence_radius_meters;
+  const userRadiusM = getGeofenceRadiusMeters();
+  const isInRange = (b: BrandWithDistance) => b.distance <= Math.min(b.geofence_radius_meters, userRadiusM);
 
   if (locationDenied) {
     return (
