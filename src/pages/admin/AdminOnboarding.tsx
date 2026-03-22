@@ -19,8 +19,9 @@ import {
 import {
   ArrowLeft, Plus, GripVertical, Pencil, Trash2, ArrowUp, ArrowDown,
   Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
-  Trophy, Crown, Flame, Target, Rocket, type LucideIcon,
+  Trophy, Crown, Flame, Target, Rocket, Eye, EyeOff, type LucideIcon,
 } from "lucide-react";
+import OnboardingStepPreview from "@/components/onboarding/OnboardingStepPreview";
 
 /* ── icon registry ─────────────────────────────────────── */
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -72,6 +73,8 @@ export default function AdminOnboarding() {
   const [editing, setEditing] = useState<OnboardingStep | null>(null);
   const [deleting, setDeleting] = useState<OnboardingStep | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   /* ── queries ── */
   const { data: steps = [], isLoading } = useQuery({
@@ -191,71 +194,87 @@ export default function AdminOnboarding() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-lg font-semibold flex-1">Onboarding Flow</h1>
+        <Button variant="outline" size="sm" onClick={() => setShowPreview((v) => !v)}>
+          {showPreview ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
+          {showPreview ? "Hide Preview" : "Preview"}
+        </Button>
         <Button size="sm" onClick={openNew}>
           <Plus className="h-4 w-4 mr-1" /> Add Step
         </Button>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4 space-y-3">
-        {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-xl" />
-            ))
-          : steps.map((step, idx) => {
-              const Icon = ICON_MAP[step.icon_name] ?? Sparkles;
-              return (
-                <div
-                  key={step.id}
-                  className={`flex items-center gap-3 rounded-xl border p-4 transition-opacity ${
-                    !step.active ? "opacity-50" : ""
-                  }`}
-                >
-                  <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+      <div className={`max-w-6xl mx-auto p-4 ${showPreview ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : ""}`}>
+        {/* Steps list */}
+        <div className="space-y-3">
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))
+            : steps.map((step, idx) => {
+                const Icon = ICON_MAP[step.icon_name] ?? Sparkles;
+                const activeSteps = steps.filter((s) => s.active);
+                const activeIdx = activeSteps.findIndex((s) => s.id === step.id);
+                return (
+                  <div
+                    key={step.id}
+                    className={`flex items-center gap-3 rounded-xl border p-4 transition-all cursor-pointer ${
+                      !step.active ? "opacity-50" : ""
+                    } ${showPreview && activeIdx === previewIndex && step.active ? "ring-2 ring-primary" : ""}`}
+                    onClick={() => {
+                      if (step.active && activeIdx >= 0) setPreviewIndex(activeIdx);
+                    }}
+                  >
+                    <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
 
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${step.color_class}`}>
-                    <Icon className="h-5 w-5 text-primary-foreground" />
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${step.color_class}`}>
+                      <Icon className="h-5 w-5 text-primary-foreground" />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{step.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{step.step_type} · order {step.sort_order}</p>
+                    </div>
+
+                    <Switch
+                      checked={step.active}
+                      onCheckedChange={(v) => toggleActive.mutate({ id: step.id, active: v })}
+                      className="shrink-0"
+                    />
+
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled={idx === 0}
+                        onClick={(e) => { e.stopPropagation(); reorder.mutate({ id: step.id, direction: "up" }); }}>
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled={idx === steps.length - 1}
+                        onClick={(e) => { e.stopPropagation(); reorder.mutate({ id: step.id, direction: "down" }); }}>
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8"
+                        onClick={(e) => { e.stopPropagation(); openEdit(step); }}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setDeleting(step); }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
+                );
+              })}
+        </div>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{step.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">{step.step_type} · order {step.sort_order}</p>
-                  </div>
-
-                  <Switch
-                    checked={step.active}
-                    onCheckedChange={(v) => toggleActive.mutate({ id: step.id, active: v })}
-                    className="shrink-0"
-                  />
-
-                  <div className="flex gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      disabled={idx === 0}
-                      onClick={() => reorder.mutate({ id: step.id, direction: "up" })}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      disabled={idx === steps.length - 1}
-                      onClick={() => reorder.mutate({ id: step.id, direction: "down" })}
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(step)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleting(step)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Live preview */}
+        {showPreview && (
+          <div className="sticky top-20 self-start">
+            <p className="text-sm font-medium text-muted-foreground mb-3 text-center">Live Preview</p>
+            <OnboardingStepPreview
+              steps={steps}
+              selectedIndex={previewIndex}
+              onSelectIndex={setPreviewIndex}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── edit / create dialog ── */}
