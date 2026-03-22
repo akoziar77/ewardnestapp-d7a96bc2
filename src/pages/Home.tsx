@@ -289,7 +289,15 @@ export default function Home() {
               return (
                 <button
                   key={brand.id}
-                  onClick={() => navigate("/brands")}
+                  onClick={() => {
+                    if (brand.loyalty_api_url) {
+                      window.open(brand.loyalty_api_url, "_blank", "noopener");
+                    } else if (brand.website_url) {
+                      window.open(brand.website_url, "_blank", "noopener");
+                    } else {
+                      navigate("/brands");
+                    }
+                  }}
                   className="flex shrink-0 w-32 flex-col items-center gap-1.5 rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm active:scale-[0.96]"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl">
