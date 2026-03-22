@@ -145,6 +145,8 @@ export default function Home() {
 
   const [favChoiceBrand, setFavChoiceBrand] = useState<any | null>(null);
   const [loyaltyChoiceConn, setLoyaltyChoiceConn] = useState<any | null>(null);
+  const [editingBrandFields, setEditingBrandFields] = useState<string | null>(null); // brandId being edited
+  const [brandFieldDraft, setBrandFieldDraft] = useState<string[]>([]);
 
   const totalPoints = (() => {
     if (!recentEntries?.length) return 0;
