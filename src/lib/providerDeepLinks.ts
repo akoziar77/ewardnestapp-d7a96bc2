@@ -255,6 +255,119 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     webUrl: "https://www.amctheatres.com/amcstubs",
     appName: "AMC Theatres",
   },
+
+  // ── Rideshare & Delivery ───────────────────────────
+  "uber rewards": {
+    iosScheme: "uber://",
+    appStoreUrl: "https://apps.apple.com/app/uber-request-a-ride/id368677368",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.ubercab",
+    webUrl: "https://www.uber.com/us/en/u/rewards/",
+    appName: "Uber",
+  },
+  "uber one": {
+    iosScheme: "uber://",
+    appStoreUrl: "https://apps.apple.com/app/uber-request-a-ride/id368677368",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.ubercab",
+    webUrl: "https://www.uber.com/us/en/u/uber-one/",
+    appName: "Uber",
+  },
+  "lyft rewards": {
+    iosScheme: "lyft://",
+    appStoreUrl: "https://apps.apple.com/app/lyft/id529379082",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=me.lyft.android",
+    webUrl: "https://www.lyft.com/rider/rewards",
+    appName: "Lyft",
+  },
+  "doordash rewards": {
+    appStoreUrl: "https://apps.apple.com/app/doordash-food-delivery/id719972451",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.dd.doordash",
+    webUrl: "https://www.doordash.com/consumer/rewards/",
+    appName: "DoorDash",
+  },
+  "dashpass": {
+    appStoreUrl: "https://apps.apple.com/app/doordash-food-delivery/id719972451",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.dd.doordash",
+    webUrl: "https://www.doordash.com/dashpass/",
+    appName: "DoorDash",
+  },
+  "grubhub+": {
+    appStoreUrl: "https://apps.apple.com/app/grubhub-food-delivery/id302920553",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.grubhub.android",
+    webUrl: "https://www.grubhub.com/plus",
+    appName: "Grubhub",
+  },
+  "instacart+": {
+    appStoreUrl: "https://apps.apple.com/app/instacart-grocery-delivery/id545599256",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.instacart.client",
+    webUrl: "https://www.instacart.com/instacart-plus",
+    appName: "Instacart",
+  },
+
+  // ── Fitness & Wellness ─────────────────────────────
+  "planet fitness black card": {
+    appStoreUrl: "https://apps.apple.com/app/planet-fitness-workouts/id399857015",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.planetfitness.home",
+    webUrl: "https://www.planetfitness.com/upgrade",
+    appName: "Planet Fitness",
+  },
+
+  // ── Streaming & Subscriptions ──────────────────────
+  "costco membership": {
+    appStoreUrl: "https://apps.apple.com/app/costco/id535509415",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.costco.app.android",
+    webUrl: "https://www.costco.com/join-costco.html",
+    appName: "Costco",
+  },
+  "amazon prime": {
+    appStoreUrl: "https://apps.apple.com/app/amazon-shopping/id297606951",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.amazon.mShop.android.shopping",
+    webUrl: "https://www.amazon.com/amazonprime",
+    appName: "Amazon",
+  },
+  "sam's club membership": {
+    appStoreUrl: "https://apps.apple.com/app/sams-club/id397538465",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.rfi.sams.android",
+    webUrl: "https://www.samsclub.com/join",
+    appName: "Sam's Club",
+  },
+
+  // ── More Dining ────────────────────────────────────
+  "subway mvp rewards": {
+    appStoreUrl: "https://apps.apple.com/app/subway/id901329000",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.subway.mobile.subwayapp03",
+    webUrl: "https://www.subway.com/en-us/menunutrition/rewards",
+    appName: "Subway",
+  },
+  "wendy's rewards": {
+    appStoreUrl: "https://apps.apple.com/app/wendys/id540518599",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.wendys.nutritiontool",
+    webUrl: "https://www.wendys.com/rewards",
+    appName: "Wendy's",
+  },
+  "taco bell rewards": {
+    appStoreUrl: "https://apps.apple.com/app/taco-bell-fast-food-delivery/id497387361",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.tacobell.ordering",
+    webUrl: "https://www.tacobell.com/rewards",
+    appName: "Taco Bell",
+  },
+  "popeyes rewards": {
+    appStoreUrl: "https://apps.apple.com/app/popeyes/id1481aborr665283",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.popeyes.ordering",
+    webUrl: "https://www.popeyes.com/rewards",
+    appName: "Popeyes",
+  },
+  "papa johns rewards": {
+    appStoreUrl: "https://apps.apple.com/app/papa-johns-pizza-delivery/id340930606",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.papajohns",
+    webUrl: "https://www.papajohns.com/rewards",
+    appName: "Papa Johns",
+  },
+  "pizza hut rewards": {
+    appStoreUrl: "https://apps.apple.com/app/pizza-hut-delivery-takeout/id321438666",
+    playStoreUrl: "https://play.google.com/store/apps/details?id=com.pizzahut.consumer.phoenix",
+    webUrl: "https://www.pizzahut.com/hut-rewards.html",
+    appName: "Pizza Hut",
+  },
 };
 
 /**
