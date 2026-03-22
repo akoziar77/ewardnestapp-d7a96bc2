@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +8,11 @@ import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { getVisibleWidgetFields } from "@/lib/widgetFields";
+import {
+  LOYALTY_API_FIELDS,
+  getVisibleWidgetFields,
+  type FieldContext,
+} from "@/lib/widgetFields";
 import { getWidgetLayout, saveWidgetLayout, type HomeWidget } from "@/lib/homeWidgets";
 import HomeWidgetEditor from "@/components/HomeWidgetEditor";
 import {
@@ -80,14 +84,14 @@ export default function Home() {
     queryFn: async () => {
       const { data } = await supabase
         .from("brand_visits")
-        .select("brand_id, created_at")
-        .eq("user_id", user!.id);
+        .select("id, brand_id, notes, created_at")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
     enabled: !!user,
   });
 
-  // Fetch ledger entries expiring within next 30 days per brand
   const { data: expiringEntries = [] } = useQuery({
     queryKey: ["expiring-points", user?.id],
     queryFn: async () => {
@@ -106,13 +110,12 @@ export default function Home() {
     enabled: !!user,
   });
 
-  // Fetch external loyalty connections for aggregated external points
   const { data: loyaltyConnections = [] } = useQuery({
     queryKey: ["external-loyalty-home", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("external_loyalty_connections" as any)
-        .select("external_points_balance, provider_name, brand_id")
+        .select("*")
         .eq("user_id", user!.id)
         .eq("status", "connected");
       return (data ?? []) as any[];
@@ -120,7 +123,6 @@ export default function Home() {
     enabled: !!user,
   });
 
-  // Fetch brand details for loyalty connections (to get loyalty_api_url)
   const connBrandIds = loyaltyConnections.map((c: any) => c.brand_id);
   const { data: connBrands = [] } = useQuery({
     queryKey: ["conn-brands", connBrandIds],
@@ -135,8 +137,8 @@ export default function Home() {
   });
 
   const [favChoiceBrand, setFavChoiceBrand] = useState<any | null>(null);
-
   const [loyaltyChoiceConn, setLoyaltyChoiceConn] = useState<any | null>(null);
+
   const totalPoints = (() => {
     if (!recentEntries?.length) return 0;
     const merchantBalances = new Map<string, number>();
@@ -168,13 +170,30 @@ export default function Home() {
     ).length;
   };
 
+  const visitsForBrand = (brandId: string) => {
+    const brand = favoriteBrands.find((b: any) => b.id === brandId);
+    const expiryMonths = brand?.visit_expiry_months ?? 6;
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - expiryMonths);
+    return brandVisits.filter(
+      (v: any) => v.brand_id === brandId && new Date(v.created_at) > cutoff
+    );
+  };
+
   const expiringPointsForBrand = (brandId: string) => {
     return expiringEntries
       .filter((e: any) => (e.metadata as any)?.brand_id === brandId)
       .reduce((sum: number, e: any) => sum + e.delta_points, 0);
   };
 
-  // Show toast notification for expiring points (once per session)
+  // Build field context for a brand
+  const buildFieldContext = (brand: any): FieldContext => {
+    const conn = loyaltyConnections.find((c: any) => c.brand_id === brand.id);
+    const bVisits = visitsForBrand(brand.id);
+    const exPts = expiringPointsForBrand(brand.id);
+    return { brand, conn, profile, visits: bVisits, expiringPts: exPts };
+  };
+
   const toastShown = useRef(false);
   useEffect(() => {
     if (toastShown.current || expiringEntries.length === 0) return;
@@ -329,12 +348,14 @@ export default function Home() {
                 </div>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                   {favoriteBrands.map((brand: any) => {
+                    const visibleFields = getVisibleWidgetFields();
+                    const ctx = buildFieldContext(brand);
                     const count = visitCountForBrand(brand.id);
                     const progress = Math.min((count / brand.milestone_visits) * 100, 100);
-                    const expPts = expiringPointsForBrand(brand.id);
-                    const extConn = loyaltyConnections.find((c: any) => c.brand_id === brand.id);
-                    const extPts = extConn?.external_points_balance ?? 0;
-                    const visibleFields = getVisibleWidgetFields();
+
+                    // Get fields to render on widget
+                    const fieldsToRender = LOYALTY_API_FIELDS.filter((f) => visibleFields.includes(f.key));
+
                     return (
                       <button
                         key={brand.id}
@@ -350,40 +371,39 @@ export default function Home() {
                         <p className="text-xs font-semibold w-full text-center break-words line-clamp-2">
                           {brand.name}
                         </p>
-                        {visibleFields.includes("category") && (
-                          <p className="text-[10px] text-muted-foreground">{brand.category || "No category"}</p>
-                        )}
-                        {visibleFields.includes("progress") && (
-                          <>
-                            <Progress value={progress} className="h-1 w-full" />
-                            <p className="text-[10px] tabular-nums text-muted-foreground">{count}/{brand.milestone_visits}</p>
-                          </>
-                        )}
-                        {visibleFields.includes("milestonePoints") && (
-                          <p className="text-[10px] font-semibold text-primary">{brand.milestone_points} pts</p>
-                        )}
-                        {visibleFields.includes("loyaltyProvider") && (
-                          <p className="text-[10px] text-muted-foreground truncate w-full text-center">{brand.loyalty_provider || "Not connected"}</p>
-                        )}
-                        {visibleFields.includes("visitExpiry") && (
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <CalendarClock className="h-2.5 w-2.5" />{brand.visit_expiry_months}mo expiry
-                          </p>
-                        )}
-                        {visibleFields.includes("websiteLink") && (
-                          <p className="text-[10px] text-primary flex items-center gap-0.5">
-                            <Globe className="h-2.5 w-2.5" />{brand.website_url ? "Website" : "No website"}
-                          </p>
-                        )}
-                        {visibleFields.includes("externalPoints") && (
-                          <p className="text-[10px] font-medium text-foreground/70 flex items-center gap-0.5">
-                            <Link2 className="h-2.5 w-2.5" />{extPts > 0 ? extPts.toLocaleString() : "0"} pts
-                          </p>
-                        )}
-                        {visibleFields.includes("expiringPoints") && (
-                          <p className="text-[9px] font-medium text-muted-foreground leading-tight text-center">
-                            {expPts > 0 ? <span className="text-destructive">⚠ {expPts} pts expiring soon</span> : "No expiring pts"}
-                          </p>
+
+                        {/* Render selected fields dynamically */}
+                        {fieldsToRender.length > 0 ? (
+                          fieldsToRender.map((field) => {
+                            const val = field.getValue(ctx);
+                            // Special rendering for progress
+                            if (field.key === "progress") {
+                              return (
+                                <div key={field.key} className="w-full">
+                                  <Progress value={progress} className="h-1 w-full" />
+                                  <p className="text-[10px] tabular-nums text-muted-foreground text-center mt-0.5">
+                                    {count}/{brand.milestone_visits}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            // Special rendering for expiring points
+                            if (field.key === "expiringPoints") {
+                              const expPts = ctx.expiringPts;
+                              return (
+                                <p key={field.key} className="text-[9px] font-medium text-muted-foreground leading-tight text-center">
+                                  {expPts > 0 ? <span className="text-destructive">⚠ {expPts} pts expiring</span> : "No expiring pts"}
+                                </p>
+                              );
+                            }
+                            return (
+                              <p key={field.key} className="text-[10px] text-muted-foreground truncate w-full text-center">
+                                {val != null && val !== "" ? String(val) : "—"}
+                              </p>
+                            );
+                          })
+                        ) : (
+                          <p className="text-[10px] text-muted-foreground/60 italic">No fields selected</p>
                         )}
                       </button>
                     );
@@ -427,6 +447,8 @@ export default function Home() {
             return null;
         }
       })}
+
+      {/* Loyalty choice dialog */}
       <Dialog open={!!loyaltyChoiceConn} onOpenChange={(open) => !open && setLoyaltyChoiceConn(null)}>
         <DialogContent className="max-w-xs rounded-2xl">
           <DialogHeader>
@@ -489,64 +511,27 @@ export default function Home() {
             </DialogTitle>
           </DialogHeader>
 
-          {/* Show currently displayed widget fields */}
+          {/* Show selected API fields */}
           {favChoiceBrand && (() => {
             const visibleFields = getVisibleWidgetFields();
-            const count = visitCountForBrand(favChoiceBrand.id);
-            const extConn = loyaltyConnections.find((c: any) => c.brand_id === favChoiceBrand.id);
-            const extPts = extConn?.external_points_balance ?? 0;
-            const expPts = expiringPointsForBrand(favChoiceBrand.id);
+            const ctx = buildFieldContext(favChoiceBrand);
+            const fieldsToShow = LOYALTY_API_FIELDS.filter((f) => visibleFields.includes(f.key));
             return (
               <div className="space-y-1.5 rounded-xl bg-muted/50 p-3 text-xs">
-                {visibleFields.includes("category") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Category</span>
-                    <span className="font-medium">{favChoiceBrand.category || "—"}</span>
-                  </div>
-                )}
-                {visibleFields.includes("progress") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Visits</span>
-                    <span className="font-medium tabular-nums">{count}/{favChoiceBrand.milestone_visits}</span>
-                  </div>
-                )}
-                {visibleFields.includes("milestonePoints") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Milestone</span>
-                    <span className="font-medium tabular-nums">{favChoiceBrand.milestone_points} pts</span>
-                  </div>
-                )}
-                {visibleFields.includes("loyaltyProvider") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Program</span>
-                    <span className="font-medium">{favChoiceBrand.loyalty_provider || "—"}</span>
-                  </div>
-                )}
-                {visibleFields.includes("visitExpiry") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Visit expiry</span>
-                    <span className="font-medium">{favChoiceBrand.visit_expiry_months}mo</span>
-                  </div>
-                )}
-                {visibleFields.includes("externalPoints") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">External pts</span>
-                    <span className="font-medium tabular-nums">{extPts > 0 ? extPts.toLocaleString() : "0"}</span>
-                  </div>
-                )}
-                {visibleFields.includes("expiringPoints") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Expiring</span>
-                    <span className={`font-medium tabular-nums ${expPts > 0 ? "text-destructive" : ""}`}>{expPts > 0 ? `${expPts} pts` : "—"}</span>
-                  </div>
-                )}
-                {visibleFields.includes("websiteLink") && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Website</span>
-                    <span className="font-medium">{favChoiceBrand.website_url ? "Available" : "—"}</span>
-                  </div>
-                )}
-                {visibleFields.length === 0 && (
+                {fieldsToShow.length > 0 ? (
+                  fieldsToShow.map((field) => {
+                    const val = field.getValue(ctx);
+                    const isExpiring = field.key === "expiringPoints";
+                    return (
+                      <div key={field.key} className="flex justify-between">
+                        <span className="text-muted-foreground">{field.label}</span>
+                        <span className={`font-medium tabular-nums ${isExpiring && ctx.expiringPts > 0 ? "text-destructive" : ""}`}>
+                          {val != null && val !== "" ? String(val) : "—"}
+                        </span>
+                      </div>
+                    );
+                  })
+                ) : (
                   <p className="text-muted-foreground text-center py-1">No fields selected — toggle fields in brand settings</p>
                 )}
               </div>
