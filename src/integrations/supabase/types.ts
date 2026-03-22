@@ -14,7 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ledger_entries: {
+        Row: {
+          balance_after: number
+          created_at: string
+          delta_points: number
+          external_txn_id: string | null
+          id: string
+          idempotency_key: string | null
+          merchant_id: string
+          metadata: Json | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string
+          delta_points: number
+          external_txn_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          merchant_id: string
+          metadata?: Json | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          delta_points?: number
+          external_txn_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          merchant_id?: string
+          metadata?: Json | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merchants: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          provider: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          provider?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          provider?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          onboarding_completed: boolean
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rewards: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          inventory: number | null
+          merchant_id: string
+          points_cost: number
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          inventory?: number | null
+          merchant_id: string
+          points_cost: number
+          title: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          inventory?: number | null
+          merchant_id?: string
+          points_cost?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_merchants: {
+        Row: {
+          id: string
+          linked_at: string
+          merchant_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          linked_at?: string
+          merchant_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          linked_at?: string
+          merchant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_merchants_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
