@@ -122,6 +122,24 @@ export default function Home() {
       .reduce((sum: number, e: any) => sum + e.delta_points, 0);
   };
 
+  // Show toast notification for expiring points (once per session)
+  const toastShown = useRef(false);
+  useEffect(() => {
+    if (toastShown.current || expiringEntries.length === 0) return;
+    const totalExpiring = expiringEntries.reduce((sum: number, e: any) => sum + e.delta_points, 0);
+    if (totalExpiring > 0) {
+      toastShown.current = true;
+      toast.warning(`⏰ ${totalExpiring} points expiring in the next 30 days`, {
+        description: "Visit your favorite brands to earn more before they expire!",
+        duration: 8000,
+        action: {
+          label: "View Brands",
+          onClick: () => navigate("/brands"),
+        },
+      });
+    }
+  }, [expiringEntries, navigate]);
+
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
       {/* Header */}
