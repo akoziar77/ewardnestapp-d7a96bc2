@@ -470,6 +470,43 @@ export default function Profile() {
             <LogOut className="h-5 w-5" />
             <span className="text-sm font-semibold">Sign out</span>
           </button>
+
+          {/* Delete account */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98]">
+                <Trash2 className="h-5 w-5" />
+                <span className="text-sm font-semibold">Delete account</span>
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action is permanent and cannot be undone. All your data, visits, rewards, and connections will be deleted.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={async () => {
+                    try {
+                      const { error } = await supabase.functions.invoke("delete-account");
+                      if (error) throw error;
+                      await signOut();
+                      navigate("/auth", { replace: true });
+                      toast.success("Account deleted");
+                    } catch {
+                      toast.error("Failed to delete account");
+                    }
+                  }}
+                >
+                  Delete permanently
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
 

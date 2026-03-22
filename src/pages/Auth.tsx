@@ -148,15 +148,39 @@ export default function Auth() {
           </div>
 
           {!isSignUp && (
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(!!checked)}
-              />
-              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                Remember me
-              </Label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(!!checked)}
+                />
+                <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                  Remember me
+                </Label>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email.trim()) {
+                    toast({ title: "Enter your email first", variant: "destructive" });
+                    return;
+                  }
+                  setLoading(true);
+                  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  setLoading(false);
+                  if (error) {
+                    toast({ title: "Error", description: error.message, variant: "destructive" });
+                  } else {
+                    toast({ title: "Check your email", description: "We sent a password reset link." });
+                  }
+                }}
+                className="text-xs font-medium text-primary hover:underline underline-offset-4"
+              >
+                Forgot password?
+              </button>
             </div>
           )}
 
