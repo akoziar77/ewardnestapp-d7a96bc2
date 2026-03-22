@@ -27,6 +27,7 @@ import MerchantQR from "./pages/merchant/MerchantQR";
 import MerchantOnboarding from "./pages/merchant/MerchantOnboarding";
 import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
+import Engage from "./pages/Engage";
 import ManageTiers from "./pages/ManageTiers";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminPageAccess from "./pages/admin/AdminPageAccess";
