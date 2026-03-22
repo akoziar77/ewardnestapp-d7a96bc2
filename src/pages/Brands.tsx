@@ -47,6 +47,7 @@ export default function Brands() {
   const [widgetFields, setWidgetFieldsState] = useState<string[]>(getVisibleWidgetFields);
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   const [showApiInfo, setShowApiInfo] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const toggleWidgetField = (key: string) => {
     setWidgetFieldsState((prev) => {
