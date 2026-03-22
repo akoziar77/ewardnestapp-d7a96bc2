@@ -52,6 +52,7 @@ export default function Profile() {
   const [formAddress, setFormAddress] = useState("");
   const [formCity, setFormCity] = useState("");
   const [formState, setFormState] = useState("");
+  const [formZip, setFormZip] = useState("");
 
   // Sync form when profile loads or edit starts
   const startEditing = () => {
