@@ -481,9 +481,13 @@ export default function Home() {
 
           case "joinPrograms": {
             // Show unconnected brands that have a loyalty_provider
-            const unconnectedBrands = allBrandsWithProvider.filter(
-              (b: any) => !loyaltyConnections.some((c: any) => c.brand_id === b.id)
-            );
+            const unconnectedBrands = allBrandsWithProvider
+              .filter((b: any) => !loyaltyConnections.some((c: any) => c.brand_id === b.id))
+              .sort((a: any, b: any) => {
+                const aHasLink = getProviderLink(a.loyalty_provider) ? 1 : 0;
+                const bHasLink = getProviderLink(b.loyalty_provider) ? 1 : 0;
+                return bHasLink - aHasLink;
+              });
             if (unconnectedBrands.length === 0) return null;
             return (
               <div key="joinPrograms" className="px-6 py-4">
