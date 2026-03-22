@@ -28,6 +28,10 @@ interface Brand {
 export default function Brands() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [visitNotes, setVisitNotes] = useState("");
+  const [filter, setFilter] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -36,10 +40,6 @@ export default function Brands() {
   }, [user, loading, navigate]);
 
   if (loading || !user) return null;
-  const queryClient = useQueryClient();
-  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
-  const [visitNotes, setVisitNotes] = useState("");
-  const [filter, setFilter] = useState<string | null>(null);
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
     queryKey: ["brands"],
