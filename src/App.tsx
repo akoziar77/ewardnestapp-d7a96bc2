@@ -33,6 +33,7 @@ import AdminPageAccess from "./pages/admin/AdminPageAccess";
 import AdminPrivacyPolicy from "./pages/admin/AdminPrivacyPolicy";
 import AdminQuickActions from "./pages/admin/AdminQuickActions";
 import AdminOnboarding from "./pages/admin/AdminOnboarding";
+import AdminPageDirectory from "./pages/admin/AdminPageDirectory";
 import ConsentBanner from "./components/ConsentBanner";
 import NotFound from "./pages/NotFound";
 
