@@ -25,6 +25,15 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove, SortableContext, sortableKeyboardCoordinates,
+  useSortable, verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const ICON_OPTIONS = [
   { name: "QrCode", icon: QrCode },
@@ -80,6 +89,79 @@ interface QuickAction {
   visible: boolean;
 }
 
+function SortableActionRow({
+  action,
+  onEdit,
+  onToggle,
+  onDelete,
+}: {
+  action: QuickAction;
+  onEdit: (a: QuickAction) => void;
+  onToggle: (id: string, visible: boolean) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: action.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.85 : 1,
+  };
+  const Icon = ICON_MAP[action.icon_name] || Zap;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-sm ${isDragging ? "shadow-lg ring-2 ring-primary/20" : ""}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="touch-none p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${action.color_class}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium">{action.label}</p>
+        <p className="text-xs text-muted-foreground truncate">{action.route}</p>
+      </div>
+
+      <Switch
+        checked={action.visible}
+        onCheckedChange={(v) => onToggle(action.id, v)}
+      />
+
+      <button onClick={() => onEdit(action)} className="p-2 rounded-lg hover:bg-muted transition-colors active:scale-95">
+        <Pencil className="h-4 w-4 text-muted-foreground" />
+      </button>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <button className="p-2 rounded-lg hover:bg-destructive/10 transition-colors active:scale-95">
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove "{action.label}"?</AlertDialogTitle>
+            <AlertDialogDescription>This quick action will be removed from the home screen for all users.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onDelete(action.id)}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
 export default function AdminQuickActions() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -92,15 +174,20 @@ export default function AdminQuickActions() {
   const [colorClass, setColorClass] = useState(COLOR_OPTIONS[0].value);
   const [route, setRoute] = useState("");
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   const { data: actions, isLoading } = useQuery({
     queryKey: ["quick-actions"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("quick_actions" as any)
+        .from("quick_actions")
         .select("*")
         .order("sort_order", { ascending: true });
       if (error) throw error;
-      return data as unknown as QuickAction[];
+      return data as QuickAction[];
     },
   });
 
@@ -108,15 +195,15 @@ export default function AdminQuickActions() {
     mutationFn: async () => {
       if (editingId) {
         const { error } = await supabase
-          .from("quick_actions" as any)
-          .update({ label, icon_name: iconName, color_class: colorClass, route } as any)
+          .from("quick_actions")
+          .update({ label, icon_name: iconName, color_class: colorClass, route })
           .eq("id", editingId);
         if (error) throw error;
       } else {
         const nextOrder = (actions?.length ?? 0);
         const { error } = await supabase
-          .from("quick_actions" as any)
-          .insert({ label, icon_name: iconName, color_class: colorClass, route, sort_order: nextOrder } as any);
+          .from("quick_actions")
+          .insert({ label, icon_name: iconName, color_class: colorClass, route, sort_order: nextOrder });
         if (error) throw error;
       }
     },
@@ -133,8 +220,8 @@ export default function AdminQuickActions() {
   const toggleMutation = useMutation({
     mutationFn: async ({ id, visible }: { id: string; visible: boolean }) => {
       const { error } = await supabase
-        .from("quick_actions" as any)
-        .update({ visible } as any)
+        .from("quick_actions")
+        .update({ visible })
         .eq("id", id);
       if (error) throw error;
     },
@@ -143,7 +230,7 @@ export default function AdminQuickActions() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("quick_actions" as any).delete().eq("id", id);
+      const { error } = await supabase.from("quick_actions").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -153,27 +240,31 @@ export default function AdminQuickActions() {
   });
 
   const reorderMutation = useMutation({
-    mutationFn: async ({ id, direction }: { id: string; direction: "up" | "down" }) => {
-      if (!actions) return;
-      const idx = actions.findIndex((a) => a.id === id);
-      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-      if (swapIdx < 0 || swapIdx >= actions.length) return;
-
-      const updates = [
-        { id: actions[idx].id, sort_order: actions[swapIdx].sort_order },
-        { id: actions[swapIdx].id, sort_order: actions[idx].sort_order },
-      ];
-
-      for (const u of updates) {
-        const { error } = await supabase
-          .from("quick_actions" as any)
-          .update({ sort_order: u.sort_order } as any)
-          .eq("id", u.id);
-        if (error) throw error;
+    mutationFn: async (reordered: QuickAction[]) => {
+      for (let i = 0; i < reordered.length; i++) {
+        if (reordered[i].sort_order !== i) {
+          const { error } = await supabase
+            .from("quick_actions")
+            .update({ sort_order: i })
+            .eq("id", reordered[i].id);
+          if (error) throw error;
+        }
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["quick-actions"] }),
   });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !actions) return;
+
+    const oldIndex = actions.findIndex((a) => a.id === active.id);
+    const newIndex = actions.findIndex((a) => a.id === over.id);
+    const reordered = arrayMove(actions, oldIndex, newIndex);
+
+    qc.setQueryData(["quick-actions"], reordered);
+    reorderMutation.mutate(reordered);
+  };
 
   const closeDialog = () => {
     setDialogOpen(false);
@@ -224,70 +315,23 @@ export default function AdminQuickActions() {
             <p className="text-sm text-muted-foreground mt-1">Add shortcuts for the home screen</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {actions.map((a, idx) => {
-              const Icon = ICON_MAP[a.icon_name] || Zap;
-              return (
-                <div key={a.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-sm">
-                  <div className="flex flex-col gap-0.5">
-                    <button
-                      disabled={idx === 0}
-                      onClick={() => reorderMutation.mutate({ id: a.id, direction: "up" })}
-                      className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 active:scale-90 transition-all"
-                    >
-                      <GripVertical className="h-3 w-3 rotate-90" />
-                    </button>
-                    <button
-                      disabled={idx === actions.length - 1}
-                      onClick={() => reorderMutation.mutate({ id: a.id, direction: "down" })}
-                      className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 active:scale-90 transition-all rotate-180"
-                    >
-                      <GripVertical className="h-3 w-3 rotate-90" />
-                    </button>
-                  </div>
-
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.color_class}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{a.label}</p>
-                    <p className="text-xs text-muted-foreground truncate">{a.route}</p>
-                  </div>
-
-                  <Switch
-                    checked={a.visible}
-                    onCheckedChange={(v) => toggleMutation.mutate({ id: a.id, visible: v })}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={actions.map((a) => a.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {actions.map((a) => (
+                  <SortableActionRow
+                    key={a.id}
+                    action={a}
+                    onEdit={openEdit}
+                    onToggle={(id, v) => toggleMutation.mutate({ id, visible: v })}
+                    onDelete={(id) => deleteMutation.mutate(id)}
                   />
-
-                  <button onClick={() => openEdit(a)} className="p-2 rounded-lg hover:bg-muted transition-colors active:scale-95">
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="p-2 rounded-lg hover:bg-destructive/10 transition-colors active:scale-95">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Remove "{a.label}"?</AlertDialogTitle>
-                        <AlertDialogDescription>This quick action will be removed from the home screen for all users.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => deleteMutation.mutate(a.id)}>Remove</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              );
-            })}
-          </div>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
 
-        {/* Add/Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={(o) => !o && closeDialog()}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
