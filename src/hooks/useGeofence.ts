@@ -121,8 +121,20 @@ export function useGeofence() {
       if (!locationPoints?.length) return;
 
       const { latitude, longitude } = position.coords;
+      const now = new Date();
+      const dayMap: Record<number, string> = { 0: "SUN", 1: "MON", 2: "TUE", 3: "WED", 4: "THU", 5: "FRI", 6: "SAT" };
+      const currentDay = dayMap[now.getDay()];
+      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
       for (const point of locationPoints) {
+        // Check active_hours if defined
+        if (point.active_hours && Array.isArray(point.active_hours) && point.active_hours.length > 0) {
+          const activeNow = point.active_hours.some(
+            (ah) => ah.day_of_week === currentDay && currentTime >= ah.start_time && currentTime <= ah.end_time
+          );
+          if (!activeNow) continue;
+        }
+
         const distance = haversineDistance(
           latitude, longitude,
           point.latitude, point.longitude
@@ -132,11 +144,12 @@ export function useGeofence() {
         const effectiveRadius = Math.min(point.geofence_radius_meters, userRadius);
         const isInside = distance <= effectiveRadius;
         const wasInside = insideFencesRef.current.has(point.id);
+        const triggers = point.triggers ?? ["ENTER"];
 
         if (isInside && !wasInside) {
           insideFencesRef.current.add(point.id);
 
-          if (!wasRecentlyNotified(point.id)) {
+          if (triggers.includes("ENTER") && !wasRecentlyNotified(point.id)) {
             markNotified(point.id);
             sendNotification(point);
             toast(`${point.brand_emoji} You're near ${point.brand_name}!`, {
@@ -146,6 +159,14 @@ export function useGeofence() {
           }
         } else if (!isInside && wasInside) {
           insideFencesRef.current.delete(point.id);
+
+          if (triggers.includes("EXIT") && !wasRecentlyNotified(point.id)) {
+            markNotified(point.id);
+            toast(`${point.brand_emoji} Leaving ${point.brand_name}`, {
+              description: "See you next time!",
+              duration: 4000,
+            });
+          }
         }
       }
     },
