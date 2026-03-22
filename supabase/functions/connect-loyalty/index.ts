@@ -158,9 +158,9 @@ Deno.serve(async (req) => {
         );
       }
 
-      if (!conn.api_endpoint || !conn.access_token) {
+      if (!conn.api_endpoint) {
         return new Response(
-          JSON.stringify({ error: "No API endpoint configured" }),
+          JSON.stringify({ error: "No API endpoint configured for this connection" }),
           {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -168,11 +168,15 @@ Deno.serve(async (req) => {
         );
       }
 
+      const fetchHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (conn.access_token) {
+        fetchHeaders["Authorization"] = `Bearer ${conn.access_token}`;
+      }
+
       const resp = await fetch(conn.api_endpoint, {
-        headers: {
-          Authorization: `Bearer ${conn.access_token}`,
-          "Content-Type": "application/json",
-        },
+        headers: fetchHeaders,
       });
 
       if (!resp.ok) {
