@@ -51,6 +51,16 @@ export default function Brands() {
   const [filter, setFilter] = useState<string | null>(null);
   const [expandedBrandId, setExpandedBrandId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [widgetFields, setWidgetFieldsState] = useState<string[]>(getVisibleWidgetFields);
+  const [showWidgetSettings, setShowWidgetSettings] = useState(false);
+
+  const toggleWidgetField = (key: string) => {
+    setWidgetFieldsState((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      setVisibleWidgetFields(next);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!loading && !user) {
