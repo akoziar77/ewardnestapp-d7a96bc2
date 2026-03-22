@@ -38,10 +38,12 @@ import {
   Locate,
   Trash2,
   Crown,
+  FileText,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/hooks/useGeofence";
 import { hasFeatureAccess } from "@/lib/featureGates";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import ConsentHistory from "@/components/ConsentHistory";
 
 export default function Profile() {
   const { user, signOut, subscriptionTier } = useAuth();
