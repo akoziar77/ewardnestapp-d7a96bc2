@@ -236,7 +236,7 @@ export default function LoyaltyConnectDialog({
             </div>
 
             <div className="flex gap-2">
-              {connection.api_endpoint && (
+              {connection.api_endpoint && connection.status === "connected" && false && (
                 <Button
                   variant="outline"
                   className="flex-1 gap-2 active:scale-[0.97]"
