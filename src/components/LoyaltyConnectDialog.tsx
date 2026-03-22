@@ -159,6 +159,7 @@ export default function LoyaltyConnectDialog({
 
   const resetForm = () => {
     setProviderName("");
+    setIsCustomProvider(false);
     setApiEndpoint("");
     setAccessToken("");
     setMemberId("");
