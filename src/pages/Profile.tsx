@@ -407,6 +407,9 @@ export default function Profile() {
                   onCheckedChange={async (checked) => {
                     if (checked) {
                       const granted = await requestNotificationPermission();
+                      if (granted && pushSupported) {
+                        await subscribePush();
+                      }
                       setNotificationsEnabled(granted);
                       if (!granted) toast.error("Notification permission was denied");
                     } else {
