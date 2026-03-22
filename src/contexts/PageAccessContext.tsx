@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -28,6 +28,14 @@ export function PageAccessProvider({ children }: { children: ReactNode }) {
   const [entries, setEntries] = useState<PageAccessEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const load = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("page_access")
+      .select("page_key, role_name, allowed");
+    setEntries(error ? [] : (data ?? []));
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     if (!user) {
       setEntries([]);
@@ -35,22 +43,22 @@ export function PageAccessProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    let cancelled = false;
-
-    async function load() {
-      const { data, error } = await supabase
-        .from("page_access")
-        .select("page_key, role_name, allowed");
-
-      if (!cancelled) {
-        setEntries(error ? [] : (data ?? []));
-        setLoading(false);
-      }
-    }
-
     load();
-    return () => { cancelled = true; };
-  }, [user]);
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel("page_access_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "page_access" },
+        () => load()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, load]);
 
   function canAccess(pageKey: string, roles: string[]): boolean {
     // Admin always has access
