@@ -458,6 +458,7 @@ export default function Brands() {
         ) : (
           <div className="space-y-3">
             {filtered.map((brand) => {
+              const brandDistance = getDistanceToBrand(brand);
               const count = visitCountForBrand(brand.id);
               const progress = Math.min(
                 (count / brand.milestone_visits) * 100,
