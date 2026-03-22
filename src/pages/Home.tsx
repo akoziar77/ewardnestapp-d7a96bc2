@@ -287,6 +287,7 @@ export default function Home() {
               const expPts = expiringPointsForBrand(brand.id);
               const extConn = loyaltyConnections.find((c: any) => c.brand_id === brand.id);
               const extPts = extConn?.external_points_balance ?? 0;
+              const visibleFields = getVisibleWidgetFields();
               return (
                 <button
                   key={brand.id}
@@ -310,20 +311,46 @@ export default function Home() {
                   <p className="text-xs font-semibold w-full text-center break-words line-clamp-2">
                     {brand.name}
                   </p>
-                  <Progress value={progress} className="h-1 w-full" />
-                  <p className="text-[10px] tabular-nums text-muted-foreground">
-                    {count}/{brand.milestone_visits}
-                  </p>
-                  <p className="text-[10px] font-semibold text-primary">
-                    {brand.milestone_points} pts
-                  </p>
-                  {extPts > 0 && (
+                  {visibleFields.includes("category") && brand.category && (
+                    <p className="text-[10px] text-muted-foreground">{brand.category}</p>
+                  )}
+                  {visibleFields.includes("progress") && (
+                    <>
+                      <Progress value={progress} className="h-1 w-full" />
+                      <p className="text-[10px] tabular-nums text-muted-foreground">
+                        {count}/{brand.milestone_visits}
+                      </p>
+                    </>
+                  )}
+                  {visibleFields.includes("milestonePoints") && (
+                    <p className="text-[10px] font-semibold text-primary">
+                      {brand.milestone_points} pts
+                    </p>
+                  )}
+                  {visibleFields.includes("loyaltyProvider") && brand.loyalty_provider && (
+                    <p className="text-[10px] text-muted-foreground truncate w-full text-center">
+                      {brand.loyalty_provider}
+                    </p>
+                  )}
+                  {visibleFields.includes("visitExpiry") && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                      <CalendarClock className="h-2.5 w-2.5" />
+                      {brand.visit_expiry_months}mo expiry
+                    </p>
+                  )}
+                  {visibleFields.includes("websiteLink") && brand.website_url && (
+                    <p className="text-[10px] text-primary flex items-center gap-0.5">
+                      <Globe className="h-2.5 w-2.5" />
+                      Website
+                    </p>
+                  )}
+                  {visibleFields.includes("externalPoints") && extPts > 0 && (
                     <p className="text-[10px] font-medium text-foreground/70 flex items-center gap-0.5">
                       <Link2 className="h-2.5 w-2.5" />
                       {extPts.toLocaleString()}
                     </p>
                   )}
-                  {expPts > 0 && (
+                  {visibleFields.includes("expiringPoints") && expPts > 0 && (
                     <p className="text-[9px] font-medium text-destructive leading-tight text-center">
                       ⚠ {expPts} pts expiring soon
                     </p>
