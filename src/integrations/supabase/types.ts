@@ -48,11 +48,15 @@ export type Database = {
       }
       brands: {
         Row: {
+          address_line: string | null
           api_field_name: string | null
           category: string | null
           created_at: string
+          geofence_radius_meters: number
           id: string
+          latitude: number | null
           logo_emoji: string
+          longitude: number | null
           loyalty_api_url: string | null
           loyalty_provider: string | null
           milestone_points: number
@@ -62,11 +66,15 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          address_line?: string | null
           api_field_name?: string | null
           category?: string | null
           created_at?: string
+          geofence_radius_meters?: number
           id?: string
+          latitude?: number | null
           logo_emoji?: string
+          longitude?: number | null
           loyalty_api_url?: string | null
           loyalty_provider?: string | null
           milestone_points?: number
@@ -76,11 +84,15 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          address_line?: string | null
           api_field_name?: string | null
           category?: string | null
           created_at?: string
+          geofence_radius_meters?: number
           id?: string
+          latitude?: number | null
           logo_emoji?: string
+          longitude?: number | null
           loyalty_api_url?: string | null
           loyalty_provider?: string | null
           milestone_points?: number
