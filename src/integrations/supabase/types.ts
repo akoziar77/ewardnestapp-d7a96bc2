@@ -634,6 +634,45 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_steps: {
+        Row: {
+          active: boolean
+          color_class: string
+          created_at: string
+          description: string
+          icon_name: string
+          id: string
+          sort_order: number
+          step_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color_class?: string
+          created_at?: string
+          description?: string
+          icon_name?: string
+          id?: string
+          sort_order?: number
+          step_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color_class?: string
+          created_at?: string
+          description?: string
+          icon_name?: string
+          id?: string
+          sort_order?: number
+          step_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_access: {
         Row: {
           allowed: boolean
