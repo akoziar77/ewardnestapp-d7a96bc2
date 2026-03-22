@@ -164,6 +164,7 @@ export default function LoyaltyConnectDialog({
     setApiEndpoint("");
     setAccessToken("");
     setMemberId("");
+    setPassword("");
   };
 
   return (
