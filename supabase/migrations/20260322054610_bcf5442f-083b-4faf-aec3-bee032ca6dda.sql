@@ -1,0 +1,2 @@
+ALTER TABLE public.ledger_entries DROP CONSTRAINT ledger_entries_type_check;
+ALTER TABLE public.ledger_entries ADD CONSTRAINT ledger_entries_type_check CHECK (type = ANY (ARRAY['earn','redeem','correction','expire','brand_milestone']));
