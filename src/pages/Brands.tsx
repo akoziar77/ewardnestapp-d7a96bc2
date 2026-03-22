@@ -113,6 +113,41 @@ export default function Brands() {
     onError: () => toast.error("Failed to remove visit"),
   });
 
+  const { data: favoriteIds = [] } = useQuery({
+    queryKey: ["favorite-brands", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("favorite_brands")
+        .select("brand_id")
+        .eq("user_id", user!.id);
+      return (data ?? []).map((f: any) => f.brand_id as string);
+    },
+    enabled: !!user,
+  });
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (brandId: string) => {
+      const isFav = favoriteIds.includes(brandId);
+      if (isFav) {
+        const { error } = await supabase
+          .from("favorite_brands")
+          .delete()
+          .eq("user_id", user!.id)
+          .eq("brand_id", brandId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("favorite_brands")
+          .insert({ user_id: user!.id, brand_id: brandId });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorite-brands", user?.id] });
+    },
+    onError: () => toast.error("Failed to update favorite"),
+  });
+
   if (loading || !user) return null;
 
   const visitCountForBrand = (brandId: string) =>
