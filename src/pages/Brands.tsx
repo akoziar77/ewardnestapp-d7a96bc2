@@ -85,14 +85,7 @@ export default function Brands() {
 
   // Auto-scroll to brand from query param
   const brandCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  useEffect(() => {
-    const brandParam = searchParams.get("brand");
-    if (brandParam && brandCardRefs.current[brandParam]) {
-      setTimeout(() => {
-        brandCardRefs.current[brandParam]?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 300);
-    }
-  }, [searchParams, brands]);
+  const scrolledToParam = useRef(false);
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
     queryKey: ["brands"],
