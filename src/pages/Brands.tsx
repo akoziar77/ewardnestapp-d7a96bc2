@@ -242,9 +242,9 @@ export default function Brands() {
 
   const categories = [...new Set(brands.map((b) => b.category).filter(Boolean))] as string[];
 
-  const filtered = filter
-    ? brands.filter((b) => b.category === filter)
-    : brands;
+  const filtered = brands
+    .filter((b) => !filter || b.category === filter)
+    .filter((b) => !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20">
