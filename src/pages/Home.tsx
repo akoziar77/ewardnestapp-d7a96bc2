@@ -1,14 +1,20 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock } from "lucide-react";
+import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { getVisibleWidgetFields } from "@/lib/widgetFields";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Home() {
   const { user } = useAuth();
@@ -104,7 +110,21 @@ export default function Home() {
     enabled: !!user,
   });
 
-  // Compute total points from latest balance per merchant
+  // Fetch brand details for loyalty connections (to get loyalty_api_url)
+  const connBrandIds = loyaltyConnections.map((c: any) => c.brand_id);
+  const { data: connBrands = [] } = useQuery({
+    queryKey: ["conn-brands", connBrandIds],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("brands")
+        .select("id, name, loyalty_api_url")
+        .in("id", connBrandIds);
+      return (data ?? []) as any[];
+    },
+    enabled: connBrandIds.length > 0,
+  });
+
+  const [loyaltyChoiceConn, setLoyaltyChoiceConn] = useState<any | null>(null);
   const totalPoints = (() => {
     if (!recentEntries?.length) return 0;
     const merchantBalances = new Map<string, number>();
@@ -216,7 +236,7 @@ export default function Home() {
               {loyaltyConnections.map((conn: any) => (
                 <button
                   key={conn.brand_id}
-                  onClick={() => navigate("/brands")}
+                  onClick={() => setLoyaltyChoiceConn(conn)}
                   className="flex w-full items-center gap-3 rounded-xl bg-muted/50 px-3.5 py-3 text-left transition-all hover:bg-muted active:scale-[0.98]"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
@@ -417,6 +437,58 @@ export default function Home() {
           </Button>
         </div>
       )}
+      {/* Loyalty brand choice dialog */}
+      <Dialog open={!!loyaltyChoiceConn} onOpenChange={(open) => !open && setLoyaltyChoiceConn(null)}>
+        <DialogContent className="max-w-xs rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base">
+              {loyaltyChoiceConn?.provider_name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 pt-1">
+            {(() => {
+              const brand = connBrands.find((b: any) => b.id === loyaltyChoiceConn?.brand_id);
+              const appUrl = brand?.loyalty_api_url;
+              return (
+                <>
+                  {appUrl && (
+                    <button
+                      onClick={() => {
+                        window.open(appUrl, "_blank", "noopener");
+                        setLoyaltyChoiceConn(null);
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                        <Smartphone className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Open app</p>
+                        <p className="text-[11px] text-muted-foreground">Launch the loyalty program</p>
+                      </div>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      navigate("/brands");
+                      setLoyaltyChoiceConn(null);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                      <Store className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">View brand</p>
+                      <p className="text-[11px] text-muted-foreground">Go to the brands page</p>
+                    </div>
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
       <BottomNav />
     </div>
   );
