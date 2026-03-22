@@ -398,6 +398,16 @@ export default function Profile() {
               {isAdmin && (
                 <>
                   <button
+                    onClick={() => navigate("/merchant")}
+                    className="flex w-full items-center justify-between p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Store className="h-5 w-5 text-primary shrink-0" />
+                      <p className="text-sm font-medium text-primary">Merchant Dashboard</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  <button
                     onClick={() => navigate("/admin/roles")}
                     className="flex w-full items-center justify-between p-4"
                   >

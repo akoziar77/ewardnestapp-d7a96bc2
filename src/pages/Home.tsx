@@ -571,48 +571,61 @@ export default function Home() {
                       phone: profile?.phone || undefined,
                       zipCode: profile?.zip_code || undefined,
                     });
-                    return (
-                      <div
-                        key={brand.id}
-                        className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all hover:shadow-sm"
-                      >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-xl shrink-0">
-                          {brand.logo_emoji}
+                      const providerLink = getProviderLink(brand.loyalty_provider);
+                      const appUrl = providerLink ? getOpenAppUrl(providerLink) : null;
+                      return (
+                        <div
+                          key={brand.id}
+                          className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all hover:shadow-sm"
+                        >
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-xl shrink-0">
+                            {brand.logo_emoji}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate">{brand.name}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{brand.loyalty_provider}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {appUrl && (
+                              <button
+                                onClick={() => window.open(appUrl, "_blank", "noopener")}
+                                className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/80 active:scale-[0.96]"
+                                title="Open app"
+                              >
+                                <Smartphone className="h-3 w-3" />
+                              </button>
+                            )}
+                            {regUrl ? (
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  await autoConnectOnRegister({
+                                    brandId: brand.id,
+                                    providerName: brand.loyalty_provider!,
+                                    registrationUrl: regUrl,
+                                  });
+                                  queryClient.invalidateQueries({ queryKey: ["external-loyalty-home"] });
+                                  queryClient.invalidateQueries({ queryKey: ["brands-with-provider"] });
+                                  toast.success(`Connected to ${brand.loyalty_provider}`);
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:opacity-90 active:scale-[0.96]"
+                              >
+                                <UserPlus className="h-3 w-3" />
+                                Register
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => navigate(`/brands?brand=${brand.id}`)}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/80 active:scale-[0.96]"
+                              >
+                                View
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{brand.name}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{brand.loyalty_provider}</p>
-                        </div>
-                        {regUrl ? (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              await autoConnectOnRegister({
-                                brandId: brand.id,
-                                providerName: brand.loyalty_provider!,
-                                registrationUrl: regUrl,
-                              });
-                              queryClient.invalidateQueries({ queryKey: ["external-loyalty-home"] });
-                              queryClient.invalidateQueries({ queryKey: ["brands-with-provider"] });
-                              toast.success(`Connected to ${brand.loyalty_provider}`);
-                            }}
-                            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:opacity-90 active:scale-[0.96]"
-                          >
-                            <UserPlus className="h-3 w-3" />
-                            Register
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => navigate(`/brands?brand=${brand.id}`)}
-                            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/80 active:scale-[0.96]"
-                          >
-                            View
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
               </div>
             );
           }
