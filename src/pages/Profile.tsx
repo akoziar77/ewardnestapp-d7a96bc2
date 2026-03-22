@@ -49,11 +49,17 @@ export default function Profile() {
 
   const [formName, setFormName] = useState("");
   const [formPhone, setFormPhone] = useState("");
+  const [formAddress, setFormAddress] = useState("");
+  const [formCity, setFormCity] = useState("");
+  const [formState, setFormState] = useState("");
 
   // Sync form when profile loads or edit starts
   const startEditing = () => {
     setFormName(profile?.display_name ?? "");
     setFormPhone(profile?.phone ?? "");
+    setFormAddress((profile as any)?.address ?? "");
+    setFormCity((profile as any)?.city ?? "");
+    setFormState((profile as any)?.state ?? "");
     setEditing(true);
   };
 
