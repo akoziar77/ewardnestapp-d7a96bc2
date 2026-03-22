@@ -10,11 +10,13 @@ import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 
 interface Brand {
   id: string;
@@ -25,6 +27,13 @@ interface Brand {
   milestone_points: number;
 }
 
+interface BrandVisit {
+  id: string;
+  brand_id: string;
+  notes: string | null;
+  created_at: string;
+}
+
 export default function Brands() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -32,14 +41,13 @@ export default function Brands() {
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [visitNotes, setVisitNotes] = useState("");
   const [filter, setFilter] = useState<string | null>(null);
+  const [expandedBrandId, setExpandedBrandId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth", { replace: true });
     }
   }, [user, loading, navigate]);
-
-  if (loading || !user) return null;
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
     queryKey: ["brands"],
@@ -50,6 +58,7 @@ export default function Brands() {
         .order("name");
       return (data ?? []) as Brand[];
     },
+    enabled: !!user,
   });
 
   const { data: visits = [] } = useQuery({
@@ -60,7 +69,7 @@ export default function Brands() {
         .select("id, brand_id, notes, created_at")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []) as BrandVisit[];
     },
     enabled: !!user,
   });
@@ -89,8 +98,28 @@ export default function Brands() {
     onError: () => toast.error("Failed to log visit"),
   });
 
+  const deleteVisitMutation = useMutation({
+    mutationFn: async (visitId: string) => {
+      const { error } = await supabase
+        .from("brand_visits")
+        .delete()
+        .eq("id", visitId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brand-visits", user?.id] });
+      toast.success("Visit removed");
+    },
+    onError: () => toast.error("Failed to remove visit"),
+  });
+
+  if (loading || !user) return null;
+
   const visitCountForBrand = (brandId: string) =>
     visits.filter((v) => v.brand_id === brandId).length;
+
+  const visitsForBrand = (brandId: string) =>
+    visits.filter((v) => v.brand_id === brandId);
 
   const categories = [...new Set(brands.map((b) => b.category).filter(Boolean))] as string[];
 
@@ -159,13 +188,21 @@ export default function Brands() {
                 100
               );
               const milestoneReached = count >= brand.milestone_visits;
+              const isExpanded = expandedBrandId === brand.id;
+              const brandVisits = visitsForBrand(brand.id);
 
               return (
                 <div
                   key={brand.id}
-                  className="rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-sm"
+                  className="rounded-2xl border border-border bg-card transition-shadow hover:shadow-sm overflow-hidden"
                 >
-                  <div className="flex items-start gap-3">
+                  {/* Card header — tappable */}
+                  <button
+                    onClick={() =>
+                      setExpandedBrandId(isExpanded ? null : brand.id)
+                    }
+                    className="flex w-full items-start gap-3 p-4 text-left active:scale-[0.99] transition-transform"
+                  >
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted text-2xl">
                       {brand.logo_emoji}
                     </div>
@@ -174,12 +211,19 @@ export default function Brands() {
                         <p className="text-sm font-semibold truncate">
                           {brand.name}
                         </p>
-                        {milestoneReached && (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-secondary">
-                            <Trophy className="h-3 w-3" />
-                            MILESTONE
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {milestoneReached && (
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-secondary">
+                              <Trophy className="h-3 w-3" />
+                              MILESTONE
+                            </span>
+                          )}
+                          <ChevronDown
+                            className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                              isExpanded ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {brand.category} · {brand.milestone_points} pts at{" "}
@@ -192,16 +236,69 @@ export default function Brands() {
                         </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setSelectedBrand(brand);
-                        setVisitNotes("");
-                      }}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors hover:bg-primary/20 active:scale-95"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
+                  </button>
+
+                  {/* Expanded visit history */}
+                  {isExpanded && (
+                    <div className="border-t border-border px-4 pb-4">
+                      <div className="flex items-center justify-between pt-3 pb-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          Visit history
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBrand(brand);
+                            setVisitNotes("");
+                          }}
+                          className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20 active:scale-95"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Log visit
+                        </button>
+                      </div>
+
+                      {brandVisits.length === 0 ? (
+                        <div className="flex flex-col items-center py-4 text-center">
+                          <Clock className="h-8 w-8 text-muted-foreground/40 mb-1.5" />
+                          <p className="text-xs text-muted-foreground">
+                            No visits yet — tap "Log visit" to start tracking
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                          {brandVisits.map((visit) => (
+                            <div
+                              key={visit.id}
+                              className="group flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2"
+                            >
+                              <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium tabular-nums">
+                                  {format(new Date(visit.created_at), "MMM d, yyyy · h:mm a")}
+                                </p>
+                                {visit.notes && (
+                                  <p className="text-[11px] text-muted-foreground truncate">
+                                    {visit.notes}
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteVisitMutation.mutate(visit.id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all active:scale-90"
+                                title="Remove visit"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -220,6 +317,9 @@ export default function Brands() {
               <span className="text-2xl">{selectedBrand?.logo_emoji}</span>
               Log visit at {selectedBrand?.name}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Log a new visit to {selectedBrand?.name}
+            </DialogDescription>
           </DialogHeader>
 
           {selectedBrand && (
