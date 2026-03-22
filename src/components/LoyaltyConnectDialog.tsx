@@ -298,6 +298,7 @@ export default function LoyaltyConnectDialog({
                     onClick={() => {
                       setEditMemberId(connection.external_member_id || "");
                       setEditPoints(connection.external_points_balance?.toString() || "");
+                      setEditPassword("");
                       setIsEditing(true);
                     }}
                   >
