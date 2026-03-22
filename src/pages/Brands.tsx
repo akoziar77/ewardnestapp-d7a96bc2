@@ -355,6 +355,15 @@ export default function Brands() {
                           {count}/{brand.milestone_visits}
                         </span>
                       </div>
+                      {(() => {
+                        const conn = getLoyaltyConnection(brand.id);
+                        return conn?.external_points_balance != null ? (
+                          <p className="mt-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            <Sparkles className="inline h-3 w-3 mr-0.5 -mt-0.5" />
+                            {conn.external_points_balance.toLocaleString()} external pts
+                          </p>
+                        ) : null;
+                      })()}
                       {expiring > 0 && (
                         <p className="mt-1 text-[10px] text-destructive font-medium">
                           ⚠ {expiring} visit{expiring > 1 ? "s" : ""} expiring next month
