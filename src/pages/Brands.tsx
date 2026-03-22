@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import LoyaltyConnectDialog from "@/components/LoyaltyConnectDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone } from "lucide-react";
+import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
 import { getHiddenCategories } from "@/pages/BrandSettings";
 import { format } from "date-fns";
 import {
