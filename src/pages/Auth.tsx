@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Bird, Eye, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => localStorage.getItem("remembered_email") ?? "");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remembered_email"));
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -33,6 +35,13 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Handle remember me
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", email.trim());
+      } else {
+        localStorage.removeItem("remembered_email");
+      }
+
       if (isSignUp) {
         const { error, data } = await supabase.auth.signUp({
           email: email.trim(),
@@ -137,6 +146,19 @@ export default function Auth() {
               </button>
             </div>
           </div>
+
+          {!isSignUp && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(!!checked)}
+              />
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                Remember me
+              </Label>
+            </div>
+          )}
 
           <Button
             type="submit"

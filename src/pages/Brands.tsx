@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import LoyaltyConnectDialog from "@/components/LoyaltyConnectDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone, Map, List } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone, Map, List, Navigation, ArrowUpDown } from "lucide-react";
 import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
 import { getHiddenCategories } from "@/pages/BrandSettings";
 import { format } from "date-fns";
@@ -48,6 +48,38 @@ export default function Brands() {
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   const [showApiInfo, setShowApiInfo] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [sortByDistance, setSortByDistance] = useState(false);
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Request location when distance sort is enabled
+  useEffect(() => {
+    if (!sortByDistance || userPos) return;
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setSortByDistance(false),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, [sortByDistance, userPos]);
+
+  const haversine = useCallback((lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371000;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }, []);
+
+  const getDistanceToBrand = useCallback((brand: any): number | null => {
+    if (!userPos || brand.latitude == null || brand.longitude == null) return null;
+    return haversine(userPos.lat, userPos.lng, brand.latitude, brand.longitude);
+  }, [userPos, haversine]);
+
+  const formatDistance = (meters: number): string => {
+    if (meters < 1000) return `${Math.round(meters)}m`;
+    return `${(meters / 1000).toFixed(1)}km`;
+  };
 
   const toggleWidgetField = (key: string) => {
     setWidgetFieldsState((prev) => {
@@ -285,7 +317,16 @@ export default function Brands() {
       if (filter === "__favorites__") return favoriteIds.includes(b.id);
       return b.category === filter;
     })
-    .filter((b) => !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    .filter((b) => !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (!sortByDistance || !userPos) return 0;
+      const dA = getDistanceToBrand(a);
+      const dB = getDistanceToBrand(b);
+      if (dA == null && dB == null) return 0;
+      if (dA == null) return 1;
+      if (dB == null) return 1;
+      return dA - dB;
+    });
 
   const visibleCategories = categories.filter((c) => !hiddenCategories.includes(c));
 
@@ -319,9 +360,9 @@ export default function Brands() {
         </button>
       </header>
 
-      {/* Search bar */}
-      <div className="px-6 pb-2">
-        <div className="relative">
+      {/* Search bar + sort */}
+      <div className="flex gap-2 px-6 pb-2">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
@@ -331,6 +372,18 @@ export default function Brands() {
             className="pl-9 h-9 text-sm rounded-xl bg-muted border-0 focus-visible:ring-1"
           />
         </div>
+        <button
+          onClick={() => setSortByDistance(!sortByDistance)}
+          className={`flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium transition-all active:scale-[0.96] shrink-0 ${
+            sortByDistance
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+          title="Sort by distance"
+        >
+          <Navigation className="h-3.5 w-3.5" />
+          Nearby
+        </button>
       </div>
 
       {/* Category filters */}
@@ -405,6 +458,7 @@ export default function Brands() {
         ) : (
           <div className="space-y-3">
             {filtered.map((brand) => {
+              const brandDistance = getDistanceToBrand(brand);
               const count = visitCountForBrand(brand.id);
               const progress = Math.min(
                 (count / brand.milestone_visits) * 100,
@@ -471,6 +525,11 @@ export default function Brands() {
                       <p className="text-xs text-muted-foreground">
                         {brand.category} · {brand.milestone_points} pts at{" "}
                         {brand.milestone_visits} visits
+                        {sortByDistance && brandDistance != null && (
+                          <span className="ml-1 inline-flex items-center gap-0.5">
+                            · <Navigation className="inline h-2.5 w-2.5" /> {formatDistance(brandDistance)}
+                          </span>
+                        )}
                       </p>
                       <div className="mt-2 flex items-center gap-2">
                         <Progress value={progress} className="h-1.5 flex-1" />
