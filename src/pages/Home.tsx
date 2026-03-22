@@ -427,56 +427,73 @@ export default function Home() {
                     // Get fields to render on widget
                     const fieldsToRender = LOYALTY_API_FIELDS.filter((f) => brandFields.includes(f.key));
 
-                    return (
-                      <button
-                        key={brand.id}
-                        onClick={() => setFavChoiceBrand(brand)}
-                        className="relative flex shrink-0 min-w-[8rem] max-w-[10rem] w-auto flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-3 py-4 transition-all hover:shadow-sm active:scale-[0.96]"
-                      >
-                        {(brand.loyalty_api_url || brand.website_url) && (
-                          <ExternalLink className="absolute top-2.5 right-2.5 h-3 w-3 text-muted-foreground" />
-                        )}
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl">
-                          {brand.logo_emoji}
-                        </div>
-                        <p className="text-xs font-semibold w-full text-center break-words line-clamp-2">
-                          {brand.name}
-                        </p>
+                    const favProviderLink = getProviderLink(brand.loyalty_provider);
+                    const favAppUrl = favProviderLink ? getOpenAppUrl(favProviderLink) : brand.loyalty_api_url;
 
-                        {/* Render selected fields dynamically */}
-                        {fieldsToRender.length > 0 ? (
-                          fieldsToRender.map((field) => {
-                            const val = field.getValue(ctx);
-                            // Special rendering for progress
-                            if (field.key === "progress") {
-                              return (
-                                <div key={field.key} className="w-full">
-                                  <Progress value={progress} className="h-1 w-full" />
-                                  <p className="text-[10px] tabular-nums text-muted-foreground text-center mt-0.5">
-                                    {count}/{brand.milestone_visits}
+                    return (
+                      <div
+                        key={brand.id}
+                        className="relative flex shrink-0 min-w-[8rem] max-w-[10rem] w-auto flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-3 py-4 transition-all hover:shadow-sm"
+                      >
+                        <button
+                          onClick={() => setFavChoiceBrand(brand)}
+                          className="flex flex-col items-center gap-1.5 w-full active:scale-[0.96] transition-transform"
+                        >
+                          {(brand.loyalty_api_url || brand.website_url) && (
+                            <ExternalLink className="absolute top-2.5 right-2.5 h-3 w-3 text-muted-foreground" />
+                          )}
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl">
+                            {brand.logo_emoji}
+                          </div>
+                          <p className="text-xs font-semibold w-full text-center break-words line-clamp-2">
+                            {brand.name}
+                          </p>
+
+                          {fieldsToRender.length > 0 ? (
+                            fieldsToRender.map((field) => {
+                              const val = field.getValue(ctx);
+                              if (field.key === "progress") {
+                                return (
+                                  <div key={field.key} className="w-full">
+                                    <Progress value={progress} className="h-1 w-full" />
+                                    <p className="text-[10px] tabular-nums text-muted-foreground text-center mt-0.5">
+                                      {count}/{brand.milestone_visits}
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              if (field.key === "expiringPoints") {
+                                const expPts = ctx.expiringPts;
+                                return (
+                                  <p key={field.key} className="text-[9px] font-medium text-muted-foreground leading-tight text-center">
+                                    {expPts > 0 ? <span className="text-destructive">⚠ {expPts} pts expiring</span> : "No expiring pts"}
                                   </p>
-                                </div>
-                              );
-                            }
-                            // Special rendering for expiring points
-                            if (field.key === "expiringPoints") {
-                              const expPts = ctx.expiringPts;
+                                );
+                              }
                               return (
-                                <p key={field.key} className="text-[9px] font-medium text-muted-foreground leading-tight text-center">
-                                  {expPts > 0 ? <span className="text-destructive">⚠ {expPts} pts expiring</span> : "No expiring pts"}
+                                <p key={field.key} className="text-[10px] text-muted-foreground truncate w-full text-center">
+                                  {val != null && val !== "" ? String(val) : "—"}
                                 </p>
                               );
-                            }
-                            return (
-                              <p key={field.key} className="text-[10px] text-muted-foreground truncate w-full text-center">
-                                {val != null && val !== "" ? String(val) : "—"}
-                              </p>
-                            );
-                          })
-                        ) : (
-                          <p className="text-[10px] text-muted-foreground/60 italic">No fields selected</p>
+                            })
+                          ) : (
+                            <p className="text-[10px] text-muted-foreground/60 italic">No fields selected</p>
+                          )}
+                        </button>
+
+                        {favAppUrl && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(favAppUrl, "_blank", "noopener");
+                            }}
+                            className="mt-1 flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-[10px] font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
+                          >
+                            <Smartphone className="h-3 w-3" />
+                            Open app
+                          </button>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
