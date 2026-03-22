@@ -8,9 +8,13 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Bird, Eye, EyeOff } from "lucide-react";
 
+type Mode = "login" | "signup";
+
 export default function MerchantLogin() {
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -19,7 +23,6 @@ export default function MerchantLogin() {
 
   useEffect(() => {
     if (!user) return;
-    // Check if user is a merchant
     supabase
       .from("merchant_users")
       .select("merchant_id")
@@ -31,22 +34,68 @@ export default function MerchantLogin() {
       });
   }, [user, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
     setLoading(true);
-
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
       if (error) throw error;
-      // onAuthStateChange triggers, useEffect checks merchant membership
     } catch (err: any) {
       toast({
         title: "Login failed",
         description: err.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim() || !businessName.trim()) return;
+    setLoading(true);
+    try {
+      // 1. Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: { display_name: businessName.trim() },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Signup failed");
+
+      // 2. Create merchant
+      const { data: merchant, error: merchantError } = await supabase
+        .from("merchants")
+        .insert({ name: businessName.trim() })
+        .select("id")
+        .single();
+      if (merchantError) throw merchantError;
+
+      // 3. Link user to merchant
+      const { error: linkError } = await supabase
+        .from("merchant_users")
+        .insert({
+          user_id: authData.user.id,
+          merchant_id: merchant.id,
+          role: "owner",
+        });
+      if (linkError) throw linkError;
+
+      toast({ title: "Account created!", description: "Welcome to your merchant dashboard." });
+      navigate("/merchant", { replace: true });
+    } catch (err: any) {
+      toast({
+        title: "Signup failed",
+        description: err.message || "Something went wrong",
         variant: "destructive",
       });
     } finally {
@@ -65,11 +114,53 @@ export default function MerchantLogin() {
             Merchant Dashboard
           </h1>
           <p className="text-center text-sm text-muted-foreground">
-            Sign in to manage your rewards and view analytics
+            {mode === "login"
+              ? "Sign in to manage your rewards and view analytics"
+              : "Create your merchant account to get started"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Mode toggle */}
+        <div className="flex rounded-xl bg-muted p-1">
+          <button
+            type="button"
+            onClick={() => setMode("login")}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors ${
+              mode === "login"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("signup")}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors ${
+              mode === "signup"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Create account
+          </button>
+        </div>
+
+        <form onSubmit={mode === "login" ? handleLogin : handleSignup} className="space-y-4">
+          {mode === "signup" && (
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Business name</Label>
+              <Input
+                id="businessName"
+                type="text"
+                placeholder="My Coffee Shop"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -92,6 +183,7 @@ export default function MerchantLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
                 className="h-12 pr-12"
               />
               <button
@@ -104,8 +196,18 @@ export default function MerchantLogin() {
               </button>
             </div>
           </div>
-          <Button type="submit" className="h-12 w-full text-base font-semibold active:scale-[0.97]" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
+          <Button
+            type="submit"
+            className="h-12 w-full text-base font-semibold active:scale-[0.97]"
+            disabled={loading}
+          >
+            {loading
+              ? mode === "login"
+                ? "Signing in…"
+                : "Creating account…"
+              : mode === "login"
+                ? "Sign in"
+                : "Create merchant account"}
           </Button>
         </form>
       </div>
