@@ -26,8 +26,16 @@ interface Brand {
 }
 
 export default function Brands() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  if (loading || !user) return null;
   const queryClient = useQueryClient();
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [visitNotes, setVisitNotes] = useState("");
