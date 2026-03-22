@@ -83,6 +83,17 @@ export default function Brands() {
     }
   }, [user, loading, navigate]);
 
+  // Auto-scroll to brand from query param
+  const brandCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  useEffect(() => {
+    const brandParam = searchParams.get("brand");
+    if (brandParam && brandCardRefs.current[brandParam]) {
+      setTimeout(() => {
+        brandCardRefs.current[brandParam]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    }
+  }, [searchParams, brands]);
+
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
     queryKey: ["brands"],
     queryFn: async () => {
