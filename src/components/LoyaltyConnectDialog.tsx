@@ -459,12 +459,19 @@ export default function LoyaltyConnectDialog({
               <Button
                 variant="outline"
                 className="w-full gap-2 active:scale-[0.97]"
-                asChild
+                onClick={async () => {
+                  await autoConnectOnRegister({
+                    brandId,
+                    providerName: loyaltyProvider!,
+                    registrationUrl,
+                  });
+                  toast.success(`Connected to ${loyaltyProvider}`);
+                  onConnectionChange();
+                  onOpenChange(false);
+                }}
               >
-                <a href={registrationUrl} target="_blank" rel="noopener noreferrer">
-                  <UserPlus className="h-4 w-4" />
-                  Register for {loyaltyProvider}
-                </a>
+                <UserPlus className="h-4 w-4" />
+                Register for {loyaltyProvider}
               </Button>
             )}
           </div>
