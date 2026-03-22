@@ -33,7 +33,19 @@ interface Brand {
   website_url: string | null;
   loyalty_api_url: string | null;
   loyalty_provider: string | null;
+  api_field_name: string | null;
 }
+
+// Mapping of brand fields to their raw API (database) column names
+const BRAND_API_FIELDS: { label: string; apiName: string; getValue: (b: Brand) => React.ReactNode }[] = [
+  { label: "Category", apiName: "category", getValue: (b) => b.category },
+  { label: "Loyalty Program", apiName: "loyalty_provider", getValue: (b) => b.loyalty_provider },
+  { label: "Milestone Visits", apiName: "milestone_visits", getValue: (b) => b.milestone_visits },
+  { label: "Milestone Points", apiName: "milestone_points", getValue: (b) => b.milestone_points },
+  { label: "Visit Expiry", apiName: "visit_expiry_months", getValue: (b) => `${b.visit_expiry_months} months` },
+  { label: "Logo", apiName: "logo_emoji", getValue: (b) => b.logo_emoji },
+  { label: "API Field Name", apiName: "api_field_name", getValue: (b) => b.api_field_name },
+];
 
 interface BrandVisit {
   id: string;
@@ -453,37 +465,35 @@ export default function Brands() {
                   {isExpanded && (
                     <div className="border-t border-border px-4 pb-4">
                       {/* Brand details — all API fields */}
-                      <div className="pt-3 pb-3">
+                       <div className="pt-3 pb-3">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                           Brand details
                         </p>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Category</p>
-                            <p className="text-xs font-medium">{brand.category || <span className="italic text-muted-foreground/50">Not set</span>}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Loyalty Program</p>
-                            <p className="text-xs font-medium">{brand.loyalty_provider || <span className="italic text-muted-foreground/50">Not set</span>}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Milestone Visits</p>
-                            <p className="text-xs font-medium tabular-nums">{brand.milestone_visits}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Milestone Points</p>
-                            <p className="text-xs font-medium tabular-nums">{brand.milestone_points}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Visit Expiry</p>
-                            <p className="text-xs font-medium tabular-nums">{brand.visit_expiry_months} months</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Logo</p>
-                            <p className="text-lg">{brand.logo_emoji}</p>
-                          </div>
+                          {BRAND_API_FIELDS.map(({ label, apiName, getValue }) => {
+                            const val = getValue(brand);
+                            const isLogo = apiName === "logo_emoji";
+                            return (
+                              <div key={apiName}>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                                  {label}
+                                </p>
+                                <p className="text-[9px] font-mono text-muted-foreground/50 mb-0.5">
+                                  {apiName}
+                                </p>
+                                {isLogo ? (
+                                  <p className="text-lg">{val}</p>
+                                ) : val ? (
+                                  <p className="text-xs font-medium tabular-nums">{val}</p>
+                                ) : (
+                                  <p className="text-xs italic text-muted-foreground/50">Not set</p>
+                                )}
+                              </div>
+                            );
+                          })}
                           <div className="col-span-2">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Website</p>
+                            <p className="text-[9px] font-mono text-muted-foreground/50 mb-0.5">website_url</p>
                             {brand.website_url ? (
                               <a
                                 href={brand.website_url}
@@ -500,6 +510,7 @@ export default function Brands() {
                           </div>
                           <div className="col-span-2">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Loyalty URL</p>
+                            <p className="text-[9px] font-mono text-muted-foreground/50 mb-0.5">loyalty_api_url</p>
                             {brand.loyalty_api_url ? (
                               <a
                                 href={brand.loyalty_api_url}
@@ -516,7 +527,6 @@ export default function Brands() {
                           </div>
                         </div>
                       </div>
-
                       {/* Widget display toggles */}
                       <div className="pt-3 border-t border-border">
                         <button

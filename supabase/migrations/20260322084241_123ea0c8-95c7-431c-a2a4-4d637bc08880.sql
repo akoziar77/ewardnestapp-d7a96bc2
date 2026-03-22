@@ -1,0 +1,1 @@
+ALTER TABLE public.brands ADD COLUMN api_field_name text DEFAULT NULL;
