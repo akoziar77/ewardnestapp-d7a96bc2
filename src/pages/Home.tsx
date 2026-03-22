@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw, Download, MapPin, UserPlus } from "lucide-react";
 import { getProviderLinks, getOpenAppUrl, getProviderLink, buildRegistrationUrl } from "@/lib/providerDeepLinks";
+import { autoConnectOnRegister } from "@/lib/autoConnectOnRegister";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ import {
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [widgetLayout, setWidgetLayout] = useState<HomeWidget[]>(getWidgetLayout);
   const [editorOpen, setEditorOpen] = useState(false);
 
@@ -520,16 +522,23 @@ export default function Home() {
                           <p className="text-[11px] text-muted-foreground truncate">{brand.loyalty_provider}</p>
                         </div>
                         {regUrl ? (
-                          <a
-                            href={regUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await autoConnectOnRegister({
+                                brandId: brand.id,
+                                providerName: brand.loyalty_provider!,
+                                registrationUrl: regUrl,
+                              });
+                              queryClient.invalidateQueries({ queryKey: ["external-loyalty-home"] });
+                              queryClient.invalidateQueries({ queryKey: ["brands-with-provider"] });
+                              toast.success(`Connected to ${brand.loyalty_provider}`);
+                            }}
                             className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:opacity-90 active:scale-[0.96]"
                           >
                             <UserPlus className="h-3 w-3" />
                             Register
-                          </a>
+                          </button>
                         ) : (
                           <button
                             onClick={() => navigate(`/brands?brand=${brand.id}`)}
@@ -825,8 +834,14 @@ export default function Home() {
                       if (!regUrl) return null;
                       return (
                         <button
-                          onClick={() => {
-                            window.open(regUrl, "_blank", "noopener");
+                          onClick={async () => {
+                            await autoConnectOnRegister({
+                              brandId: favChoiceBrand.id,
+                              providerName: favChoiceBrand.loyalty_provider!,
+                              registrationUrl: regUrl,
+                            });
+                            queryClient.invalidateQueries({ queryKey: ["external-loyalty-home"] });
+                            toast.success(`Connected to ${favChoiceBrand.loyalty_provider}`);
                             setFavChoiceBrand(null);
                           }}
                           className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
@@ -836,7 +851,7 @@ export default function Home() {
                           </div>
                           <div>
                             <p className="text-sm font-semibold">Register for {favChoiceBrand.loyalty_provider}</p>
-                            <p className="text-[11px] text-muted-foreground">Sign up with pre-filled info</p>
+                            <p className="text-[11px] text-muted-foreground">Sign up & auto-connect</p>
                           </div>
                         </button>
                       );
