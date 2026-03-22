@@ -20,7 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Link2, Unlink, RefreshCw, Key, Globe, User, Coins } from "lucide-react";
+import { Link2, Unlink, RefreshCw, Key, Globe, User, Coins, UserPlus } from "lucide-react";
+import { buildRegistrationUrl } from "@/lib/providerDeepLinks";
 
 const LOYALTY_PRESETS = [
   { name: "Starbucks Rewards", endpoint: "https://api.starbucks.com/loyalty/v1/balance" },
