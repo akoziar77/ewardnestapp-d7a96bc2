@@ -477,6 +477,75 @@ export default function Home() {
           case "nearby":
             return <NearbyBrandsWidget key="nearby" />;
 
+          case "joinPrograms": {
+            // Show unconnected brands that have a loyalty_provider
+            const unconnectedBrands = allBrandsWithProvider.filter(
+              (b: any) => !loyaltyConnections.some((c: any) => c.brand_id === b.id)
+            );
+            if (unconnectedBrands.length === 0) return null;
+            return (
+              <div key="joinPrograms" className="px-6 py-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <UserPlus className="h-3.5 w-3.5 text-primary" />
+                    Join Programs
+                  </h2>
+                  <button
+                    onClick={() => navigate("/brands")}
+                    className="text-xs font-medium text-primary active:scale-95"
+                  >
+                    View all
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {unconnectedBrands.slice(0, 5).map((brand: any) => {
+                    const nameParts = (profile?.display_name ?? "").split(" ");
+                    const regUrl = buildRegistrationUrl(brand.loyalty_provider, {
+                      firstName: nameParts[0] || undefined,
+                      lastName: nameParts.slice(1).join(" ") || undefined,
+                      email: user?.email || undefined,
+                      phone: profile?.phone || undefined,
+                      zipCode: profile?.zip_code || undefined,
+                    });
+                    return (
+                      <div
+                        key={brand.id}
+                        className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all hover:shadow-sm"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-xl shrink-0">
+                          {brand.logo_emoji}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{brand.name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{brand.loyalty_provider}</p>
+                        </div>
+                        {regUrl ? (
+                          <a
+                            href={regUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:opacity-90 active:scale-[0.96]"
+                          >
+                            <UserPlus className="h-3 w-3" />
+                            Register
+                          </a>
+                        ) : (
+                          <button
+                            onClick={() => navigate(`/brands?brand=${brand.id}`)}
+                            className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/80 active:scale-[0.96]"
+                          >
+                            View
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }
+
           default:
             return null;
         }
