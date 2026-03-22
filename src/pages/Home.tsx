@@ -190,6 +190,9 @@ export default function Home() {
                   <p className="text-[10px] tabular-nums text-muted-foreground">
                     {count}/{brand.milestone_visits}
                   </p>
+                  <p className="text-[10px] font-semibold text-primary">
+                    {brand.milestone_points} pts
+                  </p>
                 </button>
               );
             })}
