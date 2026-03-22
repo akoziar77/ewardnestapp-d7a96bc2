@@ -44,6 +44,7 @@ export default function Brands() {
   const [visitNotes, setVisitNotes] = useState("");
   const [filter, setFilter] = useState<string | null>(null);
   const [expandedBrandId, setExpandedBrandId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!loading && !user) {
