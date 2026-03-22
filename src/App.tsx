@@ -78,6 +78,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} />}>
         <Route path="/admin/roles" element={<PageGate pageKey="admin_roles"><AdminRoles /></PageGate>} />
         <Route path="/admin/page-access" element={<PageGate pageKey="admin_page_access"><AdminPageAccess /></PageGate>} />
+        <Route path="/admin/privacy-policy" element={<PageGate pageKey="admin_privacy_policy"><AdminPrivacyPolicy /></PageGate>} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
