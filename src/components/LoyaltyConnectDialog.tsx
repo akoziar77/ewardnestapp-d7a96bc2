@@ -317,37 +317,6 @@ export default function LoyaltyConnectDialog({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                API endpoint (optional)
-              </Label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={apiEndpoint}
-                  onChange={(e) => setApiEndpoint(e.target.value)}
-                  placeholder="https://api.example.com/loyalty/balance"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                API key / token (optional)
-              </Label>
-              <div className="relative">
-                <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="password"
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
-                  placeholder="Bearer token or API key"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
             <Button
               className="w-full gap-2 active:scale-[0.97]"
               onClick={handleConnect}
