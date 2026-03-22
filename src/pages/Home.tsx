@@ -36,6 +36,7 @@ import {
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [widgetLayout, setWidgetLayout] = useState<HomeWidget[]>(getWidgetLayout);
   const [editorOpen, setEditorOpen] = useState(false);
 
