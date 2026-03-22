@@ -12,9 +12,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Accept either x-admin-key header or service_role Authorization
     const adminKey = req.headers.get("x-admin-key");
     const expectedKey = Deno.env.get("ADMIN_API_KEY");
-    if (!adminKey || adminKey !== expectedKey) {
+    const authHeader = req.headers.get("Authorization");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const isAdminKey = adminKey && adminKey === expectedKey;
+    const isServiceRole = authHeader && authHeader === `Bearer ${serviceRoleKey}`;
+    if (!isAdminKey && !isServiceRole) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
