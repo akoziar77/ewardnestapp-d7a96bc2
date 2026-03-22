@@ -30,6 +30,8 @@ import Pricing from "./pages/Pricing";
 import ManageTiers from "./pages/ManageTiers";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminPageAccess from "./pages/admin/AdminPageAccess";
+import AdminPrivacyPolicy from "./pages/admin/AdminPrivacyPolicy";
+import ConsentBanner from "./components/ConsentBanner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +78,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} />}>
         <Route path="/admin/roles" element={<PageGate pageKey="admin_roles"><AdminRoles /></PageGate>} />
         <Route path="/admin/page-access" element={<PageGate pageKey="admin_page_access"><AdminPageAccess /></PageGate>} />
+        <Route path="/admin/privacy-policy" element={<PageGate pageKey="admin_privacy_policy"><AdminPrivacyPolicy /></PageGate>} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
@@ -93,6 +96,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AppRoutes />
+            <ConsentBanner />
           </BrowserRouter>
         </TooltipProvider>
       </PageAccessProvider>

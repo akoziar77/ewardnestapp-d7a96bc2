@@ -658,6 +658,33 @@ export type Database = {
         }
         Relationships: []
       }
+      privacy_policies: {
+        Row: {
+          content_markdown: string
+          created_at: string
+          id: string
+          published_at: string
+          updated_by: string | null
+          version: string
+        }
+        Insert: {
+          content_markdown: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          updated_by?: string | null
+          version: string
+        }
+        Update: {
+          content_markdown?: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          updated_by?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -944,6 +971,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_consents: {
+        Row: {
+          accepted: boolean
+          accepted_at: string
+          id: string
+          metadata: Json | null
+          policy_version: string
+          user_id: string
+        }
+        Insert: {
+          accepted: boolean
+          accepted_at?: string
+          id?: string
+          metadata?: Json | null
+          policy_version: string
+          user_id: string
+        }
+        Update: {
+          accepted?: boolean
+          accepted_at?: string
+          id?: string
+          metadata?: Json | null
+          policy_version?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_merchants: {
         Row: {

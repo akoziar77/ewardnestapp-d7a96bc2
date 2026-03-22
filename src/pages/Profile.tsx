@@ -38,10 +38,12 @@ import {
   Locate,
   Trash2,
   Crown,
+  FileText,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/hooks/useGeofence";
 import { hasFeatureAccess } from "@/lib/featureGates";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import ConsentHistory from "@/components/ConsentHistory";
 
 export default function Profile() {
   const { user, signOut, subscriptionTier } = useAuth();
@@ -552,7 +554,15 @@ export default function Profile() {
           </button>
 
           {/* Delete account */}
-          <AlertDialog>
+        {/* Consent History */}
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" /> Privacy Consent History
+          </h3>
+          <ConsentHistory />
+        </div>
+
+        <AlertDialog>
             <AlertDialogTrigger asChild>
               <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98]">
                 <Trash2 className="h-5 w-5" />
