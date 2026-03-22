@@ -90,19 +90,27 @@ export function useGeofence() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("brand_locations")
-        .select("id, brand_id, name, latitude, longitude, geofence_radius_meters, brands!brand_locations_brand_id_fkey(name, logo_emoji)")
+        .select("id, brand_id, name, latitude, longitude, geofence_radius_meters, brands!brand_locations_brand_id_fkey(name, logo_emoji), geofences(geofence_id, triggers, dwell_seconds, active_hours, priority, status)")
         .not("latitude", "is", null)
         .not("longitude", "is", null);
       if (error) throw error;
-      return (data ?? []).map((loc: any) => ({
-        id: loc.id,
-        brand_id: loc.brand_id,
-        brand_name: loc.brands?.name ?? loc.name,
-        brand_emoji: loc.brands?.logo_emoji ?? "🏪",
-        latitude: loc.latitude as number,
-        longitude: loc.longitude as number,
-        geofence_radius_meters: loc.geofence_radius_meters,
-      })) as BrandLocationPoint[];
+      return (data ?? []).map((loc: any) => {
+        const activeGeofence = loc.geofences?.find((g: any) => g.status === "ACTIVE") || loc.geofences?.[0];
+        return {
+          id: loc.id,
+          brand_id: loc.brand_id,
+          brand_name: loc.brands?.name ?? loc.name,
+          brand_emoji: loc.brands?.logo_emoji ?? "🏪",
+          latitude: loc.latitude as number,
+          longitude: loc.longitude as number,
+          geofence_radius_meters: loc.geofence_radius_meters,
+          geofence_id: activeGeofence?.geofence_id,
+          triggers: activeGeofence?.triggers ?? ["ENTER"],
+          dwell_seconds: activeGeofence?.dwell_seconds,
+          active_hours: activeGeofence?.active_hours,
+          priority: activeGeofence?.priority ?? 1,
+        };
+      }) as BrandLocationPoint[];
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
