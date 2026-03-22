@@ -183,18 +183,6 @@ export default function Home() {
             <p className="mt-1 text-4xl font-bold tabular-nums tracking-tight">
               {totalPoints.toLocaleString()}
             </p>
-            {totalExternalPoints > 0 && (
-              <div className="mt-3 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
-                <Sparkles className="h-4 w-4 shrink-0 opacity-90" />
-                <div className="flex-1">
-                  <p className="text-[10px] font-medium opacity-70">External loyalty</p>
-                  <p className="text-lg font-bold tabular-nums leading-tight">
-                    {totalExternalPoints.toLocaleString()}
-                  </p>
-                </div>
-                <p className="text-[10px] opacity-60">{loyaltyConnections.length} program{loyaltyConnections.length > 1 ? "s" : ""}</p>
-              </div>
-            )}
             <div className="mt-3 flex items-center gap-2 text-sm opacity-80">
               <TrendingUp className="h-4 w-4" />
               <span>
@@ -208,6 +196,44 @@ export default function Home() {
           <div className="absolute -bottom-4 -right-4 h-20 w-20 rounded-full bg-white/5" />
         </div>
       </div>
+
+      {/* External loyalty card */}
+      {loyaltyConnections.length > 0 && (
+        <div className="px-6 pb-2">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                External loyalty
+              </h2>
+              <p className="text-2xl font-bold tabular-nums text-foreground">
+                {totalExternalPoints.toLocaleString()}
+                <span className="text-xs font-medium text-muted-foreground ml-1">pts</span>
+              </p>
+            </div>
+            <div className="space-y-2.5">
+              {loyaltyConnections.map((conn: any) => (
+                <button
+                  key={conn.brand_id}
+                  onClick={() => navigate("/brands")}
+                  className="flex w-full items-center gap-3 rounded-xl bg-muted/50 px-3.5 py-3 text-left transition-all hover:bg-muted active:scale-[0.98]"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <Link2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{conn.provider_name}</p>
+                    <p className="text-[11px] text-muted-foreground">Connected program</p>
+                  </div>
+                  <p className="text-base font-bold tabular-nums text-foreground">
+                    {(conn.external_points_balance ?? 0).toLocaleString()}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="px-6 py-4">
