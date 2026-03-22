@@ -45,6 +45,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function Profile() {
   const { user, signOut, subscriptionTier } = useAuth();
+  const { isAdmin } = useRoles();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
