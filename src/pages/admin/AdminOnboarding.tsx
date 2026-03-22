@@ -254,6 +254,22 @@ export default function AdminOnboarding() {
                         onClick={(e) => { e.stopPropagation(); openEdit(step); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8"
+                        title="Duplicate step"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsNew(true);
+                          upsert.mutate({
+                            title: step.title + " (copy)",
+                            description: step.description,
+                            icon_name: step.icon_name,
+                            color_class: step.color_class,
+                            step_type: step.step_type,
+                            active: step.active,
+                          });
+                        }}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"
                         onClick={(e) => { e.stopPropagation(); setDeleting(step); }}>
                         <Trash2 className="h-4 w-4" />
