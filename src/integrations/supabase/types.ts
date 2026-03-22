@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      booster_action_rules: {
+        Row: {
+          action: string
+          bonus: number
+          booster_id: string
+          created_at: string
+          id: string
+          multiplier: number
+        }
+        Insert: {
+          action: string
+          bonus?: number
+          booster_id: string
+          created_at?: string
+          id?: string
+          multiplier?: number
+        }
+        Update: {
+          action?: string
+          bonus?: number
+          booster_id?: string
+          created_at?: string
+          id?: string
+          multiplier?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_action_rules_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booster_activity_log: {
         Row: {
           action: string
