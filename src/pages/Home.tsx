@@ -7,7 +7,7 @@ import { QrCode, Gift, TrendingUp, History, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
