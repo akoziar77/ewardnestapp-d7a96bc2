@@ -36,6 +36,8 @@ const ROUTE_MAP: { key: string; path: string; section: string }[] = [
   { key: "admin_quick_actions", path: "/admin/quick-actions", section: "Admin" },
   { key: "admin_onboarding", path: "/admin/onboarding", section: "Admin" },
   { key: "admin_page_directory", path: "/admin/pages", section: "Admin" },
+  { key: "admin_boosters", path: "/admin/boosters", section: "Admin" },
+  { key: "engage", path: "/engage", section: "User" },
 ];
 
 const ROLES = ["user", "manager", "admin"] as const;
