@@ -55,6 +55,41 @@ export type Database = {
           },
         ]
       }
+      booster_tier_rules: {
+        Row: {
+          bonus: number
+          booster_id: string
+          created_at: string
+          id: string
+          multiplier: number
+          tier: string
+        }
+        Insert: {
+          bonus?: number
+          booster_id: string
+          created_at?: string
+          id?: string
+          multiplier?: number
+          tier: string
+        }
+        Update: {
+          bonus?: number
+          booster_id?: string
+          created_at?: string
+          id?: string
+          multiplier?: number
+          tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_tier_rules_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booster_user_targets: {
         Row: {
           booster_id: string
