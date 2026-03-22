@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import LoyaltyConnectDialog from "@/components/LoyaltyConnectDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone, Map, List, Navigation, ArrowUpDown, Radar, Shield } from "lucide-react";
-import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone, Map, List, Navigation, ArrowUpDown, Radar, Shield, UserPlus } from "lucide-react";
+import { getProviderLinks, getOpenAppUrl, getProviderLink, buildRegistrationUrl } from "@/lib/providerDeepLinks";
 import { getHiddenCategories } from "@/pages/BrandSettings";
 import { format } from "date-fns";
 import {
@@ -162,11 +162,11 @@ export default function Brands() {
   });
 
   const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: ["profile-brands", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, phone, zip_code")
         .eq("user_id", user!.id)
         .maybeSingle();
       return data;
@@ -818,6 +818,30 @@ export default function Brands() {
                                 </a>
                               )}
                             </>
+                          );
+                        })()}
+                        {/* Register for program button */}
+                        {brand.loyalty_provider && !getLoyaltyConnection(brand.id) && (() => {
+                          const nameParts = (profile?.display_name ?? "").split(" ");
+                          const regUrl = buildRegistrationUrl(brand.loyalty_provider, {
+                            firstName: nameParts[0] || undefined,
+                            lastName: nameParts.slice(1).join(" ") || undefined,
+                            email: user?.email || undefined,
+                            phone: profile?.phone || undefined,
+                            zipCode: profile?.zip_code || undefined,
+                          });
+                          if (!regUrl) return null;
+                          return (
+                            <a
+                              href={regUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1.5 text-xs font-medium text-primary-foreground bg-primary rounded-lg px-2.5 py-1 hover:bg-primary/90 active:scale-[0.97] transition-colors"
+                            >
+                              <UserPlus className="h-3 w-3" />
+                              Register for {brand.loyalty_provider}
+                            </a>
                           );
                         })()}
                       </div>

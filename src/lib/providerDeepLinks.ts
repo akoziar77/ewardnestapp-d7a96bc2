@@ -16,6 +16,40 @@ export interface ProviderLink {
   webUrl: string;
   /** Human-readable app name */
   appName: string;
+  /** Registration / sign-up URL (supports query-param pre-fill) */
+  registrationUrl?: string;
+}
+
+export interface PreFillData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  zipCode?: string;
+}
+
+/**
+ * Build a registration URL with pre-filled user data.
+ * Falls back to the provider's webUrl if no registrationUrl is defined.
+ */
+export function buildRegistrationUrl(
+  loyaltyProvider: string | null | undefined,
+  preFill: PreFillData
+): string | null {
+  const link = getProviderLink(loyaltyProvider);
+  if (!link) return null;
+
+  const base = link.registrationUrl ?? link.webUrl;
+  const url = new URL(base);
+
+  // Add common pre-fill params that many registration forms accept
+  if (preFill.firstName) url.searchParams.set("firstName", preFill.firstName);
+  if (preFill.lastName) url.searchParams.set("lastName", preFill.lastName);
+  if (preFill.email) url.searchParams.set("email", preFill.email);
+  if (preFill.phone) url.searchParams.set("phone", preFill.phone);
+  if (preFill.zipCode) url.searchParams.set("zipCode", preFill.zipCode);
+
+  return url.toString();
 }
 
 /**
@@ -30,6 +64,7 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     playStoreUrl: "https://play.google.com/store/apps/details?id=com.hilton.android.hilton",
     webUrl: "https://www.hilton.com/en/hilton-honors/",
     appName: "Hilton Honors",
+    registrationUrl: "https://www.hilton.com/en/hilton-honors/join/",
   },
   "marriott bonvoy": {
     iosScheme: "marriott://",
@@ -37,6 +72,7 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     playStoreUrl: "https://play.google.com/store/apps/details?id=com.marriott.mrt",
     webUrl: "https://www.marriott.com/loyalty.mi",
     appName: "Marriott Bonvoy",
+    registrationUrl: "https://www.marriott.com/loyalty/createAccount/createAccountPage1.mi",
   },
   "world of hyatt": {
     appStoreUrl: "https://apps.apple.com/app/world-of-hyatt/id632850498",
@@ -123,6 +159,7 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     playStoreUrl: "https://play.google.com/store/apps/details?id=com.starbucks.mobilecard",
     webUrl: "https://www.starbucks.com/rewards",
     appName: "Starbucks",
+    registrationUrl: "https://www.starbucks.com/account/create",
   },
   "chipotle rewards": {
     appStoreUrl: "https://apps.apple.com/app/chipotle/id327228455",
@@ -142,6 +179,7 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     playStoreUrl: "https://play.google.com/store/apps/details?id=com.mcdonalds.app",
     webUrl: "https://www.mcdonalds.com/us/en-us/mymcdonalds.html",
     appName: "McDonald's",
+    registrationUrl: "https://www.mcdonalds.com/us/en-us/mymcdonalds.html",
   },
   "royal perks": {
     appStoreUrl: "https://apps.apple.com/app/burger-king-app/id652603901",
@@ -175,6 +213,7 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     playStoreUrl: "https://play.google.com/store/apps/details?id=com.target.ui",
     webUrl: "https://www.target.com/circle",
     appName: "Target",
+    registrationUrl: "https://www.target.com/account/create",
   },
   "walmart+": {
     appStoreUrl: "https://apps.apple.com/app/walmart-shopping-grocery/id338137227",
