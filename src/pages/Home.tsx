@@ -166,6 +166,22 @@ export default function Home() {
     enabled: connBrandIds.length > 0,
   });
 
+  const quickActionIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    QrCode, Gift, Store, Clock, Heart, MapPin, Star, Settings, History, TrendingUp, UserPlus, Sparkles, Shield, Bell, Search, Calendar, Camera, Bookmark, Zap,
+  };
+
+  const { data: quickActions } = useQuery({
+    queryKey: ["quick-actions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quick_actions" as any)
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   const [favChoiceBrand, setFavChoiceBrand] = useState<any | null>(null);
   const [loyaltyChoiceConn, setLoyaltyChoiceConn] = useState<any | null>(null);
   const [editingBrandFields, setEditingBrandFields] = useState<string | null>(null); // brandId being edited
