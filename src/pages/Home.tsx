@@ -312,22 +312,46 @@ export default function Home() {
                   </div>
                   <div className="space-y-2.5">
                     {loyaltyConnections.map((conn: any) => (
-                      <button
+                      <div
                         key={conn.brand_id}
-                        onClick={() => setLoyaltyChoiceConn(conn)}
-                        className="flex w-full items-center gap-3 rounded-xl bg-muted/50 px-3.5 py-3 text-left transition-all hover:bg-muted active:scale-[0.98]"
+                        className="group flex w-full items-center gap-3 rounded-xl bg-muted/50 px-3.5 py-3 text-left transition-all hover:bg-muted"
                       >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                          <Link2 className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{conn.provider_name}</p>
-                          <p className="text-[11px] text-muted-foreground">Connected program</p>
-                        </div>
-                        <p className="text-base font-bold tabular-nums text-foreground">
-                          {(conn.external_points_balance ?? 0).toLocaleString()}
-                        </p>
-                      </button>
+                        <button
+                          onClick={() => setLoyaltyChoiceConn(conn)}
+                          className="flex flex-1 items-center gap-3 min-w-0 active:scale-[0.98]"
+                        >
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                            <Link2 className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate">{conn.provider_name}</p>
+                            <p className="text-[11px] text-muted-foreground">Connected program</p>
+                          </div>
+                          <p className="text-base font-bold tabular-nums text-foreground shrink-0">
+                            {(conn.external_points_balance ?? 0).toLocaleString()}
+                          </p>
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (!confirm(`Disconnect ${conn.provider_name}?`)) return;
+                            try {
+                              await supabase.functions.invoke("connect-loyalty", {
+                                body: { action: "disconnect", brand_id: conn.brand_id },
+                              });
+                              queryClient.invalidateQueries({ queryKey: ["external-loyalty-home"] });
+                              queryClient.invalidateQueries({ queryKey: ["brands-with-provider"] });
+                              toast.success(`Disconnected ${conn.provider_name}`);
+                            } catch {
+                              toast.error("Failed to disconnect");
+                            }
+                          }}
+                          className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90"
+                          title="Disconnect program"
+                        >
+                          <Unlink className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
