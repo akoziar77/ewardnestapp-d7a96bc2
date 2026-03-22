@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import LoyaltyConnectDialog from "@/components/LoyaltyConnectDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone, Map, List } from "lucide-react";
 import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
 import { getHiddenCategories } from "@/pages/BrandSettings";
 import { format } from "date-fns";
@@ -30,6 +30,7 @@ import {
   type BrandData,
   type BrandVisitData,
 } from "@/lib/widgetFields";
+import BrandMapView from "@/components/BrandMapView";
 
 export default function Brands() {
   const { user, loading } = useAuth();
@@ -46,6 +47,7 @@ export default function Brands() {
   const [widgetFields, setWidgetFieldsState] = useState<string[]>(getVisibleWidgetFields);
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
   const [showApiInfo, setShowApiInfo] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const toggleWidgetField = (key: string) => {
     setWidgetFieldsState((prev) => {
@@ -303,6 +305,13 @@ export default function Brands() {
           </p>
         </div>
         <button
+          onClick={() => setViewMode(viewMode === "list" ? "map" : "list")}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors hover:text-foreground active:scale-95"
+          title={viewMode === "list" ? "Map view" : "List view"}
+        >
+          {viewMode === "list" ? <Map className="h-5 w-5" /> : <List className="h-5 w-5" />}
+        </button>
+        <button
           onClick={() => navigate("/brands/settings")}
           className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors hover:text-foreground active:scale-95"
         >
@@ -362,8 +371,31 @@ export default function Brands() {
         ))}
       </div>
 
+      {/* Map view */}
+      {viewMode === "map" && (
+        <div className="px-6 py-2">
+          <BrandMapView
+            brands={filtered.map((b) => ({
+              id: b.id,
+              name: b.name,
+              logo_emoji: b.logo_emoji,
+              latitude: (b as any).latitude,
+              longitude: (b as any).longitude,
+              geofence_radius_meters: (b as any).geofence_radius_meters ?? 200,
+              category: b.category,
+              milestone_visits: b.milestone_visits,
+              milestone_points: b.milestone_points,
+            }))}
+            onBrandClick={(id) => {
+              setViewMode("list");
+              setExpandedBrandId(id);
+            }}
+          />
+        </div>
+      )}
+
       {/* Brand cards */}
-      <div className="flex-1 px-6 py-2">
+      <div className={`flex-1 px-6 py-2 ${viewMode === "map" ? "hidden" : ""}`}>
         {loadingBrands ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
