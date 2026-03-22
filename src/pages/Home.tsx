@@ -137,7 +137,7 @@ export default function Home() {
     queryFn: async () => {
       const { data } = await supabase
         .from("brands")
-        .select("id, name, loyalty_api_url")
+        .select("id, name, loyalty_api_url, loyalty_provider, website_url, logo_emoji")
         .in("id", connBrandIds);
       return (data ?? []) as any[];
     },
