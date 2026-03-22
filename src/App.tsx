@@ -5,8 +5,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { PageAccessProvider } from "@/contexts/PageAccessContext";
 import { useRoles } from "@/hooks/useRoles";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { PageGate } from "@/components/PageGate";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -47,22 +49,22 @@ function AppRoutes() {
 
       {/* Signed-in: any role (user, manager, admin) */}
       <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["user", "manager", "admin"]} />}>
-        <Route path="/" element={<Index />} />
-        <Route path="/home" element={<Index />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/scan" element={<Scan />} />
-        <Route path="/rewards" element={<Rewards />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/brands" element={<Brands />} />
-        <Route path="/brands/settings" element={<BrandSettings />} />
+        <Route path="/" element={<PageGate pageKey="home"><Index /></PageGate>} />
+        <Route path="/home" element={<PageGate pageKey="home"><Index /></PageGate>} />
+        <Route path="/onboarding" element={<PageGate pageKey="onboarding"><Onboarding /></PageGate>} />
+        <Route path="/scan" element={<PageGate pageKey="scan"><Scan /></PageGate>} />
+        <Route path="/rewards" element={<PageGate pageKey="rewards"><Rewards /></PageGate>} />
+        <Route path="/history" element={<PageGate pageKey="history"><History /></PageGate>} />
+        <Route path="/profile" element={<PageGate pageKey="profile"><Profile /></PageGate>} />
+        <Route path="/brands" element={<PageGate pageKey="brands"><Brands /></PageGate>} />
+        <Route path="/brands/settings" element={<PageGate pageKey="brands_settings"><BrandSettings /></PageGate>} />
       </Route>
 
       {/* Manager or admin */}
       <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["manager", "admin"]} />}>
-        <Route path="/manage-tiers" element={<ManageTiers />} />
-        <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
-        <Route path="/merchant" element={<MerchantLayout />}>
+        <Route path="/manage-tiers" element={<PageGate pageKey="manage_tiers"><ManageTiers /></PageGate>} />
+        <Route path="/merchant/onboarding" element={<PageGate pageKey="merchant_onboarding"><MerchantOnboarding /></PageGate>} />
+        <Route path="/merchant" element={<PageGate pageKey="merchant_dashboard"><MerchantLayout /></PageGate>}>
           <Route index element={<MerchantOverview />} />
           <Route path="rewards" element={<MerchantRewards />} />
           <Route path="redemptions" element={<MerchantRedemptions />} />
@@ -72,8 +74,8 @@ function AppRoutes() {
 
       {/* Admin only */}
       <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} />}>
-        <Route path="/admin/roles" element={<AdminRoles />} />
-        <Route path="/admin/page-access" element={<AdminPageAccess />} />
+        <Route path="/admin/roles" element={<PageGate pageKey="admin_roles"><AdminRoles /></PageGate>} />
+        <Route path="/admin/page-access" element={<PageGate pageKey="admin_page_access"><AdminPageAccess /></PageGate>} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
@@ -85,13 +87,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <PageAccessProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </PageAccessProvider>
     </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
