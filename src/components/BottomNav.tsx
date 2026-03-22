@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, QrCode, Gift, History } from "lucide-react";
+import { Home, QrCode, Gift, History, Rocket } from "lucide-react";
 
 const items = [
   { icon: Home, label: "Home", path: "/home" },
   { icon: QrCode, label: "Scan", path: "/scan" },
+  { icon: Rocket, label: "Engage+", path: "/engage" },
   { icon: Gift, label: "Rewards", path: "/rewards" },
   { icon: History, label: "History", path: "/history" },
 ];
