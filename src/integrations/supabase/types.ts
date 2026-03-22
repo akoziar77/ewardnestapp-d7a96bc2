@@ -771,6 +771,21 @@ export type Database = {
           },
         ]
       }
+      roles: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
       subscription_features: {
         Row: {
           created_at: string
@@ -935,6 +950,32 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          role_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          role_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          role_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -949,6 +990,7 @@ export type Database = {
         Returns: number
       }
       get_user_merchant_id: { Args: { _user_id: string }; Returns: string }
+      is_admin: { Args: never; Returns: boolean }
       is_merchant_member: {
         Args: { _merchant_id: string; _user_id: string }
         Returns: boolean
