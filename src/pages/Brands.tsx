@@ -77,6 +77,7 @@ export default function Brands() {
   const [showApiInfo, setShowApiInfo] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [sortByDistance, setSortByDistance] = useState(false);
+  const [showGeofenceLayer, setShowGeofenceLayer] = useState(true);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
 
   // Request location when distance sort is enabled
