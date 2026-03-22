@@ -350,8 +350,8 @@ export default function Home() {
                         <p className="text-xs font-semibold w-full text-center break-words line-clamp-2">
                           {brand.name}
                         </p>
-                        {visibleFields.includes("category") && brand.category && (
-                          <p className="text-[10px] text-muted-foreground">{brand.category}</p>
+                        {visibleFields.includes("category") && (
+                          <p className="text-[10px] text-muted-foreground">{brand.category || "No category"}</p>
                         )}
                         {visibleFields.includes("progress") && (
                           <>
@@ -362,26 +362,28 @@ export default function Home() {
                         {visibleFields.includes("milestonePoints") && (
                           <p className="text-[10px] font-semibold text-primary">{brand.milestone_points} pts</p>
                         )}
-                        {visibleFields.includes("loyaltyProvider") && brand.loyalty_provider && (
-                          <p className="text-[10px] text-muted-foreground truncate w-full text-center">{brand.loyalty_provider}</p>
+                        {visibleFields.includes("loyaltyProvider") && (
+                          <p className="text-[10px] text-muted-foreground truncate w-full text-center">{brand.loyalty_provider || "Not connected"}</p>
                         )}
                         {visibleFields.includes("visitExpiry") && (
                           <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                             <CalendarClock className="h-2.5 w-2.5" />{brand.visit_expiry_months}mo expiry
                           </p>
                         )}
-                        {visibleFields.includes("websiteLink") && brand.website_url && (
+                        {visibleFields.includes("websiteLink") && (
                           <p className="text-[10px] text-primary flex items-center gap-0.5">
-                            <Globe className="h-2.5 w-2.5" />Website
+                            <Globe className="h-2.5 w-2.5" />{brand.website_url ? "Website" : "No website"}
                           </p>
                         )}
-                        {visibleFields.includes("externalPoints") && extPts > 0 && (
+                        {visibleFields.includes("externalPoints") && (
                           <p className="text-[10px] font-medium text-foreground/70 flex items-center gap-0.5">
-                            <Link2 className="h-2.5 w-2.5" />{extPts.toLocaleString()}
+                            <Link2 className="h-2.5 w-2.5" />{extPts > 0 ? extPts.toLocaleString() : "0"} pts
                           </p>
                         )}
-                        {visibleFields.includes("expiringPoints") && expPts > 0 && (
-                          <p className="text-[9px] font-medium text-destructive leading-tight text-center">⚠ {expPts} pts expiring soon</p>
+                        {visibleFields.includes("expiringPoints") && (
+                          <p className="text-[9px] font-medium text-muted-foreground leading-tight text-center">
+                            {expPts > 0 ? <span className="text-destructive">⚠ {expPts} pts expiring soon</span> : "No expiring pts"}
+                          </p>
                         )}
                       </button>
                     );
