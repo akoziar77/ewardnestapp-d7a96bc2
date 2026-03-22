@@ -30,3 +30,8 @@ export function getVisibleWidgetFields(): string[] {
 export function setVisibleWidgetFields(keys: string[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
 }
+
+export function resetVisibleWidgetFields(): string[] {
+  localStorage.removeItem(STORAGE_KEY);
+  return WIDGET_FIELDS.filter((f) => f.defaultVisible).map((f) => f.key);
+}

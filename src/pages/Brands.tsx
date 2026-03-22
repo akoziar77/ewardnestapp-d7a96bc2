@@ -573,9 +573,22 @@ export default function Brands() {
                                 />
                               </label>
                             ))}
-                            <p className="text-[10px] text-muted-foreground pt-1">
-                              These settings apply to all brand widgets on the Home page.
-                            </p>
+                            <div className="flex items-center justify-between pt-1">
+                              <p className="text-[10px] text-muted-foreground">
+                                Applies to all brand widgets on Home.
+                              </p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const defaults = resetVisibleWidgetFields();
+                                  setWidgetFields(defaults);
+                                  toast.success("Fields reset to defaults");
+                                }}
+                                className="text-[10px] font-medium text-primary active:scale-95 shrink-0"
+                              >
+                                Reset
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>

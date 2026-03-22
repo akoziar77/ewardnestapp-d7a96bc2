@@ -96,6 +96,15 @@ export default function HomeWidgetEditor({ open, onOpenChange, widgets, onSave }
         </div>
 
         <div className="flex gap-2 mt-5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 active:scale-[0.97]"
+            onClick={() => setDraft(DEFAULT_WIDGETS.map((w) => ({ ...w })))}
+            title="Reset to defaults"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
           <Button variant="outline" className="flex-1 active:scale-[0.97]" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
