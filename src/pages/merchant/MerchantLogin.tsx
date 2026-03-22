@@ -90,8 +90,8 @@ export default function MerchantLogin() {
         });
       if (linkError) throw linkError;
 
-      toast({ title: "Account created!", description: "Welcome to your merchant dashboard." });
-      navigate("/merchant", { replace: true });
+      toast({ title: "Account created!", description: "Let's set up your store." });
+      navigate("/merchant/onboarding", { replace: true });
     } catch (err: any) {
       toast({
         title: "Signup failed",
