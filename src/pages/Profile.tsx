@@ -19,6 +19,7 @@ import {
   Shield,
   Bell,
   Moon,
+  Camera,
   ChevronRight,
   Save,
 } from "lucide-react";
