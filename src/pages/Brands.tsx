@@ -57,11 +57,15 @@ interface BrandVisit {
 export default function Brands() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [visitNotes, setVisitNotes] = useState("");
   const [filter, setFilter] = useState<string | null>(null);
-  const [expandedBrandId, setExpandedBrandId] = useState<string | null>(null);
+  const [expandedBrandId, setExpandedBrandId] = useState<string | null>(
+    searchParams.get("brand")
+  );
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [widgetFields, setWidgetFieldsState] = useState<string[]>(getVisibleWidgetFields);
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
