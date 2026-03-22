@@ -200,7 +200,7 @@ export default function Home() {
     const conn = loyaltyConnections.find((c: any) => c.brand_id === brand.id);
     const bVisits = visitsForBrand(brand.id);
     const exPts = expiringPointsForBrand(brand.id);
-    return { brand, conn, profile, visits: bVisits, expiringPts: exPts };
+    return { brand, conn, profile, visits: bVisits, expiringPts: exPts, userEmail: user?.email };
   };
 
   const toastShown = useRef(false);
