@@ -89,6 +89,20 @@ export default function Home() {
     enabled: !!user,
   });
 
+  // Fetch external loyalty connections for aggregated external points
+  const { data: loyaltyConnections = [] } = useQuery({
+    queryKey: ["external-loyalty-home", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("external_loyalty_connections" as any)
+        .select("external_points_balance, provider_name, brand_id")
+        .eq("user_id", user!.id)
+        .eq("status", "connected");
+      return (data ?? []) as any[];
+    },
+    enabled: !!user,
+  });
+
   // Compute total points from latest balance per merchant
   const totalPoints = (() => {
     if (!recentEntries?.length) return 0;
@@ -100,6 +114,11 @@ export default function Home() {
     }
     return Array.from(merchantBalances.values()).reduce((a, b) => a + b, 0);
   })();
+
+  const totalExternalPoints = loyaltyConnections.reduce(
+    (sum: number, c: any) => sum + (c.external_points_balance ?? 0),
+    0
+  );
 
   const hasActivity = (recentEntries?.length ?? 0) > 0;
   const greeting = profile?.display_name
