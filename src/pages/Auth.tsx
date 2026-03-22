@@ -35,6 +35,13 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Handle remember me
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", email.trim());
+      } else {
+        localStorage.removeItem("remembered_email");
+      }
+
       if (isSignUp) {
         const { error, data } = await supabase.auth.signUp({
           email: email.trim(),
