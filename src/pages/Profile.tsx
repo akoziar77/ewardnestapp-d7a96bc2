@@ -23,7 +23,9 @@ import {
   ChevronRight,
   Save,
   MapPin,
+  Locate,
 } from "lucide-react";
+import { requestNotificationPermission } from "@/hooks/useGeofence";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
