@@ -26,16 +26,33 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+    // Parse optional batch_size from body (default 10)
+    let batchSize = 10;
+    try {
+      const body = await req.json();
+      if (body?.batch_size) batchSize = Math.min(body.batch_size, 30);
+    } catch { /* empty body is fine */ }
+
     // Find brands with address but no coordinates
     const { data: brands, error } = await adminClient
       .from("brands")
       .select("id, name, address_line")
       .not("address_line", "is", null)
-      .is("latitude", null);
+      .is("latitude", null)
+      .limit(batchSize);
 
     if (error) throw error;
 
     const results: { id: string; name: string; status: string }[] = [];
+    let remaining = 0;
+
+    // Count total remaining
+    const { count } = await adminClient
+      .from("brands")
+      .select("id", { count: "exact", head: true })
+      .not("address_line", "is", null)
+      .is("latitude", null);
+    remaining = (count ?? 0) - (brands?.length ?? 0);
 
     for (const brand of brands ?? []) {
       if (!brand.address_line) continue;
@@ -60,7 +77,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ geocoded: results.length, results }), {
+    return new Response(JSON.stringify({ geocoded: results.length, remaining, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
