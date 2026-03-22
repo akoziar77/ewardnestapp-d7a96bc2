@@ -61,6 +61,7 @@ export default function Profile() {
     setFormAddress((profile as any)?.address ?? "");
     setFormCity((profile as any)?.city ?? "");
     setFormState((profile as any)?.state ?? "");
+    setFormZip((profile as any)?.zip_code ?? "");
     setEditing(true);
   };
 
