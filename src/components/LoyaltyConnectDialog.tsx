@@ -168,6 +168,7 @@ export default function LoyaltyConnectDialog({
     setAccessToken("");
     setMemberId("");
     setPassword("");
+    setPointsBalance("");
   };
 
   return (
