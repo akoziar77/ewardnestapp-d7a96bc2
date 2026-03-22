@@ -79,7 +79,9 @@ export const LOYALTY_SECTIONS = [...new Set(LOYALTY_API_FIELDS.map((f) => f.sect
 
 // ---- Persistence helpers ----
 const STORAGE_KEY = "widget-visible-fields";
+const BRAND_OVERRIDE_PREFIX = "widget-fields-brand-";
 
+// Global defaults
 export function getVisibleWidgetFields(): string[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -95,6 +97,33 @@ export function setVisibleWidgetFields(keys: string[]) {
 export function resetVisibleWidgetFields(): string[] {
   localStorage.removeItem(STORAGE_KEY);
   return LOYALTY_API_FIELDS.filter((f) => f.defaultVisible).map((f) => f.key);
+}
+
+// ---- Per-brand overrides ----
+export function getBrandFieldOverride(brandId: string): string[] | null {
+  try {
+    const stored = localStorage.getItem(BRAND_OVERRIDE_PREFIX + brandId);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return null; // null = use global
+}
+
+export function setBrandFieldOverride(brandId: string, keys: string[]) {
+  localStorage.setItem(BRAND_OVERRIDE_PREFIX + brandId, JSON.stringify(keys));
+}
+
+export function clearBrandFieldOverride(brandId: string) {
+  localStorage.removeItem(BRAND_OVERRIDE_PREFIX + brandId);
+}
+
+/** Returns per-brand override if set, otherwise global defaults */
+export function getFieldsForBrand(brandId: string): string[] {
+  return getBrandFieldOverride(brandId) ?? getVisibleWidgetFields();
+}
+
+/** Returns true if the brand has a custom override */
+export function hasBrandFieldOverride(brandId: string): boolean {
+  return getBrandFieldOverride(brandId) !== null;
 }
 
 // Helper to get a field def by key

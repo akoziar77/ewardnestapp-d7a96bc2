@@ -4,15 +4,22 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil } from "lucide-react";
+import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
   LOYALTY_API_FIELDS,
+  LOYALTY_SECTIONS,
+  getFieldsForBrand,
+  getBrandFieldOverride,
+  setBrandFieldOverride,
+  clearBrandFieldOverride,
+  hasBrandFieldOverride,
   getVisibleWidgetFields,
   type FieldContext,
 } from "@/lib/widgetFields";
+import { Switch } from "@/components/ui/switch";
 import { getWidgetLayout, saveWidgetLayout, type HomeWidget } from "@/lib/homeWidgets";
 import HomeWidgetEditor from "@/components/HomeWidgetEditor";
 import {
@@ -138,6 +145,8 @@ export default function Home() {
 
   const [favChoiceBrand, setFavChoiceBrand] = useState<any | null>(null);
   const [loyaltyChoiceConn, setLoyaltyChoiceConn] = useState<any | null>(null);
+  const [editingBrandFields, setEditingBrandFields] = useState<string | null>(null); // brandId being edited
+  const [brandFieldDraft, setBrandFieldDraft] = useState<string[]>([]);
 
   const totalPoints = (() => {
     if (!recentEntries?.length) return 0;
@@ -348,13 +357,14 @@ export default function Home() {
                 </div>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                   {favoriteBrands.map((brand: any) => {
-                    const visibleFields = getVisibleWidgetFields();
+                    const brandFields = getFieldsForBrand(brand.id);
                     const ctx = buildFieldContext(brand);
                     const count = visitCountForBrand(brand.id);
                     const progress = Math.min((count / brand.milestone_visits) * 100, 100);
+                    const hasOverride = hasBrandFieldOverride(brand.id);
 
                     // Get fields to render on widget
-                    const fieldsToRender = LOYALTY_API_FIELDS.filter((f) => visibleFields.includes(f.key));
+                    const fieldsToRender = LOYALTY_API_FIELDS.filter((f) => brandFields.includes(f.key));
 
                     return (
                       <button
@@ -502,8 +512,8 @@ export default function Home() {
       </Dialog>
 
       {/* Favorite brand choice dialog */}
-      <Dialog open={!!favChoiceBrand} onOpenChange={(open) => !open && setFavChoiceBrand(null)}>
-        <DialogContent className="max-w-xs rounded-2xl">
+      <Dialog open={!!favChoiceBrand} onOpenChange={(open) => { if (!open) { setFavChoiceBrand(null); setEditingBrandFields(null); } }}>
+        <DialogContent className="max-w-xs rounded-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base flex items-center gap-2">
               <span className="text-xl">{favChoiceBrand?.logo_emoji}</span>
@@ -512,12 +522,16 @@ export default function Home() {
           </DialogHeader>
 
           {/* Show selected API fields */}
-          {favChoiceBrand && (() => {
-            const visibleFields = getVisibleWidgetFields();
+          {favChoiceBrand && editingBrandFields !== favChoiceBrand.id && (() => {
+            const brandFields = getFieldsForBrand(favChoiceBrand.id);
             const ctx = buildFieldContext(favChoiceBrand);
-            const fieldsToShow = LOYALTY_API_FIELDS.filter((f) => visibleFields.includes(f.key));
+            const fieldsToShow = LOYALTY_API_FIELDS.filter((f) => brandFields.includes(f.key));
+            const hasOverride = hasBrandFieldOverride(favChoiceBrand.id);
             return (
               <div className="space-y-1.5 rounded-xl bg-muted/50 p-3 text-xs">
+                {hasOverride && (
+                  <p className="text-[10px] text-primary font-medium mb-1">Custom fields for this brand</p>
+                )}
                 {fieldsToShow.length > 0 ? (
                   fieldsToShow.map((field) => {
                     const val = field.getValue(ctx);
@@ -532,63 +546,144 @@ export default function Home() {
                     );
                   })
                 ) : (
-                  <p className="text-muted-foreground text-center py-1">No fields selected — toggle fields in brand settings</p>
+                  <p className="text-muted-foreground text-center py-1">No fields selected</p>
                 )}
               </div>
             );
           })()}
 
-          <div className="space-y-2 pt-1">
-            {favChoiceBrand?.loyalty_api_url && (
+          {/* Per-brand field editor */}
+          {favChoiceBrand && editingBrandFields === favChoiceBrand.id && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-muted-foreground">Customize widget fields</p>
+                {hasBrandFieldOverride(favChoiceBrand.id) && (
+                  <button
+                    onClick={() => {
+                      clearBrandFieldOverride(favChoiceBrand.id);
+                      setEditingBrandFields(null);
+                      toast.success("Reset to global defaults");
+                    }}
+                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground active:scale-95"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Use global
+                  </button>
+                )}
+              </div>
+              <div className="max-h-[40vh] overflow-y-auto space-y-3 pr-1">
+                {LOYALTY_SECTIONS.map((section) => {
+                  const sectionFields = LOYALTY_API_FIELDS.filter((f) => f.section === section);
+                  return (
+                    <div key={section}>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{section}</p>
+                      <div className="space-y-1">
+                        {sectionFields.map((field) => (
+                          <div key={field.key} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-muted/50">
+                            <span className="text-xs">{field.label}</span>
+                            <Switch
+                              checked={brandFieldDraft.includes(field.key)}
+                              onCheckedChange={() => {
+                                setBrandFieldDraft((prev) =>
+                                  prev.includes(field.key) ? prev.filter((k) => k !== field.key) : [...prev, field.key]
+                                );
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1 active:scale-[0.97]" onClick={() => setEditingBrandFields(null)}>
+                  Cancel
+                </Button>
+                <Button size="sm" className="flex-1 active:scale-[0.97]" onClick={() => {
+                  setBrandFieldOverride(favChoiceBrand.id, brandFieldDraft);
+                  setEditingBrandFields(null);
+                  toast.success("Brand fields saved");
+                }}>
+                  Save
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {editingBrandFields !== favChoiceBrand?.id && (
+            <div className="space-y-2 pt-1">
+              {/* Customize fields button */}
               <button
                 onClick={() => {
-                  window.open(favChoiceBrand.loyalty_api_url, "_blank", "noopener");
-                  setFavChoiceBrand(null);
+                  if (favChoiceBrand) {
+                    setBrandFieldDraft(getFieldsForBrand(favChoiceBrand.id));
+                    setEditingBrandFields(favChoiceBrand.id);
+                  }
                 }}
                 className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                  <Smartphone className="h-5 w-5 text-primary" />
+                  <Settings className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">Open app</p>
-                  <p className="text-[11px] text-muted-foreground">Launch the loyalty program</p>
+                  <p className="text-sm font-semibold">Customize fields</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {hasBrandFieldOverride(favChoiceBrand?.id ?? "") ? "Using custom fields" : "Using global defaults"}
+                  </p>
                 </div>
               </button>
-            )}
-            {favChoiceBrand?.website_url && (
+              {favChoiceBrand?.loyalty_api_url && (
+                <button
+                  onClick={() => {
+                    window.open(favChoiceBrand.loyalty_api_url, "_blank", "noopener");
+                    setFavChoiceBrand(null);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <Smartphone className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">Open app</p>
+                    <p className="text-[11px] text-muted-foreground">Launch the loyalty program</p>
+                  </div>
+                </button>
+              )}
+              {favChoiceBrand?.website_url && (
+                <button
+                  onClick={() => {
+                    window.open(favChoiceBrand.website_url, "_blank", "noopener");
+                    setFavChoiceBrand(null);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <Globe className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">Visit website</p>
+                    <p className="text-[11px] text-muted-foreground">{favChoiceBrand.website_url}</p>
+                  </div>
+                </button>
+              )}
               <button
                 onClick={() => {
-                  window.open(favChoiceBrand.website_url, "_blank", "noopener");
+                  navigate(`/brands?brand=${favChoiceBrand?.id}`);
                   setFavChoiceBrand(null);
                 }}
                 className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                  <Globe className="h-5 w-5 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                  <Store className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">Visit website</p>
-                  <p className="text-[11px] text-muted-foreground">{favChoiceBrand.website_url}</p>
+                  <p className="text-sm font-semibold">View brand</p>
+                  <p className="text-[11px] text-muted-foreground">See full details</p>
                 </div>
               </button>
-            )}
-            <button
-              onClick={() => {
-                navigate(`/brands?brand=${favChoiceBrand?.id}`);
-                setFavChoiceBrand(null);
-              }}
-              className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
-                <Store className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">View brand</p>
-                <p className="text-[11px] text-muted-foreground">See full details</p>
-              </div>
-            </button>
-          </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
