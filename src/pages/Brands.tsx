@@ -162,11 +162,11 @@ export default function Brands() {
   });
 
   const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: ["profile-brands", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, phone, zip_code")
         .eq("user_id", user!.id)
         .maybeSingle();
       return data;
