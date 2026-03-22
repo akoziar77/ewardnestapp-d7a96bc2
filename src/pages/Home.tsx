@@ -284,6 +284,8 @@ export default function Home() {
                 100
               );
               const expPts = expiringPointsForBrand(brand.id);
+              const extConn = loyaltyConnections.find((c: any) => c.brand_id === brand.id);
+              const extPts = extConn?.external_points_balance ?? 0;
               return (
                 <button
                   key={brand.id}
@@ -303,6 +305,12 @@ export default function Home() {
                   <p className="text-[10px] font-semibold text-primary">
                     {brand.milestone_points} pts
                   </p>
+                  {extPts > 0 && (
+                    <p className="text-[10px] font-medium text-foreground/70 flex items-center gap-0.5">
+                      <Link2 className="h-2.5 w-2.5" />
+                      {extPts.toLocaleString()}
+                    </p>
+                  )}
                   {expPts > 0 && (
                     <p className="text-[9px] font-medium text-destructive leading-tight text-center">
                       ⚠ {expPts} pts expiring soon
