@@ -204,7 +204,7 @@ export default function Home() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
-                External loyalty
+                Loyalty points
               </h2>
               <p className="text-2xl font-bold tabular-nums text-foreground">
                 {totalExternalPoints.toLocaleString()}
