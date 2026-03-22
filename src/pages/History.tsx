@@ -106,7 +106,7 @@ export default function History() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background pb-20">
       {/* Header */}
       <header className="flex items-center gap-3 px-6 pt-12 pb-4">
         <button
