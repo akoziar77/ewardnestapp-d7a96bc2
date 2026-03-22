@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_locations: {
+        Row: {
+          address_line: string | null
+          brand_id: string
+          city: string | null
+          country: string | null
+          created_at: string
+          geofence_radius_meters: number
+          id: string
+          is_headquarters: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          state: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          brand_id: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          geofence_radius_meters?: number
+          id?: string
+          is_headquarters?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          state?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          brand_id?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          geofence_radius_meters?: number
+          id?: string
+          is_headquarters?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          state?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_locations_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_visits: {
         Row: {
           brand_id: string
