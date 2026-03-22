@@ -36,16 +36,54 @@ interface Brand {
   api_field_name: string | null;
 }
 
-// Mapping of brand fields to their raw API (database) column names
-const BRAND_API_FIELDS: { label: string; apiName: string; getValue: (b: Brand) => React.ReactNode }[] = [
-  { label: "Category", apiName: "category", getValue: (b) => b.category },
-  { label: "Loyalty Program", apiName: "loyalty_provider", getValue: (b) => b.loyalty_provider },
-  { label: "Milestone Visits", apiName: "milestone_visits", getValue: (b) => b.milestone_visits },
-  { label: "Milestone Points", apiName: "milestone_points", getValue: (b) => b.milestone_points },
-  { label: "Visit Expiry", apiName: "visit_expiry_months", getValue: (b) => `${b.visit_expiry_months} months` },
-  { label: "Logo", apiName: "logo_emoji", getValue: (b) => b.logo_emoji },
-  { label: "API Field Name", apiName: "api_field_name", getValue: (b) => b.api_field_name },
+// Comprehensive Loyalty API Field Inventory — mapped to database columns
+// Section 1: Member Profile Fields
+interface LoyaltyFieldDef {
+  label: string;
+  apiName: string;
+  section: string;
+  getValue: (ctx: { brand: Brand; conn: any; profile: any; visits: BrandVisit[]; expiringPts: number }) => React.ReactNode;
+}
+
+const LOYALTY_API_FIELDS: LoyaltyFieldDef[] = [
+  // 1. Member Profile Fields
+  { section: "Member Profile", label: "Member ID", apiName: "member_id", getValue: ({ conn }) => conn?.id ?? null },
+  { section: "Member Profile", label: "External Member ID", apiName: "external_member_id", getValue: ({ conn }) => conn?.external_member_id ?? null },
+  { section: "Member Profile", label: "Display Name", apiName: "display_name", getValue: ({ profile }) => profile?.display_name ?? null },
+  { section: "Member Profile", label: "Preferred Name", apiName: "preferred_name", getValue: ({ profile }) => profile?.display_name ?? null },
+
+  // 2. Account & Program Fields
+  { section: "Account & Program", label: "Category", apiName: "category", getValue: ({ brand }) => brand.category },
+  { section: "Account & Program", label: "Loyalty Program", apiName: "loyalty_provider", getValue: ({ brand }) => brand.loyalty_provider },
+  { section: "Account & Program", label: "Provider Name", apiName: "provider_name", getValue: ({ conn }) => conn?.provider_name ?? null },
+  { section: "Account & Program", label: "Connection Status", apiName: "status", getValue: ({ conn }) => conn?.status ?? null },
+  { section: "Account & Program", label: "API Field Name", apiName: "api_field_name", getValue: ({ brand }) => brand.api_field_name },
+
+  // 3. Points & Balance Fields
+  { section: "Points & Balance", label: "Milestone Points", apiName: "milestone_points", getValue: ({ brand }) => brand.milestone_points },
+  { section: "Points & Balance", label: "External Points Balance", apiName: "external_points_balance", getValue: ({ conn }) => conn?.external_points_balance != null ? conn.external_points_balance.toLocaleString() : null },
+  { section: "Points & Balance", label: "Expiring Points", apiName: "expiring_points", getValue: ({ expiringPts }) => expiringPts > 0 ? `${expiringPts} pts` : null },
+
+  // 4. Visit & Transaction Fields
+  { section: "Visits & Transactions", label: "Milestone Visits", apiName: "milestone_visits", getValue: ({ brand }) => brand.milestone_visits },
+  { section: "Visits & Transactions", label: "Visit Expiry", apiName: "visit_expiry_months", getValue: ({ brand }) => `${brand.visit_expiry_months} months` },
+  { section: "Visits & Transactions", label: "Total Visits", apiName: "visit_count", getValue: ({ visits }) => visits.length },
+  { section: "Visits & Transactions", label: "Last Visit", apiName: "last_visit_at", getValue: ({ visits }) => visits.length > 0 ? format(new Date(visits[0].created_at), "MMM d, yyyy") : null },
+
+  // 5. Partner & Integration Fields
+  { section: "Partner & Integration", label: "Loyalty API URL", apiName: "loyalty_api_url", getValue: ({ brand }) => brand.loyalty_api_url },
+  { section: "Partner & Integration", label: "API Endpoint", apiName: "api_endpoint", getValue: ({ conn }) => conn?.api_endpoint ?? null },
+  { section: "Partner & Integration", label: "Last Synced", apiName: "last_synced_at", getValue: ({ conn }) => conn?.last_synced_at ? format(new Date(conn.last_synced_at), "MMM d, yyyy") : null },
+
+  // 6. Branding & Metadata
+  { section: "Branding & Metadata", label: "Logo", apiName: "logo_emoji", getValue: ({ brand }) => brand.logo_emoji },
+  { section: "Branding & Metadata", label: "Website", apiName: "website_url", getValue: ({ brand }) => brand.website_url },
+  { section: "Branding & Metadata", label: "Brand ID", apiName: "brand_id", getValue: ({ brand }) => brand.id },
+  { section: "Branding & Metadata", label: "Created At", apiName: "created_at", getValue: ({ conn }) => conn?.created_at ? format(new Date(conn.created_at), "MMM d, yyyy") : null },
 ];
+
+// Group fields by section
+const LOYALTY_SECTIONS = [...new Set(LOYALTY_API_FIELDS.map((f) => f.section))];
 
 interface BrandVisit {
   id: string;
