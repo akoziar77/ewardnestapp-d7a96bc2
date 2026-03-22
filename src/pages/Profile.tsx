@@ -18,6 +18,7 @@ import {
   LogOut,
   Shield,
   Bell,
+  Moon,
   ChevronRight,
   Save,
 } from "lucide-react";
