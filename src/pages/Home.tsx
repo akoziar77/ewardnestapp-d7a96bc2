@@ -99,7 +99,7 @@ export default function Home() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { icon: QrCode, label: "Scan", color: "bg-primary/10 text-primary", onClick: () => navigate("/scan") },
-            { icon: Gift, label: "Rewards", color: "bg-secondary/10 text-secondary", onClick: () => {} },
+            { icon: Gift, label: "Rewards", color: "bg-secondary/10 text-secondary", onClick: () => navigate("/rewards") },
             { icon: Bird, label: "My Nest", color: "bg-primary/10 text-primary", onClick: () => {} },
           ].map(({ icon: Icon, label, color, onClick }) => (
             <button

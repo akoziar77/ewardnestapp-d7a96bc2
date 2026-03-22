@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Scan from "./pages/Scan";
+import Rewards from "./pages/Rewards";
 import MerchantLogin from "./pages/merchant/MerchantLogin";
 import MerchantLayout from "./pages/merchant/MerchantLayout";
 import MerchantOverview from "./pages/merchant/MerchantOverview";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/scan" element={<Scan />} />
+            <Route path="/rewards" element={<Rewards />} />
             <Route path="/merchant/login" element={<MerchantLogin />} />
             <Route path="/merchant/onboarding" element={<MerchantOnboarding />} />
             <Route path="/merchant" element={<MerchantLayout />}>
