@@ -345,7 +345,7 @@ export default function Profile() {
                   <p className="text-xs text-muted-foreground">
                     {(() => {
                       const p = profile as any;
-                      const parts = [p?.address, p?.city, p?.state].filter(Boolean);
+                      const parts = [p?.address, p?.city, p?.state, p?.zip_code].filter(Boolean);
                       return parts.length > 0 ? parts.join(", ") : "Not set";
                     })()}
                   </p>
