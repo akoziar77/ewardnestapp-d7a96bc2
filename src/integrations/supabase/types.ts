@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_visits: {
+        Row: {
+          brand_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_visits_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brands: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          logo_emoji: string
+          milestone_points: number
+          milestone_visits: number
+          name: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          logo_emoji?: string
+          milestone_points?: number
+          milestone_visits?: number
+          name: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          logo_emoji?: string
+          milestone_points?: number
+          milestone_visits?: number
+          name?: string
+        }
+        Relationships: []
+      }
       ledger_entries: {
         Row: {
           balance_after: number
