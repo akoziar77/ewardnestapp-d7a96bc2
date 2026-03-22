@@ -20,6 +20,12 @@ interface BrandLocationPoint {
   priority?: number;
 }
 
+interface RewardInfo {
+  title: string;
+  points_cost: number;
+  merchant_name: string;
+}
+
 function haversineDistance(
   lat1: number, lon1: number,
   lat2: number, lon2: number
@@ -35,9 +41,15 @@ function haversineDistance(
 }
 
 const COOLDOWN_MS = 30 * 60 * 1000;
+const REWARD_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour for reward reminders
+const REWARD_RADIUS_METERS = 0.1 * 1609.34; // 0.1 miles ≈ 160 meters
 
 function getNotifiedKey(locationId: string): string {
   return `geofence_notified_${locationId}`;
+}
+
+function getRewardNotifiedKey(brandId: string): string {
+  return `geofence_reward_notified_${brandId}`;
 }
 
 function wasRecentlyNotified(locationId: string): boolean {
@@ -46,16 +58,23 @@ function wasRecentlyNotified(locationId: string): boolean {
   return Date.now() - parseInt(raw, 10) < COOLDOWN_MS;
 }
 
+function wasRewardRecentlyNotified(brandId: string): boolean {
+  const raw = localStorage.getItem(getRewardNotifiedKey(brandId));
+  if (!raw) return false;
+  return Date.now() - parseInt(raw, 10) < REWARD_COOLDOWN_MS;
+}
+
 function markNotified(locationId: string) {
   localStorage.setItem(getNotifiedKey(locationId), Date.now().toString());
 }
 
-async function sendNotification(point: BrandLocationPoint) {
+function markRewardNotified(brandId: string) {
+  localStorage.setItem(getRewardNotifiedKey(brandId), Date.now().toString());
+}
+
+async function sendNotification(title: string, body: string, tag: string, url: string) {
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
-
-  const title = `${point.brand_emoji} ${point.brand_name} nearby!`;
-  const body = `You're near ${point.brand_name}. Open the app to earn rewards!`;
 
   try {
     if ("serviceWorker" in navigator) {
@@ -64,8 +83,8 @@ async function sendNotification(point: BrandLocationPoint) {
         body,
         icon: "/pwa-192.png",
         badge: "/pwa-192.png",
-        tag: `geofence-${point.id}`,
-        data: { url: `/brands?brand=${point.brand_id}` },
+        tag,
+        data: { url },
       } as any);
       return;
     }
@@ -76,7 +95,7 @@ async function sendNotification(point: BrandLocationPoint) {
   new Notification(title, {
     body,
     icon: "/pwa-192.png",
-    tag: `geofence-${point.id}`,
+    tag,
   });
 }
 
@@ -116,6 +135,51 @@ export function useGeofence() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch active rewards with merchant names for reward-aware notifications
+  const { data: rewardsMap } = useQuery({
+    queryKey: ["geofence-rewards"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rewards")
+        .select("id, title, points_cost, merchant_id, merchants(name)")
+        .eq("active", true);
+      if (error) throw error;
+
+      // Build a map: lowercase merchant name → rewards[]
+      const map = new Map<string, RewardInfo[]>();
+      for (const r of data ?? []) {
+        const mName = ((r as any).merchants?.name ?? "").toLowerCase().trim();
+        if (!mName) continue;
+        const existing = map.get(mName) || [];
+        existing.push({
+          title: r.title,
+          points_cost: r.points_cost,
+          merchant_name: (r as any).merchants?.name ?? "",
+        });
+        map.set(mName, existing);
+      }
+      return map;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Find rewards matching a brand name (fuzzy match on merchant name)
+  const findRewardsForBrand = useCallback(
+    (brandName: string): RewardInfo[] => {
+      if (!rewardsMap) return [];
+      const bn = brandName.toLowerCase().trim();
+      // Exact match first
+      if (rewardsMap.has(bn)) return rewardsMap.get(bn)!;
+      // Partial match: brand name contains merchant name or vice versa
+      for (const [mName, rewards] of rewardsMap) {
+        if (bn.includes(mName) || mName.includes(bn)) return rewards;
+      }
+      return [];
+    },
+    [rewardsMap]
+  );
+
   const checkProximity = useCallback(
     (position: GeolocationPosition) => {
       if (!locationPoints?.length) return;
@@ -125,6 +189,9 @@ export function useGeofence() {
       const dayMap: Record<number, string> = { 0: "SUN", 1: "MON", 2: "TUE", 3: "WED", 4: "THU", 5: "FRI", 6: "SAT" };
       const currentDay = dayMap[now.getDay()];
       const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+      // Track which brands we've already sent reward notifications for in this check
+      const rewardNotifiedBrands = new Set<string>();
 
       for (const point of locationPoints) {
         // Check active_hours if defined
@@ -146,12 +213,18 @@ export function useGeofence() {
         const wasInside = insideFencesRef.current.has(point.id);
         const triggers = point.triggers ?? ["ENTER"];
 
+        // Standard geofence ENTER/EXIT notifications
         if (isInside && !wasInside) {
           insideFencesRef.current.add(point.id);
 
           if (triggers.includes("ENTER") && !wasRecentlyNotified(point.id)) {
             markNotified(point.id);
-            sendNotification(point);
+            sendNotification(
+              `${point.brand_emoji} ${point.brand_name} nearby!`,
+              `You're near ${point.brand_name}. Open the app to earn rewards!`,
+              `geofence-${point.id}`,
+              `/brands?brand=${point.brand_id}`
+            );
             toast(`${point.brand_emoji} You're near ${point.brand_name}!`, {
               description: "Open the app to earn rewards.",
               duration: 6000,
@@ -168,9 +241,45 @@ export function useGeofence() {
             });
           }
         }
+
+        // Reward reminder at 0.1 miles — separate from standard geofence
+        if (
+          distance <= REWARD_RADIUS_METERS &&
+          !rewardNotifiedBrands.has(point.brand_id) &&
+          !wasRewardRecentlyNotified(point.brand_id)
+        ) {
+          const rewards = findRewardsForBrand(point.brand_name);
+          if (rewards.length > 0) {
+            rewardNotifiedBrands.add(point.brand_id);
+            markRewardNotified(point.brand_id);
+
+            const topReward = rewards.reduce((a, b) => a.points_cost < b.points_cost ? a : b);
+            const rewardCount = rewards.length;
+            const body = rewardCount === 1
+              ? `"${topReward.title}" is available for ${topReward.points_cost} pts!`
+              : `${rewardCount} rewards available — starting at ${topReward.points_cost} pts!`;
+
+            sendNotification(
+              `🎁 ${point.brand_emoji} ${point.brand_name} has rewards!`,
+              body,
+              `reward-reminder-${point.brand_id}`,
+              `/rewards`
+            );
+            toast(`🎁 ${point.brand_name} has rewards for you!`, {
+              description: body,
+              duration: 8000,
+              action: {
+                label: "View Rewards",
+                onClick: () => {
+                  window.location.href = "/rewards";
+                },
+              },
+            });
+          }
+        }
       }
     },
-    [locationPoints]
+    [locationPoints, findRewardsForBrand]
   );
 
   useEffect(() => {
