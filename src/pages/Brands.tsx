@@ -474,6 +474,7 @@ export default function Brands() {
                                     <p className="text-[11px] text-emerald-700/80 dark:text-emerald-300/80">{new Date(conn.last_synced_at).toLocaleDateString()}</p>
                                   </div>
                                 )}
+                              </div>
                             </button>
                           ) : (
                             <button
