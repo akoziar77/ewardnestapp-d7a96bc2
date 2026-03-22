@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -16,18 +15,17 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Plus, Eye, EyeOff } from "lucide-react";
 import {
-  ArrowLeft, Plus, GripVertical, Pencil, Trash2, ArrowUp, ArrowDown, Copy,
-  Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
-  Trophy, Crown, Flame, Target, Rocket, Eye, EyeOff, type LucideIcon,
-} from "lucide-react";
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import OnboardingStepPreview from "@/components/onboarding/OnboardingStepPreview";
+import SortableOnboardingRow, { ICON_MAP, type OnboardingStep } from "@/components/onboarding/SortableOnboardingRow";
 
-/* ── icon registry ─────────────────────────────────────── */
-const ICON_MAP: Record<string, LucideIcon> = {
-  Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
-  Trophy, Crown, Flame, Target, Rocket,
-};
 const ICON_NAMES = Object.keys(ICON_MAP);
 
 const STEP_TYPES = [
@@ -43,18 +41,6 @@ const COLOR_OPTIONS = [
   { value: "bg-destructive", label: "Destructive" },
 ];
 
-/* ── types ─────────────────────────────────────────────── */
-interface OnboardingStep {
-  id: string;
-  title: string;
-  description: string;
-  icon_name: string;
-  color_class: string;
-  step_type: string;
-  sort_order: number;
-  active: boolean;
-}
-
 const EMPTY: Omit<OnboardingStep, "id" | "sort_order"> = {
   title: "",
   description: "",
@@ -64,7 +50,6 @@ const EMPTY: Omit<OnboardingStep, "id" | "sort_order"> = {
   active: true,
 };
 
-/* ── component ─────────────────────────────────────────── */
 export default function AdminOnboarding() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -75,6 +60,11 @@ export default function AdminOnboarding() {
   const [isNew, setIsNew] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [previewIndex, setPreviewIndex] = useState(0);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   /* ── queries ── */
   const { data: steps = [], isLoading } = useQuery({
@@ -141,29 +131,6 @@ export default function AdminOnboarding() {
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
-  const reorder = useMutation({
-    mutationFn: async ({ id, direction }: { id: string; direction: "up" | "down" }) => {
-      const idx = steps.findIndex((s) => s.id === id);
-      const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-      if (swapIdx < 0 || swapIdx >= steps.length) return;
-
-      const a = steps[idx];
-      const b = steps[swapIdx];
-
-      const { error: e1 } = await supabase
-        .from("onboarding_steps")
-        .update({ sort_order: b.sort_order, updated_at: new Date().toISOString() })
-        .eq("id", a.id);
-      const { error: e2 } = await supabase
-        .from("onboarding_steps")
-        .update({ sort_order: a.sort_order, updated_at: new Date().toISOString() })
-        .eq("id", b.id);
-      if (e1 || e2) throw e1 || e2;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding-steps"] }),
-    onError: (e: Error) => toast({ title: "Reorder failed", description: e.message, variant: "destructive" }),
-  });
-
   const toggleActive = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const { error } = await supabase
@@ -175,6 +142,30 @@ export default function AdminOnboarding() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding-steps"] }),
   });
 
+  /* ── drag-and-drop reorder ── */
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = steps.findIndex((s) => s.id === active.id);
+    const newIndex = steps.findIndex((s) => s.id === over.id);
+    const reordered = arrayMove(steps, oldIndex, newIndex);
+
+    // Optimistic update
+    qc.setQueryData(["onboarding-steps"], reordered.map((s, i) => ({ ...s, sort_order: i })));
+
+    // Persist all new sort_orders
+    const updates = reordered.map((s, i) =>
+      supabase.from("onboarding_steps").update({ sort_order: i, updated_at: new Date().toISOString() }).eq("id", s.id)
+    );
+    const results = await Promise.all(updates);
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
+      toast({ title: "Reorder failed", description: failed.error.message, variant: "destructive" });
+    }
+    qc.invalidateQueries({ queryKey: ["onboarding-steps"] });
+  };
+
   const openNew = () => {
     setIsNew(true);
     setEditing({ ...EMPTY, id: "", sort_order: 0 });
@@ -185,7 +176,20 @@ export default function AdminOnboarding() {
     setEditing({ ...s });
   };
 
-  /* ── render ── */
+  const handleDuplicate = (step: OnboardingStep) => {
+    setIsNew(true);
+    upsert.mutate({
+      title: step.title + " (copy)",
+      description: step.description,
+      icon_name: step.icon_name,
+      color_class: step.color_class,
+      step_type: step.step_type,
+      active: step.active,
+    });
+  };
+
+  const activeSteps = steps.filter((s) => s.active);
+
   return (
     <div className="min-h-screen bg-background">
       {/* header */}
@@ -206,89 +210,38 @@ export default function AdminOnboarding() {
       <div className={`max-w-6xl mx-auto p-4 ${showPreview ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : ""}`}>
         {/* Steps list */}
         <div className="space-y-3">
-          {isLoading
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-20 rounded-xl" />
-              ))
-            : steps.map((step, idx) => {
-                const Icon = ICON_MAP[step.icon_name] ?? Sparkles;
-                const activeSteps = steps.filter((s) => s.active);
-                const activeIdx = activeSteps.findIndex((s) => s.id === step.id);
-                return (
-                  <div
-                    key={step.id}
-                    className={`flex items-center gap-3 rounded-xl border p-4 transition-all cursor-pointer ${
-                      !step.active ? "opacity-50" : ""
-                    } ${showPreview && activeIdx === previewIndex && step.active ? "ring-2 ring-primary" : ""}`}
-                    onClick={() => {
-                      if (step.active && activeIdx >= 0) setPreviewIndex(activeIdx);
-                    }}
-                  >
-                    <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${step.color_class}`}>
-                      <Icon className="h-5 w-5 text-primary-foreground" />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{step.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{step.step_type} · order {step.sort_order}</p>
-                    </div>
-
-                    <Switch
-                      checked={step.active}
-                      onCheckedChange={(v) => toggleActive.mutate({ id: step.id, active: v })}
-                      className="shrink-0"
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
+          ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                {steps.map((step) => {
+                  const activeIdx = activeSteps.findIndex((s) => s.id === step.id);
+                  return (
+                    <SortableOnboardingRow
+                      key={step.id}
+                      step={step}
+                      isSelected={showPreview && activeIdx === previewIndex && step.active}
+                      onSelect={() => {
+                        if (step.active && activeIdx >= 0) setPreviewIndex(activeIdx);
+                      }}
+                      onToggleActive={(id, active) => toggleActive.mutate({ id, active })}
+                      onEdit={openEdit}
+                      onDuplicate={handleDuplicate}
+                      onDelete={setDeleting}
                     />
-
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled={idx === 0}
-                        onClick={(e) => { e.stopPropagation(); reorder.mutate({ id: step.id, direction: "up" }); }}>
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" disabled={idx === steps.length - 1}
-                        onClick={(e) => { e.stopPropagation(); reorder.mutate({ id: step.id, direction: "down" }); }}>
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8"
-                        onClick={(e) => { e.stopPropagation(); openEdit(step); }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8"
-                        title="Duplicate step"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsNew(true);
-                          upsert.mutate({
-                            title: step.title + " (copy)",
-                            description: step.description,
-                            icon_name: step.icon_name,
-                            color_class: step.color_class,
-                            step_type: step.step_type,
-                            active: step.active,
-                          });
-                        }}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"
-                        onClick={(e) => { e.stopPropagation(); setDeleting(step); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </SortableContext>
+            </DndContext>
+          )}
         </div>
 
         {/* Live preview */}
         {showPreview && (
           <div className="sticky top-20 self-start">
             <p className="text-sm font-medium text-muted-foreground mb-3 text-center">Live Preview</p>
-            <OnboardingStepPreview
-              steps={steps}
-              selectedIndex={previewIndex}
-              onSelectIndex={setPreviewIndex}
-            />
+            <OnboardingStepPreview steps={steps} selectedIndex={previewIndex} onSelectIndex={setPreviewIndex} />
           </div>
         )}
       </div>
@@ -305,18 +258,11 @@ export default function AdminOnboarding() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium">Title</label>
-                <Input
-                  value={editing.title}
-                  onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-                />
+                <Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
               </div>
               <div>
                 <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={editing.description}
-                  onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-                  rows={3}
-                />
+                <Textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -328,9 +274,7 @@ export default function AdminOnboarding() {
                         const I = ICON_MAP[n];
                         return (
                           <SelectItem key={n} value={n}>
-                            <span className="flex items-center gap-2">
-                              <I className="h-4 w-4" /> {n}
-                            </span>
+                            <span className="flex items-center gap-2"><I className="h-4 w-4" /> {n}</span>
                           </SelectItem>
                         );
                       })}
