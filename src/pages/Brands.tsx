@@ -160,6 +160,19 @@ export default function Brands() {
     enabled: !!user,
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const { data: expiringEntries = [] } = useQuery({
     queryKey: ["expiring-points-brands", user?.id],
     queryFn: async () => {
