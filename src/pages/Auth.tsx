@@ -147,6 +147,19 @@ export default function Auth() {
             </div>
           </div>
 
+          {!isSignUp && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(!!checked)}
+              />
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                Remember me
+              </Label>
+            </div>
+          )}
+
           <Button
             type="submit"
             className="h-12 w-full text-base font-semibold active:scale-[0.97] transition-transform"
