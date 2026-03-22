@@ -4,8 +4,8 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw, Download, MapPin } from "lucide-react";
-import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
+import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw, Download, MapPin, UserPlus } from "lucide-react";
+import { getProviderLinks, getOpenAppUrl, getProviderLink, buildRegistrationUrl } from "@/lib/providerDeepLinks";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -728,6 +728,37 @@ export default function Home() {
                         </div>
                       </button>
                     )}
+                    {/* Register button — only if no connection exists for this brand */}
+                    {(() => {
+                      const isConnected = loyaltyConnections.some((c: any) => c.brand_id === favChoiceBrand?.id);
+                      if (isConnected || !favChoiceBrand?.loyalty_provider) return null;
+                      const nameParts = (profile?.display_name ?? "").split(" ");
+                      const regUrl = buildRegistrationUrl(favChoiceBrand.loyalty_provider, {
+                        firstName: nameParts[0] || undefined,
+                        lastName: nameParts.slice(1).join(" ") || undefined,
+                        email: user?.email || undefined,
+                        phone: profile?.phone || undefined,
+                        zipCode: profile?.zip_code || undefined,
+                      });
+                      if (!regUrl) return null;
+                      return (
+                        <button
+                          onClick={() => {
+                            window.open(regUrl, "_blank", "noopener");
+                            setFavChoiceBrand(null);
+                          }}
+                          className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"
+                        >
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                            <UserPlus className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold">Register for {favChoiceBrand.loyalty_provider}</p>
+                            <p className="text-[11px] text-muted-foreground">Sign up with pre-filled info</p>
+                          </div>
+                        </button>
+                      );
+                    })()}
                   </>
                 );
               })()}
