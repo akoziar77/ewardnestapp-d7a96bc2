@@ -497,7 +497,7 @@ export default function Brands() {
                                   </p>
                                   <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                                     {fields.map(({ key, label, apiName, getValue }) => {
-                                      const val = getValue({ brand, conn, profile, visits: bVisits, expiringPts: exPts });
+                                      const val = getValue({ brand, conn, profile, visits: bVisits, expiringPts: exPts, userEmail: user?.email });
                                       const isLogo = apiName === "logo_emoji";
                                       const isUrl = apiName === "website_url" || apiName === "loyalty_api_url" || apiName === "api_endpoint";
                                       const isFullWidth = isUrl || apiName === "brand_id";

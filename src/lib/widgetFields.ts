@@ -45,6 +45,7 @@ export const LOYALTY_API_FIELDS: LoyaltyFieldDef[] = [
   { key: "member_id", section: "Member Profile", label: "Member ID", apiName: "member_id", defaultVisible: false, getValue: ({ conn }) => conn?.id ?? null },
   { key: "external_member_id", section: "Member Profile", label: "External Member ID", apiName: "external_member_id", defaultVisible: false, getValue: ({ conn }) => conn?.external_member_id ?? null },
   { key: "display_name", section: "Member Profile", label: "Display Name", apiName: "display_name", defaultVisible: false, getValue: ({ profile }) => profile?.display_name ?? null },
+  { key: "user_email", section: "Member Profile", label: "Email", apiName: "email", defaultVisible: false, getValue: ({ userEmail }) => userEmail ?? null },
 
   // 2. Account & Program
   { key: "category", section: "Account & Program", label: "Category", apiName: "category", defaultVisible: false, getValue: ({ brand }) => brand.category },
