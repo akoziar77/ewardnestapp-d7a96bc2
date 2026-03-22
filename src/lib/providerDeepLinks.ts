@@ -179,6 +179,7 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     playStoreUrl: "https://play.google.com/store/apps/details?id=com.mcdonalds.app",
     webUrl: "https://www.mcdonalds.com/us/en-us/mymcdonalds.html",
     appName: "McDonald's",
+    registrationUrl: "https://www.mcdonalds.com/us/en-us/mymcdonalds.html",
   },
   "royal perks": {
     appStoreUrl: "https://apps.apple.com/app/burger-king-app/id652603901",
