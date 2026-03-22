@@ -365,23 +365,21 @@ export default function Home() {
                   Quick actions
                 </h2>
                 <div className="grid grid-cols-4 gap-3">
-                  {[
-                    { icon: QrCode, label: "Scan", color: "bg-primary/10 text-primary", onClick: () => navigate("/scan") },
-                    { icon: Gift, label: "Rewards", color: "bg-secondary/10 text-secondary", onClick: () => navigate("/rewards") },
-                    { icon: Store, label: "Brands", color: "bg-primary/10 text-primary", onClick: () => navigate("/brands") },
-                    { icon: History, label: "History", color: "bg-muted text-muted-foreground", onClick: () => navigate("/history") },
-                  ].map(({ icon: Icon, label, color, onClick }) => (
-                    <button
-                      key={label}
-                      onClick={onClick}
-                      className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm active:scale-[0.96]"
-                    >
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${color}`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <span className="text-sm font-medium">{label}</span>
-                    </button>
-                  ))}
+                  {(quickActions ?? []).filter((a: any) => a.visible).map((a: any) => {
+                    const Icon = quickActionIconMap[a.icon_name] || QrCode;
+                    return (
+                      <button
+                        key={a.id}
+                        onClick={() => navigate(a.route)}
+                        className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm active:scale-[0.96]"
+                      >
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${a.color_class}`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <span className="text-sm font-medium">{a.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
