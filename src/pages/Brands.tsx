@@ -529,6 +529,25 @@ export default function Brands() {
         </DialogContent>
       </Dialog>
 
+      {/* Loyalty connect dialog */}
+      {loyaltyBrandId && (() => {
+        const b = brands.find((br) => br.id === loyaltyBrandId);
+        if (!b) return null;
+        return (
+          <LoyaltyConnectDialog
+            open={!!loyaltyBrandId}
+            onOpenChange={(open) => !open && setLoyaltyBrandId(null)}
+            brandId={b.id}
+            brandName={b.name}
+            brandEmoji={b.logo_emoji}
+            connection={getLoyaltyConnection(b.id)}
+            onConnectionChange={() =>
+              queryClient.invalidateQueries({ queryKey: ["loyalty-connections", user?.id] })
+            }
+          />
+        );
+      })()}
+
       <BottomNav />
     </div>
   );
