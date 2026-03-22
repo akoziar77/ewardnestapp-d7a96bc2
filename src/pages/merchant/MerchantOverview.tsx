@@ -14,7 +14,7 @@ export default function MerchantOverview() {
       const [ledgerRes, redemptionRes, rewardRes] = await Promise.all([
         supabase
           .from("ledger_entries")
-          .select("delta_points, type, user_id, created_at")
+          .select("id, delta_points, type, user_id, created_at")
           .eq("merchant_id", merchantId),
         supabase
           .from("redemptions")
