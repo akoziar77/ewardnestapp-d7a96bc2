@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRoles } from "@/hooks/useRoles";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import BottomNav from "@/components/BottomNav";
@@ -44,6 +45,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function Profile() {
   const { user, signOut, subscriptionTier } = useAuth();
+  const { isAdmin } = useRoles();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -390,6 +392,18 @@ export default function Profile() {
                   </p>
                 </div>
               </div>
+              {isAdmin && (
+                <button
+                  onClick={() => navigate("/admin/roles")}
+                  className="flex w-full items-center justify-between p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-5 w-5 text-primary shrink-0" />
+                    <p className="text-sm font-medium text-primary">Admin — Manage Roles</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
             </div>
           </div>
 
