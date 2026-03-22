@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Flame, Trophy, Target, Zap, CreditCard, Eye,
   MapPin, Gift, ChevronLeft, Egg, Feather, Bird, Crown,
-  CheckCircle2, Clock,
+  CheckCircle2, Clock, Rocket,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -36,6 +36,12 @@ export default function Engage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [earningAction, setEarningAction] = useState<string | null>(null);
+  const [lastEarnResult, setLastEarnResult] = useState<{
+    basePoints: number;
+    boostedPoints: number;
+    bonus: number;
+    appliedBoosters: number;
+  } | null>(null);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["engage-profile", user?.id],
@@ -93,6 +99,22 @@ export default function Engage() {
     enabled: !!user,
   });
 
+  const { data: activeBoosters } = useQuery({
+    queryKey: ["active-boosters"],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("boosters")
+        .select("*")
+        .eq("active", true)
+        .lte("start_at", now)
+        .or(`end_at.is.null,end_at.gte.${now}`);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const earnMutation = useMutation({
     mutationFn: async (action: string) => {
       const { data, error } = await supabase.functions.invoke("nest-earn", {
@@ -102,14 +124,24 @@ export default function Engage() {
       return data;
     },
     onSuccess: (data) => {
+      setLastEarnResult({
+        basePoints: data.basePoints,
+        boostedPoints: data.boostedPoints,
+        bonus: data.bonus,
+        appliedBoosters: data.appliedBoosters,
+      });
+      const boosterText = data.appliedBoosters > 0
+        ? ` (🚀 ${data.bonus} bonus from boosters!)`
+        : "";
       toast({
-        title: `+${data.pointsAwarded} Nest Points!`,
-        description: `You earned points for "${earningAction}". Tier: ${data.tier}`,
+        title: `+${data.boostedPoints} Nest Points!${boosterText}`,
+        description: `Tier: ${data.tier}`,
       });
       queryClient.invalidateQueries({ queryKey: ["engage-profile"] });
       queryClient.invalidateQueries({ queryKey: ["nest-activities"] });
       queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
       setEarningAction(null);
+      setTimeout(() => setLastEarnResult(null), 4000);
     },
     onError: () => {
       toast({ title: "Failed to earn points", variant: "destructive" });
@@ -157,6 +189,16 @@ export default function Engage() {
       visit_brand: "Visited Brand",
       redeem_reward: "Redeemed Reward",
       daily_streak: "Daily Streak",
+    };
+    return map[type] ?? type;
+  };
+
+  const boosterTypeLabel = (type: string) => {
+    const map: Record<string, string> = {
+      multiplier: "Multiplier",
+      flat_bonus: "Flat Bonus",
+      challenge: "Challenge",
+      tier_bonus: "Tier Bonus",
     };
     return map[type] ?? type;
   };
@@ -211,6 +253,80 @@ export default function Engage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Bonus Applied Banner */}
+        {lastEarnResult && lastEarnResult.appliedBoosters > 0 && (
+          <Card className="border-0 shadow-sm bg-primary/5">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Rocket className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-foreground text-sm">
+                  🚀 Booster Applied!
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Base: {lastEarnResult.basePoints} pts → Boosted: {lastEarnResult.boostedPoints} pts (+{lastEarnResult.bonus} bonus)
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Active Boosters */}
+        {(activeBoosters?.length ?? 0) > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Rocket className="h-4 w-4 text-primary" /> Active Boosters
+            </h2>
+            <div className="space-y-2.5">
+              {activeBoosters!.map((b) => (
+                <Card key={b.id} className="border-0 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground text-sm">{b.name}</p>
+                        {b.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{b.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {boosterTypeLabel(b.type)}
+                          </Badge>
+                          {b.type === "multiplier" && (
+                            <Badge variant="outline" className="text-xs tabular-nums">
+                              {b.multiplier_value}x
+                            </Badge>
+                          )}
+                          {b.type === "flat_bonus" && (
+                            <Badge variant="outline" className="text-xs tabular-nums">
+                              +{b.bonus_value} pts
+                            </Badge>
+                          )}
+                          {b.required_action !== "any" && (
+                            <Badge variant="outline" className="text-xs">
+                              {b.required_action}
+                            </Badge>
+                          )}
+                          {b.required_tier !== "any" && (
+                            <Badge variant="outline" className="text-xs">
+                              {b.required_tier}+ tier
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {b.end_at && (
+                        <p className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                          Ends {format(new Date(b.end_at), "MMM d")}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Daily Streak */}
         <Card className="border-0 shadow-sm">
