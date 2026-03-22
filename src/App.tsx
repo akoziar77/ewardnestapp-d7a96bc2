@@ -14,6 +14,7 @@ import MerchantOverview from "./pages/merchant/MerchantOverview";
 import MerchantRewards from "./pages/merchant/MerchantRewards";
 import MerchantRedemptions from "./pages/merchant/MerchantRedemptions";
 import MerchantQR from "./pages/merchant/MerchantQR";
+import MerchantOnboarding from "./pages/merchant/MerchantOnboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
