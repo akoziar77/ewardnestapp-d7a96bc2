@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, Navigation, Map as MapIcon, List } from "lucide-react";
+import { MapPin, Navigation, Map as MapIcon, List, ChevronDown } from "lucide-react";
 import { getGeofenceRadiusMeters } from "@/pages/BrandSettings";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -38,6 +38,16 @@ function formatDistance(meters: number): string {
   if (miles < 10) return `${miles.toFixed(1)} mi`;
   return `${Math.round(miles)} mi`;
 }
+
+const DISTANCE_OPTIONS = [
+  { label: "1 mi", miles: 1 },
+  { label: "2 mi", miles: 2 },
+  { label: "5 mi", miles: 5 },
+  { label: "10 mi", miles: 10 },
+  { label: "25 mi", miles: 25 },
+  { label: "50 mi", miles: 50 },
+  { label: "All", miles: Infinity },
+];
 
 function createEmojiIcon(emoji: string) {
   return L.divIcon({
@@ -153,6 +163,8 @@ export default function NearbyBrandsWidget() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [maxMiles, setMaxMiles] = useState(5);
+  const [distDropdownOpen, setDistDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (!("geolocation" in navigator)) {
@@ -191,18 +203,35 @@ export default function NearbyBrandsWidget() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Calculate distances, filter by max miles, keep only closest per brand
   const nearby: NearbyLocation[] = userPos
-    ? rawLocations
-        .map((loc: any) => ({
-          ...loc,
-          distance: haversine(userPos.lat, userPos.lng, loc.latitude, loc.longitude),
-        }))
-        .sort((a: NearbyLocation, b: NearbyLocation) => a.distance - b.distance)
-        .slice(0, 10)
+    ? (() => {
+        const maxMeters = maxMiles === Infinity ? Infinity : maxMiles * 1609.344;
+        const withDist = rawLocations
+          .map((loc: any) => ({
+            ...loc,
+            distance: haversine(userPos.lat, userPos.lng, loc.latitude, loc.longitude),
+          }))
+          .filter((loc: any) => loc.distance <= maxMeters)
+          .sort((a: NearbyLocation, b: NearbyLocation) => a.distance - b.distance);
+
+        // Keep only the closest location per brand
+        const seenBrands = new Set<string>();
+        const closestPerBrand: NearbyLocation[] = [];
+        for (const loc of withDist) {
+          if (!seenBrands.has(loc.brand_id)) {
+            seenBrands.add(loc.brand_id);
+            closestPerBrand.push(loc);
+          }
+        }
+        return closestPerBrand.slice(0, 10);
+      })()
     : [];
 
   const userRadiusM = getGeofenceRadiusMeters();
   const isInRange = (loc: NearbyLocation) => loc.distance <= Math.min(loc.geofence_radius_meters, userRadiusM);
+
+  const selectedLabel = DISTANCE_OPTIONS.find((o) => o.miles === maxMiles)?.label ?? "5 mi";
 
   if (locationDenied) {
     return (
@@ -238,22 +267,6 @@ export default function NearbyBrandsWidget() {
     );
   }
 
-  if (nearby.length === 0) {
-    return (
-      <div className="px-6 py-3">
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold">Nearby Brands</h2>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            No brand locations available yet. Check back later!
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const displayLocs = showMap ? nearby : nearby.slice(0, 5);
 
   return (
@@ -265,6 +278,37 @@ export default function NearbyBrandsWidget() {
             <h2 className="text-sm font-semibold">Nearby Brands</h2>
           </div>
           <div className="flex items-center gap-1.5">
+            {/* Distance dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setDistDropdownOpen(!distDropdownOpen)}
+                className="flex items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted transition-colors active:scale-95"
+              >
+                {selectedLabel}
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {distDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setDistDropdownOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[5rem] rounded-lg border border-border bg-card shadow-lg overflow-hidden">
+                    {DISTANCE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.miles}
+                        onClick={() => {
+                          setMaxMiles(opt.miles);
+                          setDistDropdownOpen(false);
+                        }}
+                        className={`block w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-muted ${
+                          maxMiles === opt.miles ? "font-semibold text-primary bg-primary/5" : "text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             <button
               onClick={() => setShowMap(!showMap)}
               className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors active:scale-95 ${
@@ -293,37 +337,43 @@ export default function NearbyBrandsWidget() {
           </div>
         )}
 
-        <div className="space-y-1">
-          {displayLocs.map((loc) => {
-            const inRange = isInRange(loc);
-            return (
-              <button
-                key={loc.id}
-                onClick={() => navigate(`/brands?brand=${loc.brand_id}`)}
-                className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors hover:bg-muted/60 active:scale-[0.98]"
-              >
-                <span className="text-xl shrink-0">{loc.logo_emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{loc.name}</p>
-                  {loc.category && (
-                    <p className="text-[11px] text-muted-foreground">{loc.category}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {inRange && (
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                      <Navigation className="h-2.5 w-2.5" />
-                      Here
+        {nearby.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-2">
+            No brands within {selectedLabel}. Try increasing the distance.
+          </p>
+        ) : (
+          <div className="space-y-1">
+            {displayLocs.map((loc) => {
+              const inRange = isInRange(loc);
+              return (
+                <button
+                  key={loc.id}
+                  onClick={() => navigate(`/brands?brand=${loc.brand_id}`)}
+                  className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors hover:bg-muted/60 active:scale-[0.98]"
+                >
+                  <span className="text-xl shrink-0">{loc.logo_emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{loc.brand_name}</p>
+                    {loc.category && (
+                      <p className="text-[11px] text-muted-foreground">{loc.category}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {inRange && (
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        <Navigation className="h-2.5 w-2.5" />
+                        Here
+                      </span>
+                    )}
+                    <span className={`text-xs tabular-nums ${inRange ? "font-semibold text-primary" : "text-muted-foreground"}`}>
+                      {formatDistance(loc.distance)}
                     </span>
-                  )}
-                  <span className={`text-xs tabular-nums ${inRange ? "font-semibold text-primary" : "text-muted-foreground"}`}>
-                    {formatDistance(loc.distance)}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
