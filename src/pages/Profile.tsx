@@ -54,6 +54,7 @@ export default function Profile() {
     localStorage.getItem("geofence_enabled") === "true"
   );
   const { theme, setTheme } = useTheme();
+  const { subscribe: subscribePush, isSupported: pushSupported } = usePushNotifications();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", user?.id],
