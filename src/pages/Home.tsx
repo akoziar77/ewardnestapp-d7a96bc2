@@ -470,7 +470,7 @@ export default function Home() {
                   )}
                   <button
                     onClick={() => {
-                      navigate("/brands");
+                      navigate(`/brands?brand=${loyaltyChoiceConn?.brand_id}`);
                       setLoyaltyChoiceConn(null);
                     }}
                     className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:shadow-sm active:scale-[0.97]"

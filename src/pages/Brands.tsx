@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,11 +57,14 @@ interface BrandVisit {
 export default function Brands() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [visitNotes, setVisitNotes] = useState("");
   const [filter, setFilter] = useState<string | null>(null);
-  const [expandedBrandId, setExpandedBrandId] = useState<string | null>(null);
+  const [expandedBrandId, setExpandedBrandId] = useState<string | null>(
+    searchParams.get("brand")
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [widgetFields, setWidgetFieldsState] = useState<string[]>(getVisibleWidgetFields);
   const [showWidgetSettings, setShowWidgetSettings] = useState(false);
