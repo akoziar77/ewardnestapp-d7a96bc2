@@ -775,7 +775,7 @@ export default function Brands() {
                       </div>
 
                       {/* Quick links */}
-                      <div className="flex items-center gap-4 pt-3 border-t border-border mt-3">
+                      <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-border mt-3">
                         {brand.website_url && (
                           <a
                             href={brand.website_url}
