@@ -259,7 +259,7 @@ export default function Profile() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="city" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     City
