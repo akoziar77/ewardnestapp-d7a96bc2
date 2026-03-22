@@ -28,6 +28,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", user?.id],
