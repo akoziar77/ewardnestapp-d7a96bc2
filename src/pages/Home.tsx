@@ -298,7 +298,7 @@ export default function Home() {
                       navigate("/brands");
                     }
                   }}
-                  className="relative flex shrink-0 w-32 flex-col items-center gap-1.5 rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-sm active:scale-[0.96]"
+                  className="relative flex shrink-0 min-w-[8rem] max-w-[10rem] w-auto flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-3 py-4 transition-all hover:shadow-sm active:scale-[0.96]"
                 >
                   {(brand.loyalty_api_url || brand.website_url) && (
                     <ExternalLink className="absolute top-2.5 right-2.5 h-3 w-3 text-muted-foreground" />
@@ -306,7 +306,7 @@ export default function Home() {
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl">
                     {brand.logo_emoji}
                   </div>
-                  <p className="text-xs font-semibold truncate w-full text-center">
+                  <p className="text-xs font-semibold w-full text-center break-words line-clamp-2">
                     {brand.name}
                   </p>
                   <Progress value={progress} className="h-1 w-full" />
