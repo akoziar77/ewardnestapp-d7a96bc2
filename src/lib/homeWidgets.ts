@@ -11,6 +11,7 @@ export const DEFAULT_WIDGETS: HomeWidget[] = [
   { id: "points", label: "In-app Points", description: "Your total points balance", visible: true },
   { id: "loyalty", label: "Loyalty Points", description: "Connected loyalty programs", visible: true },
   { id: "quickActions", label: "Quick Actions", description: "Scan, Rewards, Brands, History", visible: true },
+  { id: "nearby", label: "Nearby Brands", description: "Closest brand locations to you", visible: true },
   { id: "favorites", label: "Favorite Brands", description: "Your favorited brand widgets", visible: true },
   { id: "activity", label: "Recent Activity", description: "Latest point transactions", visible: true },
 ];

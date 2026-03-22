@@ -4,7 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw, Download } from "lucide-react";
+import { QrCode, Gift, TrendingUp, History, UserCircle, Store, Heart, Sparkles, Link2, ExternalLink, Globe, CalendarClock, Smartphone, Pencil, Settings, RotateCcw, Download, MapPin } from "lucide-react";
 import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -23,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { getWidgetLayout, saveWidgetLayout, type HomeWidget } from "@/lib/homeWidgets";
 import HomeWidgetEditor from "@/components/HomeWidgetEditor";
+import NearbyBrandsWidget from "@/components/NearbyBrandsWidget";
 import { useGeofence } from "@/hooks/useGeofence";
 import {
   Dialog,
@@ -459,6 +460,9 @@ export default function Home() {
                 <Button variant="outline" className="mt-4 active:scale-[0.97]" onClick={() => navigate("/scan")}>Scan a QR code</Button>
               </div>
             );
+
+          case "nearby":
+            return <NearbyBrandsWidget key="nearby" />;
 
           default:
             return null;
