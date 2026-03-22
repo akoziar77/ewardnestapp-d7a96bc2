@@ -216,7 +216,7 @@ export default function Brands() {
     <div className="flex min-h-screen flex-col bg-background pb-20">
       <header className="flex items-center gap-3 px-6 pt-12 pb-4">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/home")}
           className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors hover:text-foreground active:scale-95"
         >
           <ArrowLeft className="h-5 w-5" />
