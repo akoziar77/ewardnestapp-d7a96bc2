@@ -7,6 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -16,9 +17,10 @@ import {
 } from "@/components/ui/dialog";
 import LoyaltyConnectDialog from "@/components/LoyaltyConnectDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye } from "lucide-react";
 import { getHiddenCategories } from "@/pages/BrandSettings";
 import { format } from "date-fns";
+import { WIDGET_FIELDS, getVisibleWidgetFields, setVisibleWidgetFields } from "@/lib/widgetFields";
 
 interface Brand {
   id: string;
@@ -49,6 +51,16 @@ export default function Brands() {
   const [filter, setFilter] = useState<string | null>(null);
   const [expandedBrandId, setExpandedBrandId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [widgetFields, setWidgetFieldsState] = useState<string[]>(getVisibleWidgetFields);
+  const [showWidgetSettings, setShowWidgetSettings] = useState(false);
+
+  const toggleWidgetField = (key: string) => {
+    setWidgetFieldsState((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      setVisibleWidgetFields(next);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -437,10 +449,111 @@ export default function Brands() {
                     </div>
                   </button>
 
-                  {/* Expanded visit history */}
+                  {/* Expanded details */}
                   {isExpanded && (
                     <div className="border-t border-border px-4 pb-4">
-                      <div className="flex items-center gap-4 pt-3 pb-1">
+                      {/* Brand details — all API fields */}
+                      <div className="pt-3 pb-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                          Brand details
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Category</p>
+                            <p className="text-xs font-medium">{brand.category || <span className="italic text-muted-foreground/50">Not set</span>}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Loyalty Program</p>
+                            <p className="text-xs font-medium">{brand.loyalty_provider || <span className="italic text-muted-foreground/50">Not set</span>}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Milestone Visits</p>
+                            <p className="text-xs font-medium tabular-nums">{brand.milestone_visits}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Milestone Points</p>
+                            <p className="text-xs font-medium tabular-nums">{brand.milestone_points}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Visit Expiry</p>
+                            <p className="text-xs font-medium tabular-nums">{brand.visit_expiry_months} months</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Logo</p>
+                            <p className="text-lg">{brand.logo_emoji}</p>
+                          </div>
+                          <div className="col-span-2">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Website</p>
+                            {brand.website_url ? (
+                              <a
+                                href={brand.website_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs font-medium text-primary hover:underline truncate block"
+                              >
+                                {brand.website_url}
+                              </a>
+                            ) : (
+                              <p className="text-xs italic text-muted-foreground/50">Not set</p>
+                            )}
+                          </div>
+                          <div className="col-span-2">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Loyalty URL</p>
+                            {brand.loyalty_api_url ? (
+                              <a
+                                href={brand.loyalty_api_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs font-medium text-primary hover:underline truncate block"
+                              >
+                                {brand.loyalty_api_url}
+                              </a>
+                            ) : (
+                              <p className="text-xs italic text-muted-foreground/50">Not set</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Widget display toggles */}
+                      <div className="pt-3 border-t border-border">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowWidgetSettings((v) => !v);
+                          }}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 active:scale-[0.98]"
+                        >
+                          <Eye className="h-3 w-3" />
+                          Home widget fields
+                          <ChevronDown className={`h-3 w-3 transition-transform ${showWidgetSettings ? "rotate-180" : ""}`} />
+                        </button>
+                        {showWidgetSettings && (
+                          <div className="space-y-2 rounded-xl bg-muted/50 p-3">
+                            {WIDGET_FIELDS.map((field) => (
+                              <label
+                                key={field.key}
+                                className="flex items-center justify-between cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <span className="text-xs font-medium">{field.label}</span>
+                                <Switch
+                                  checked={widgetFields.includes(field.key)}
+                                  onCheckedChange={() => toggleWidgetField(field.key)}
+                                />
+                              </label>
+                            ))}
+                            <p className="text-[10px] text-muted-foreground pt-1">
+                              These settings apply to all brand widgets on the Home page.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Quick links */}
+                      <div className="flex items-center gap-4 pt-3 border-t border-border mt-3">
                         {brand.website_url && (
                           <a
                             href={brand.website_url}
@@ -466,6 +579,8 @@ export default function Brands() {
                           </a>
                         )}
                       </div>
+
+                      {/* Visit history */}
                       <div className="flex items-center justify-between pt-3 pb-2">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                           Visit history
