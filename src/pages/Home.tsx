@@ -94,6 +94,19 @@ export default function Home() {
     enabled: !!user,
   });
 
+  // All brands with a loyalty provider (for Join Programs widget)
+  const { data: allBrandsWithProvider = [] } = useQuery({
+    queryKey: ["brands-with-provider"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("brands")
+        .select("id, name, logo_emoji, loyalty_provider, website_url, loyalty_api_url")
+        .not("loyalty_provider", "is", null);
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const { data: brandVisits = [] } = useQuery({
     queryKey: ["brand-visits", user?.id],
     queryFn: async () => {
