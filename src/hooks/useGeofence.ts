@@ -99,6 +99,7 @@ async function sendNotification(title: string, body: string, tag: string, url: s
   });
 }
 
+/** Monitors brand location proximity and sends reward-aware notifications */
 export function useGeofence() {
   const { user } = useAuth();
   const watchIdRef = useRef<number | null>(null);
