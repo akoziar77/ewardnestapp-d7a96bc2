@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import LoyaltyConnectDialog from "@/components/LoyaltyConnectDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone, Map, List, Navigation, ArrowUpDown } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trophy, Sparkles, Clock, ChevronDown, Trash2, Heart, Link2, Search, ExternalLink, Settings, Globe, Tag, CalendarClock, Award, Eye, Database, Download, Smartphone, Map, List, Navigation, ArrowUpDown, Radar, Shield } from "lucide-react";
 import { getProviderLinks, getOpenAppUrl, getProviderLink } from "@/lib/providerDeepLinks";
 import { getHiddenCategories } from "@/pages/BrandSettings";
 import { format } from "date-fns";
@@ -77,6 +77,7 @@ export default function Brands() {
   const [showApiInfo, setShowApiInfo] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [sortByDistance, setSortByDistance] = useState(false);
+  const [showGeofenceLayer, setShowGeofenceLayer] = useState(true);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
 
   // Request location when distance sort is enabled
@@ -249,6 +250,17 @@ export default function Brands() {
         .from("external_loyalty_connections" as any)
         .select("*")
         .eq("user_id", user!.id);
+      return (data ?? []) as any[];
+    },
+    enabled: !!user,
+  });
+
+  const { data: geofences = [] } = useQuery({
+    queryKey: ["geofences"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("geofences")
+        .select("geofence_id, location_id, brand_id, brand_location_id, type, radius_m, triggers, dwell_seconds, active_hours, priority, status");
       return (data ?? []) as any[];
     },
     enabled: !!user,
@@ -454,7 +466,25 @@ export default function Brands() {
 
       {/* Map view */}
       {viewMode === "map" && (
-        <div className="px-6 py-2">
+        <div className="px-6 py-2 space-y-2">
+          {/* Geofence layer toggle */}
+          <div className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <Radar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-foreground">Geofence Layer</span>
+              {geofences.length > 0 && (
+                <span className="text-[10px] text-muted-foreground">
+                  {geofences.filter((g: any) => g.status === "ACTIVE").length} active
+                </span>
+              )}
+            </div>
+            <Switch
+              checked={showGeofenceLayer}
+              onCheckedChange={setShowGeofenceLayer}
+              className="scale-[0.8]"
+            />
+          </div>
+
           <MapErrorBoundary>
             <Suspense fallback={<div className="flex items-center justify-center h-[420px] rounded-2xl bg-muted"><p className="text-sm text-muted-foreground">Loading map…</p></div>}>
               <BrandMapView
@@ -470,6 +500,8 @@ export default function Brands() {
                   milestone_points: b.milestone_points,
                   locations: b.brand_locations ?? [],
                 }))}
+                geofences={geofences}
+                showGeofenceLayer={showGeofenceLayer}
                 onBrandClick={(id) => {
                   setViewMode("list");
                   setExpandedBrandId(id);
@@ -477,6 +509,34 @@ export default function Brands() {
               />
             </Suspense>
           </MapErrorBoundary>
+
+          {/* Geofence summary panel */}
+          {showGeofenceLayer && geofences.length > 0 && (
+            <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <span className="text-xs font-semibold text-foreground">Geofence Summary</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "ENTER", count: geofences.filter((g: any) => g.triggers?.includes("ENTER") && g.status === "ACTIVE").length, color: "hsl(152, 56%, 40%)" },
+                  { label: "EXIT", count: geofences.filter((g: any) => g.triggers?.includes("EXIT") && g.status === "ACTIVE").length, color: "hsl(0, 65%, 52%)" },
+                  { label: "DWELL", count: geofences.filter((g: any) => g.triggers?.includes("DWELL") && g.status === "ACTIVE").length, color: "hsl(38, 85%, 50%)" },
+                ].map(({ label, count, color }) => (
+                  <div key={label} className="flex flex-col items-center rounded-lg bg-muted/60 p-2">
+                    <span className="h-2 w-2 rounded-full mb-1" style={{ backgroundColor: color }} />
+                    <span className="text-[10px] font-semibold text-foreground">{count}</span>
+                    <span className="text-[9px] text-muted-foreground">{label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3 text-[10px] text-muted-foreground pt-1 border-t border-border">
+                <span>{geofences.filter((g: any) => g.status === "ACTIVE").length} active</span>
+                <span>{geofences.filter((g: any) => g.status === "INACTIVE").length} inactive</span>
+                <span>{geofences.filter((g: any) => g.status === "REVIEW").length} review</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
