@@ -64,6 +64,7 @@ const PROVIDER_LINKS: Record<string, ProviderLink> = {
     playStoreUrl: "https://play.google.com/store/apps/details?id=com.hilton.android.hilton",
     webUrl: "https://www.hilton.com/en/hilton-honors/",
     appName: "Hilton Honors",
+    registrationUrl: "https://www.hilton.com/en/hilton-honors/join/",
   },
   "marriott bonvoy": {
     iosScheme: "marriott://",
