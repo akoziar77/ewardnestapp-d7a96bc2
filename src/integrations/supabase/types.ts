@@ -111,6 +111,70 @@ export type Database = {
           },
         ]
       }
+      booster_category_rules: {
+        Row: {
+          booster_id: string
+          category_keyword: string
+          created_at: string
+          id: string
+          points: number
+        }
+        Insert: {
+          booster_id: string
+          category_keyword: string
+          created_at?: string
+          id?: string
+          points?: number
+        }
+        Update: {
+          booster_id?: string
+          category_keyword?: string
+          created_at?: string
+          id?: string
+          points?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_category_rules_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booster_sku_rules: {
+        Row: {
+          booster_id: string
+          created_at: string
+          id: string
+          points: number
+          sku_keyword: string
+        }
+        Insert: {
+          booster_id: string
+          created_at?: string
+          id?: string
+          points?: number
+          sku_keyword: string
+        }
+        Update: {
+          booster_id?: string
+          created_at?: string
+          id?: string
+          points?: number
+          sku_keyword?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_sku_rules_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "boosters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booster_tier_rules: {
         Row: {
           bonus: number
@@ -184,9 +248,12 @@ export type Database = {
           description: string | null
           end_at: string | null
           id: string
+          min_spend: number | null
           multiplier_value: number
           name: string
           required_action: string
+          required_brands: number | null
+          required_streak: number | null
           required_tier: string
           start_at: string
           type: string
@@ -199,9 +266,12 @@ export type Database = {
           description?: string | null
           end_at?: string | null
           id?: string
+          min_spend?: number | null
           multiplier_value?: number
           name: string
           required_action?: string
+          required_brands?: number | null
+          required_streak?: number | null
           required_tier?: string
           start_at?: string
           type?: string
@@ -214,9 +284,12 @@ export type Database = {
           description?: string | null
           end_at?: string | null
           id?: string
+          min_spend?: number | null
           multiplier_value?: number
           name?: string
           required_action?: string
+          required_brands?: number | null
+          required_streak?: number | null
           required_tier?: string
           start_at?: string
           type?: string
