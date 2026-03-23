@@ -109,7 +109,7 @@ function AppRoutes() {
       </Route>
 
       {/* Manager or admin */}
-      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["manager", "admin"]} />}>
+      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["manager", "admin"]} rolesLoading={rolesLoading} />}>
         <Route path="/manage-tiers" element={<PageGate pageKey="manage_tiers"><ManageTiers /></PageGate>} />
         <Route path="/merchant/onboarding" element={<PageGate pageKey="merchant_onboarding"><MerchantOnboarding /></PageGate>} />
         <Route path="/merchant" element={<PageGate pageKey="merchant_dashboard"><MerchantLayout /></PageGate>}>
