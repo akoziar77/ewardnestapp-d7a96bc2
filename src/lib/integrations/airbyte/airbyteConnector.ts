@@ -14,8 +14,8 @@ export async function airbyteExec(
   action: string | null = null,
   params: Record<string, unknown> = {}
 ) {
-  const { data, error } = await supabase.functions.invoke("airbyte-exec", {
-    body: { agent, entity, action, params },
+  const { data, error } = await supabase.functions.invoke("airbyte-github", {
+    body: { entity: entity ?? agent, action, params },
   });
 
   if (error) throw new Error(error.message || "Airbyte exec failed");
