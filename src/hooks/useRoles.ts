@@ -6,21 +6,31 @@ import { getMyRoles } from "@/lib/roles";
 export function useRoles() {
   const { user } = useAuth();
   const [roles, setRoles] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    let alive = true;
+
     if (!user) {
       setRoles([]);
-      setLoading(false);
+      setResolvedUserId(null);
       return;
     }
-    setLoading(true);
-    getMyRoles(supabase, user.id).then((r) => {
-      setRoles(r);
-      setLoading(false);
-    });
-  }, [user]);
 
+    setResolvedUserId(null);
+
+    getMyRoles(supabase, user.id).then((r) => {
+      if (!alive) return;
+      setRoles(r);
+      setResolvedUserId(user.id);
+    });
+
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
+
+  const loading = !!user && resolvedUserId !== user.id;
   const isAdmin = roles.includes("admin");
   const isManager = roles.includes("manager");
 
