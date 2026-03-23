@@ -5,16 +5,18 @@ export function ProtectedRoute({
   signedIn,
   roles,
   required,
+  rolesLoading,
 }: {
   signedIn: boolean;
   roles: string[];
   required?: string[];
+  rolesLoading?: boolean;
 }) {
   const loc = useLocation();
   const { loading } = useAuth();
 
-  // Wait for auth to resolve before making access decisions
-  if (loading) {
+  // Wait for auth AND roles to resolve before making access decisions
+  if (loading || rolesLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
