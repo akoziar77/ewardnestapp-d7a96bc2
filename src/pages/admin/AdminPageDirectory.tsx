@@ -198,13 +198,15 @@ export default function AdminPageDirectory() {
                       </div>
 
                       {/* Right: open link */}
-                      <button
-                        onClick={() => navigate(page.path)}
+                      <a
+                        href={page.path}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="shrink-0 flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-95"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         Open
-                      </button>
+                      </a>
                     </div>
 
                     {/* Role access toggles */}
