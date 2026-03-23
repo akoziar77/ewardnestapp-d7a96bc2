@@ -6,6 +6,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const AIRBYTE_API = "https://api.airbyte.com/v1";
+
+async function getToken(clientId: string, clientSecret: string): Promise<string> {
+  const res = await fetch(`${AIRBYTE_API}/applications/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Airbyte token request failed [${res.status}]: ${body}`);
+  }
+  return (await res.json()).access_token;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -23,17 +38,16 @@ serve(async (req: Request) => {
 
     const AIRBYTE_CLIENT_ID = Deno.env.get("AIRBYTE_CLIENT_ID")!;
     const AIRBYTE_CLIENT_SECRET = Deno.env.get("AIRBYTE_CLIENT_SECRET")!;
-    const AIRBYTE_EXTERNAL_USER_ID = Deno.env.get("AIRBYTE_EXTERNAL_USER_ID")!;
 
-    const url = `https://api.airbyte.com/v1/agents/${agent}/execute`;
+    const token = await getToken(AIRBYTE_CLIENT_ID, AIRBYTE_CLIENT_SECRET);
+
+    const url = `${AIRBYTE_API}/agents/${agent}/execute`;
 
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-airbyte-client-id": AIRBYTE_CLIENT_ID,
-        "x-airbyte-client-secret": AIRBYTE_CLIENT_SECRET,
-        "x-airbyte-external-user-id": AIRBYTE_EXTERNAL_USER_ID,
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify({ entity, action, params }),
     });
