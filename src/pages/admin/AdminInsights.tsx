@@ -44,7 +44,6 @@ async function fetchInsight(action: string, extra?: Record<string, unknown>) {
 }
 
 export default function AdminInsights() {
-  const navigate = useNavigate();
 
   const summaryQ = useQuery({
     queryKey: ["admin-insights", "summary"],
