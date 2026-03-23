@@ -21,3 +21,43 @@ export async function airbyteExec(
   if (error) throw new Error(error.message || "Airbyte exec failed");
   return data;
 }
+
+// ---------------------------------------------------------------------------
+// Sources
+// ---------------------------------------------------------------------------
+
+/** List all Airbyte sources */
+export const airbyteListSources = () =>
+  airbyteExec("sources", "sources", "list");
+
+/** Get a single source by ID */
+export const airbyteGetSource = (sourceId: string) =>
+  airbyteExec("sources", "sources", "get", { sourceId });
+
+/** Create a new GitHub source */
+export const airbyteCreateGithubSource = (
+  name: string,
+  workspaceId: string,
+  configuration: Record<string, unknown> = {}
+) =>
+  airbyteExec("github", "sources", "create", { name, workspaceId, configuration });
+
+// ---------------------------------------------------------------------------
+// Connections
+// ---------------------------------------------------------------------------
+
+/** List all connections */
+export const airbyteListConnections = () =>
+  airbyteExec("connections", "connections", "list");
+
+/** Trigger a sync for a connection */
+export const airbyteSyncConnection = (connectionId: string) =>
+  airbyteExec("connections", "connections", "sync", { connectionId });
+
+// ---------------------------------------------------------------------------
+// Jobs
+// ---------------------------------------------------------------------------
+
+/** List jobs, optionally filtered by connection */
+export const airbyteListJobs = (connectionId?: string) =>
+  airbyteExec("jobs", "jobs", "list", connectionId ? { connectionId } : {});
