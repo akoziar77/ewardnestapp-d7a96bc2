@@ -2090,6 +2090,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      submit_transaction: {
+        Args: { amount: number; merchant_id: string; user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       delivery_status: "pending" | "success" | "failed" | "retrying" | "dead"
