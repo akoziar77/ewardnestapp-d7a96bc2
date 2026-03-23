@@ -29,6 +29,7 @@ export default function DocsLayout() {
           <div className="ml-auto">
             <DocsSearchTrigger />
           </div>
+        </div>
       </header>
 
       <div className="flex flex-1 max-w-7xl mx-auto w-full">
