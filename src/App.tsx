@@ -36,6 +36,7 @@ import AdminQuickActions from "./pages/admin/AdminQuickActions";
 import AdminOnboarding from "./pages/admin/AdminOnboarding";
 import AdminPageDirectory from "./pages/admin/AdminPageDirectory";
 import AdminBoosters from "./pages/admin/AdminBoosters";
+import ReceiptUpload from "./pages/ReceiptUpload";
 import ConsentBanner from "./components/ConsentBanner";
 import NotFound from "./pages/NotFound";
 
