@@ -36,15 +36,16 @@
 
     --rn-primary: 1 60% 15%;
     --rn-gold: 40 66% 49%;
+    --rn-coral: 6 100% 69%;
 
-    --sidebar-background: 30 20% 96%;
-    --sidebar-foreground: 195 25% 14%;
-    --sidebar-primary: 181 42% 32%;
-    --sidebar-primary-foreground: 30 25% 97%;
-    --sidebar-accent: 30 15% 92%;
-    --sidebar-accent-foreground: 195 25% 14%;
-    --sidebar-border: 30 15% 88%;
-    --sidebar-ring: 181 42% 32%;
+    --sidebar-background: 1 60% 15%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 40 66% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 1 50% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 1 40% 20%;
+    --sidebar-ring: 40 66% 49%;
 
     --success: 152 50% 40%;
     --success-foreground: 30 25% 97%;

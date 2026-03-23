@@ -60,6 +60,7 @@ export default {
         rn: {
           primary: "hsl(var(--rn-primary))",
           gold: "hsl(var(--rn-gold))",
+          coral: "hsl(var(--rn-coral))",
         },
       },
       borderRadius: {

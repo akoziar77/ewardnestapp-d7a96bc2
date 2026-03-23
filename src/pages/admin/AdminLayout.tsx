@@ -1,9 +1,9 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
-  Settings,
-  Store,
+  Rocket,
+  Building2,
   Users,
   Receipt,
   Gift,
@@ -12,16 +12,18 @@ import {
   Plug,
   BarChart3,
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
+  Menu,
+  X,
+  Bell,
+  Search,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
-  { to: "/admin/program-settings", icon: Settings, label: "Program Settings", end: false },
-  { to: "/admin/brands", icon: Store, label: "Brands", end: false },
+  { to: "/admin/program-settings", icon: Rocket, label: "Program", end: false },
+  { to: "/admin/brands", icon: Building2, label: "Brands", end: false },
   { to: "/admin/users", icon: Users, label: "Users", end: false },
   { to: "/admin/receipts", icon: Receipt, label: "Receipts", end: false },
   { to: "/admin/rewards", icon: Gift, label: "Rewards", end: false },
@@ -32,98 +34,117 @@ const navItems = [
 ];
 
 export default function AdminLayout() {
-  const { signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const currentLabel =
+    navItems.find(
+      (n) =>
+        n.end
+          ? location.pathname === n.to
+          : location.pathname.startsWith(n.to)
+    )?.label ?? "Admin";
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      {/* Sidebar — desktop */}
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
+      {/* ── Sidebar (desktop always, mobile overlay) ── */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
       <aside
         className={cn(
-          "hidden md:flex md:flex-col border-r border-border bg-card transition-[width] duration-200",
-          collapsed ? "md:w-[68px]" : "md:w-60"
+          "fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 md:relative md:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between px-4 py-5 border-b border-border">
-          {!collapsed && (
-            <span className="text-sm font-bold tracking-tight truncate">
-              Admin Panel
-            </span>
-          )}
-          <button
-            onClick={() => setCollapsed((c) => !c)}
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors active:scale-95"
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </button>
+        {/* Brand */}
+        <div className="flex items-center gap-3 px-6 py-6">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rn-gold text-rn-primary font-bold text-sm">
+            RN
+          </div>
+          <span className="text-lg font-bold tracking-wide text-sidebar-foreground">
+            RewardsNest
+          </span>
         </div>
 
-        <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-3 space-y-0.5">
           {navItems.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
+              onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  collapsed && "justify-center px-2"
+                    ? "bg-sidebar-accent text-rn-gold"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                 )
               }
-              title={collapsed ? label : undefined}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" />
-              {!collapsed && <span className="truncate">{label}</span>}
+              <span>{label}</span>
             </NavLink>
           ))}
         </nav>
 
-        <div className="px-2 py-3 border-t border-border space-y-0.5">
+        {/* Footer */}
+        <div className="px-3 py-4 border-t border-sidebar-border">
           <button
-            onClick={() => navigate("/home")}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
-              collapsed && "justify-center px-2"
-            )}
+            onClick={() => {
+              setMobileOpen(false);
+              navigate("/home");
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"
           >
             <ArrowLeft className="h-[18px] w-[18px] shrink-0" />
-            {!collapsed && <span>Back to App</span>}
+            <span>Back to App</span>
           </button>
         </div>
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden border-t border-border bg-card/95 backdrop-blur-sm overflow-x-auto">
-        {navItems.slice(0, 5).map(({ to, icon: Icon, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-colors min-w-[64px]",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )
-            }
-          >
-            <Icon className="h-5 w-5" />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      {/* ── Main column ── */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Topbar */}
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-4 md:px-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="p-2 rounded-lg text-muted-foreground hover:bg-muted md:hidden active:scale-95 transition-transform"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h1 className="text-base font-semibold text-foreground md:text-lg">
+              {currentLabel}
+            </h1>
+          </div>
 
-      {/* Main content */}
-      <main className="flex-1 pb-20 md:pb-0 overflow-y-auto">
-        <Outlet />
-      </main>
+          <div className="flex items-center gap-2">
+            <button className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors active:scale-95">
+              <Search className="h-[18px] w-[18px]" />
+            </button>
+            <button className="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors active:scale-95">
+              <Bell className="h-[18px] w-[18px]" />
+            </button>
+            <div className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-rn-gold text-xs font-bold text-rn-primary">
+              {user?.email?.charAt(0).toUpperCase() ?? "A"}
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
