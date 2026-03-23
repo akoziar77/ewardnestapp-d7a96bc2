@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, Gift, Receipt, QrCode, LogOut, Bird, PieChart } from "lucide-react";
+import { BarChart3, Gift, Receipt, QrCode, LogOut, Bird, PieChart, Zap } from "lucide-react";
 
 export default function MerchantLayout() {
   const { user, loading, signOut } = useAuth();
@@ -49,6 +49,7 @@ export default function MerchantLayout() {
     { to: "/merchant/redemptions", icon: Receipt, label: "Redemptions", end: false },
     { to: "/merchant/qr", icon: QrCode, label: "QR Code", end: false },
     { to: "/merchant/insights", icon: PieChart, label: "Insights", end: false },
+    { to: "/merchant/boosters", icon: Zap, label: "Boosters", end: false },
   ];
 
   return (

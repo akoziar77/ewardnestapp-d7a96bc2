@@ -63,8 +63,30 @@ Deno.serve(async (req) => {
           bonus_value: body.bonus_value ?? 0,
           required_action: body.required_action ?? "any",
           required_tier: body.required_tier ?? "any",
+          min_spend: body.min_spend ?? 0,
+          required_brands: body.required_brands ?? 0,
+          required_streak: body.required_streak ?? 0,
         }).select().single();
         if (error) throw error;
+
+        // Save SKU/category rules if provided
+        if (body.sku_rules?.length && data.id) {
+          const skuRows = body.sku_rules.map((r: any) => ({
+            booster_id: data.id,
+            sku_keyword: r.sku_keyword,
+            points: r.points ?? 0,
+          }));
+          await supabaseAdmin.from("booster_sku_rules").insert(skuRows);
+        }
+        if (body.category_rules?.length && data.id) {
+          const catRows = body.category_rules.map((r: any) => ({
+            booster_id: data.id,
+            category_keyword: r.category_keyword,
+            points: r.points ?? 0,
+          }));
+          await supabaseAdmin.from("booster_category_rules").insert(catRows);
+        }
+
         await logInfo(supabaseAdmin, "Booster created", { booster_id: data.id, admin_id: user.id });
         return jsonResponse({ success: true, booster: data });
       }
@@ -72,7 +94,7 @@ Deno.serve(async (req) => {
       case "update_booster": {
         requireFields(body, ["booster_id"]);
         const updates: Record<string, unknown> = {};
-        for (const key of ["name", "description", "type", "active", "start_at", "end_at", "multiplier_value", "bonus_value", "required_action", "required_tier", "brand_id"]) {
+        for (const key of ["name", "description", "type", "active", "start_at", "end_at", "multiplier_value", "bonus_value", "required_action", "required_tier", "brand_id", "min_spend", "required_brands", "required_streak"]) {
           if (body[key] !== undefined) updates[key] = body[key];
         }
         // Map spec field names to existing schema
@@ -87,6 +109,32 @@ Deno.serve(async (req) => {
           .select()
           .single();
         if (error) throw error;
+
+        // Replace SKU rules if provided
+        if (body.sku_rules !== undefined) {
+          await supabaseAdmin.from("booster_sku_rules").delete().eq("booster_id", body.booster_id);
+          if (body.sku_rules?.length) {
+            const skuRows = body.sku_rules.map((r: any) => ({
+              booster_id: body.booster_id,
+              sku_keyword: r.sku_keyword,
+              points: r.points ?? 0,
+            }));
+            await supabaseAdmin.from("booster_sku_rules").insert(skuRows);
+          }
+        }
+        // Replace category rules if provided
+        if (body.category_rules !== undefined) {
+          await supabaseAdmin.from("booster_category_rules").delete().eq("booster_id", body.booster_id);
+          if (body.category_rules?.length) {
+            const catRows = body.category_rules.map((r: any) => ({
+              booster_id: body.booster_id,
+              category_keyword: r.category_keyword,
+              points: r.points ?? 0,
+            }));
+            await supabaseAdmin.from("booster_category_rules").insert(catRows);
+          }
+        }
+
         await logInfo(supabaseAdmin, "Booster updated", { booster_id: body.booster_id, admin_id: user.id });
         return jsonResponse({ success: true, booster: data });
       }
@@ -97,6 +145,8 @@ Deno.serve(async (req) => {
         await supabaseAdmin.from("booster_tier_rules").delete().eq("booster_id", body.booster_id);
         await supabaseAdmin.from("booster_action_rules").delete().eq("booster_id", body.booster_id);
         await supabaseAdmin.from("booster_user_targets").delete().eq("booster_id", body.booster_id);
+        await supabaseAdmin.from("booster_sku_rules").delete().eq("booster_id", body.booster_id);
+        await supabaseAdmin.from("booster_category_rules").delete().eq("booster_id", body.booster_id);
         const { error } = await supabaseAdmin.from("boosters").delete().eq("id", body.booster_id);
         if (error) throw error;
         await logWarn(supabaseAdmin, "Booster deleted", { booster_id: body.booster_id, admin_id: user.id });
