@@ -231,6 +231,35 @@ export type Database = {
           },
         ]
       }
+      brand_aliases: {
+        Row: {
+          alias: string
+          brand_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          alias: string
+          brand_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          alias?: string
+          brand_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_aliases_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_gem_mapping: {
         Row: {
           brand_id: string
@@ -1131,6 +1160,126 @@ export type Database = {
           visible?: boolean
         }
         Relationships: []
+      }
+      receipt_line_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_name: string | null
+          price: number | null
+          quantity: number | null
+          receipt_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_name?: string | null
+          price?: number | null
+          quantity?: number | null
+          receipt_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_name?: string | null
+          price?: number | null
+          quantity?: number | null
+          receipt_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_line_items_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "receipt_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipt_processing_logs: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          metadata: Json | null
+          receipt_id: string
+          step: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          receipt_id: string
+          step?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          receipt_id?: string
+          step?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_processing_logs_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "receipt_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipt_uploads: {
+        Row: {
+          brand_id: string | null
+          confidence: number | null
+          created_at: string
+          file_path: string | null
+          id: string
+          merchant_name: string | null
+          ocr_text: string | null
+          purchase_date: string | null
+          status: string
+          total_amount: number | null
+          user_id: string
+        }
+        Insert: {
+          brand_id?: string | null
+          confidence?: number | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          merchant_name?: string | null
+          ocr_text?: string | null
+          purchase_date?: string | null
+          status?: string
+          total_amount?: number | null
+          user_id: string
+        }
+        Update: {
+          brand_id?: string | null
+          confidence?: number | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          merchant_name?: string | null
+          ocr_text?: string | null
+          purchase_date?: string | null
+          status?: string
+          total_amount?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_uploads_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       redemptions: {
         Row: {
