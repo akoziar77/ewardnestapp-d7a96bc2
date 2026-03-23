@@ -1,0 +1,1 @@
+ALTER TABLE public.privacy_policies DROP CONSTRAINT privacy_policies_version_key;

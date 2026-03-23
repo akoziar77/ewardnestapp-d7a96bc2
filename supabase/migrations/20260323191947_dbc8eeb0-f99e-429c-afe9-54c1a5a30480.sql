@@ -1,0 +1,1 @@
+ALTER TABLE public.privacy_policies ADD COLUMN policy_type text NOT NULL DEFAULT 'privacy_policy';

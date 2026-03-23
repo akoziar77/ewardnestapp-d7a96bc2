@@ -1246,6 +1246,7 @@ export type Database = {
           content_markdown: string
           created_at: string
           id: string
+          policy_type: string
           published_at: string
           updated_by: string | null
           version: string
@@ -1254,6 +1255,7 @@ export type Database = {
           content_markdown: string
           created_at?: string
           id?: string
+          policy_type?: string
           published_at?: string
           updated_by?: string | null
           version: string
@@ -1262,6 +1264,7 @@ export type Database = {
           content_markdown?: string
           created_at?: string
           id?: string
+          policy_type?: string
           published_at?: string
           updated_by?: string | null
           version?: string
