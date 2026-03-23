@@ -60,7 +60,7 @@ export default function AdminIntegrations() {
     switch (status?.toLowerCase()) {
       case "active":
       case "succeeded":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+        return <CheckCircle2 className="h-4 w-4 text-primary" />;
       case "failed":
       case "error":
         return <XCircle className="h-4 w-4 text-destructive" />;
