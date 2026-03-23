@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plug, Github, RefreshCw, Play, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { githubExec } from "@/lib/integrations/airbyte/githubConnector";
+import { airbyteListConnections, airbyteListJobs, airbyteSyncConnection } from "@/lib/integrations/airbyte/airbyteConnector";
 import { toast } from "sonner";
 
 interface AirbyteConnection {
