@@ -94,7 +94,7 @@ function AppRoutes() {
       </Route>
 
       {/* Signed-in: any role (user, manager, admin) */}
-      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["user", "manager", "admin"]} />}>
+      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["user", "manager", "admin"]} rolesLoading={rolesLoading} />}>
         <Route path="/" element={<PageGate pageKey="home"><Index /></PageGate>} />
         <Route path="/home" element={<PageGate pageKey="home"><Index /></PageGate>} />
         <Route path="/onboarding" element={<PageGate pageKey="onboarding"><Onboarding /></PageGate>} />
@@ -109,7 +109,7 @@ function AppRoutes() {
       </Route>
 
       {/* Manager or admin */}
-      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["manager", "admin"]} />}>
+      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["manager", "admin"]} rolesLoading={rolesLoading} />}>
         <Route path="/manage-tiers" element={<PageGate pageKey="manage_tiers"><ManageTiers /></PageGate>} />
         <Route path="/merchant/onboarding" element={<PageGate pageKey="merchant_onboarding"><MerchantOnboarding /></PageGate>} />
         <Route path="/merchant" element={<PageGate pageKey="merchant_dashboard"><MerchantLayout /></PageGate>}>
@@ -123,7 +123,7 @@ function AppRoutes() {
       </Route>
 
       {/* Admin only — with sidebar layout */}
-      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} />}>
+      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} rolesLoading={rolesLoading} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<PageGate pageKey="admin_dashboard"><AdminDashboard /></PageGate>} />
           <Route path="program-settings" element={<PageGate pageKey="admin_program_settings"><AdminProgramSettings /></PageGate>} />
