@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plug, Github, RefreshCw, Play, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { airbyteGithub } from "@/lib/integrations/airbyte/githubConnector";
+import { githubExec } from "@/lib/integrations/airbyte/githubConnector";
 import { toast } from "sonner";
 
 interface AirbyteConnection {
@@ -29,19 +29,19 @@ export default function AdminIntegrations() {
 
   const { data: connections, isLoading: loadingConns, error: connError } = useQuery({
     queryKey: ["airbyte-connections"],
-    queryFn: () => airbyteGithub("list_connections"),
+    queryFn: () => githubExec("connections", "list"),
     retry: 1,
   });
 
   const { data: jobs, isLoading: loadingJobs } = useQuery({
     queryKey: ["airbyte-jobs"],
-    queryFn: () => airbyteGithub("list_jobs"),
+    queryFn: () => githubExec("jobs", "list"),
     retry: 1,
   });
 
   const triggerSync = useMutation({
     mutationFn: (connectionId: string) =>
-      airbyteGithub("trigger_sync", { connectionId }),
+      githubExec("connections", "sync", { connectionId }),
     onSuccess: () => {
       toast.success("Sync triggered successfully");
       queryClient.invalidateQueries({ queryKey: ["airbyte-jobs"] });
