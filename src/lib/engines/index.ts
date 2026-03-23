@@ -1,34 +1,9 @@
-// =============================================================================
-// ENGINE BARREL EXPORTS
-// =============================================================================
-
-// Core types & utilities
-export {
-  type EngineResult,
-  type EngineEvent,
-  zReceipt,
-  zBooster,
-  zAutomation,
-  safeExecute,
-  wait,
-  logEngineEvent,
-  calculateBasePoints,
-  applyBooster,
-} from "./core";
-
-// Validation & Event Bus
-export { ValidationEngine, EventBus, eventBus } from "./validation-bus";
-
-// Booster & Automation
-export {
-  BoosterEngine,
-  boosterEngine,
-  AutomationEngine,
-  automationEngine,
-} from "./booster-automation";
-
-// OCR
-export { OCREngine, ocrEngine } from "./ocr";
-
-// Integration
-export { IntegrationEngine, integrationEngine } from "./integration";
+export * from "./types";
+export * from "./validation-engine";
+export * from "./booster-engine";
+export * from "./automation-engine";
+export * from "./ocr-engine";
+export * from "./integration-engine";
+export * from "./event-bus";
+export * from "./points-engine";
+export * from "./receipt-engine";

@@ -1,13 +1,30 @@
 import { z } from "zod";
-import {
-  zReceipt,
-  zBooster,
-  zAutomation,
-  EngineEvent,
-  EngineResult,
-  safeExecute,
-  logEngineEvent,
-} from "./core";
+import { EngineResult } from "./types";
+
+// =============================================================================
+// ZOD SCHEMAS
+// =============================================================================
+
+export const zReceipt = z.object({
+  userId: z.string(),
+  brand: z.string(),
+  amount: z.number().nonnegative(),
+  uploadedAt: z.string(),
+});
+
+export const zBooster = z.object({
+  id: z.string(),
+  brand: z.string(),
+  multiplier: z.number().positive(),
+  active: z.boolean(),
+});
+
+export const zAutomation = z.object({
+  id: z.string(),
+  trigger: z.string(),
+  action: z.string(),
+  active: z.boolean(),
+});
 
 // =============================================================================
 // VALIDATION ENGINE
@@ -44,35 +61,3 @@ export const ValidationEngine = {
     }
   },
 };
-
-// =============================================================================
-// EVENT BUS
-// =============================================================================
-
-type EventHandler = (event: EngineEvent) => Promise<void>;
-
-export class EventBus {
-  private handlers: Map<string, EventHandler[]> = new Map();
-
-  on(eventType: EngineEvent["type"], handler: EventHandler) {
-    if (!this.handlers.has(eventType)) {
-      this.handlers.set(eventType, []);
-    }
-    this.handlers.get(eventType)!.push(handler);
-  }
-
-  async emit(event: EngineEvent) {
-    logEngineEvent(event);
-    const handlers = this.handlers.get(event.type);
-    if (!handlers || handlers.length === 0) return;
-
-    for (const handler of handlers) {
-      await safeExecute(async () => {
-        await handler(event);
-        return true;
-      });
-    }
-  }
-}
-
-export const eventBus = new EventBus();

@@ -1,5 +1,6 @@
-import { EngineResult, safeExecute } from "./core";
-import { eventBus } from "./validation-bus";
+import { EngineResult } from "./types";
+import { safeExecute } from "./core";
+import { eventBus } from "./event-bus";
 
 // =============================================================================
 // INTEGRATION ENGINE
@@ -14,10 +15,7 @@ export class IntegrationEngine {
     this.providers.set(provider, handler);
   }
 
-  async handleWebhook(
-    provider: string,
-    payload: unknown
-  ): Promise<EngineResult<boolean>> {
+  async handleWebhook(provider: string, payload: unknown): Promise<EngineResult<boolean>> {
     const handler = this.providers.get(provider);
     if (!handler) {
       return { success: false, error: `No handler for provider: ${provider}` };
@@ -26,11 +24,7 @@ export class IntegrationEngine {
     const result = await handler(payload);
 
     if (result.success) {
-      await eventBus.emit({
-        type: "INTEGRATION_WEBHOOK",
-        provider,
-        payload,
-      });
+      await eventBus.emit({ type: "INTEGRATION_WEBHOOK", provider, payload });
     }
 
     return result;
