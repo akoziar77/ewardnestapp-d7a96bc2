@@ -13,24 +13,39 @@ import {
   BarChart3,
   ArrowLeft,
   Menu,
-  X,
   Bell,
   Search,
+  Shield,
+  Zap,
+  FileText,
+  Settings,
+  Activity,
+  Webhook,
+  Navigation,
+  Lock,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
-  { to: "/admin/program-settings", icon: Rocket, label: "Program", end: false },
+  { to: "/admin/program-settings", icon: Settings, label: "Program", end: false },
   { to: "/admin/brands", icon: Building2, label: "Brands", end: false },
   { to: "/admin/users", icon: Users, label: "Users", end: false },
+  { to: "/admin/roles", icon: Shield, label: "Roles", end: false },
   { to: "/admin/receipts", icon: Receipt, label: "Receipts", end: false },
   { to: "/admin/rewards", icon: Gift, label: "Rewards", end: false },
+  { to: "/admin/boosters", icon: Zap, label: "Boosters", end: false },
   { to: "/admin/campaigns", icon: Megaphone, label: "Campaigns", end: false },
   { to: "/admin/automations", icon: Workflow, label: "Automations", end: false },
   { to: "/admin/integrations", icon: Plug, label: "Integrations", end: false },
   { to: "/admin/analytics", icon: BarChart3, label: "Analytics", end: false },
+  { to: "/admin/onboarding", icon: Navigation, label: "Onboarding", end: false },
+  { to: "/admin/events", icon: Activity, label: "Events", end: false },
+  { to: "/admin/webhooks", icon: Webhook, label: "Webhooks", end: false },
+  { to: "/admin/quick-actions", icon: Rocket, label: "Quick Actions", end: false },
+  { to: "/admin/page-access", icon: Lock, label: "Page Access", end: false },
+  { to: "/admin/privacy-policy", icon: FileText, label: "Privacy Policy", end: false },
 ];
 
 export default function AdminLayout() {
