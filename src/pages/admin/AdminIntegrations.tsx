@@ -41,7 +41,7 @@ export default function AdminIntegrations() {
 
   const triggerSync = useMutation({
     mutationFn: (connectionId: string) =>
-      airbyteGithub("trigger_sync", { connectionId }),
+      githubExec("connections", "sync", { connectionId }),
     onSuccess: () => {
       toast.success("Sync triggered successfully");
       queryClient.invalidateQueries({ queryKey: ["airbyte-jobs"] });
