@@ -102,6 +102,7 @@ function AppRoutes() {
         <Route path="/admin/receipts" element={<PageGate pageKey="admin_receipts"><AdminReceiptReview /></PageGate>} />
         <Route path="/admin/insights" element={<PageGate pageKey="admin_insights"><AdminInsights /></PageGate>} />
         <Route path="/admin/webhooks" element={<PageGate pageKey="admin_webhooks"><AdminWebhooks /></PageGate>} />
+        <Route path="/admin/events" element={<PageGate pageKey="admin_events"><AdminEventExplorer /></PageGate>} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
