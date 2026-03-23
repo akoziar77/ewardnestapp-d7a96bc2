@@ -15,7 +15,7 @@ export function useRoles() {
       return;
     }
     setLoading(true);
-    getMyRoles(supabase).then((r) => {
+    getMyRoles(supabase, user.id).then((r) => {
       setRoles(r);
       setLoading(false);
     });
