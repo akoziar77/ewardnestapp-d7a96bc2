@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          global_multiplier: number
+          id: number
+          maintenance_mode: boolean
+          updated_at: string
+        }
+        Insert: {
+          global_multiplier?: number
+          id?: number
+          maintenance_mode?: boolean
+          updated_at?: string
+        }
+        Update: {
+          global_multiplier?: number
+          id?: number
+          maintenance_mode?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booster_action_rules: {
         Row: {
           action: string
@@ -305,6 +326,41 @@ export type Database = {
             foreignKeyName: "brand_locations_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_settings: {
+        Row: {
+          brand_id: string
+          earn_rate: number
+          id: string
+          redemption_rate: number
+          tier_thresholds: Json | null
+          updated_at: string
+        }
+        Insert: {
+          brand_id: string
+          earn_rate?: number
+          id?: string
+          redemption_rate?: number
+          tier_thresholds?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string
+          earn_rate?: number
+          id?: string
+          redemption_rate?: number
+          tier_thresholds?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_settings_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: true
             referencedRelation: "brands"
             referencedColumns: ["id"]
           },
@@ -1282,6 +1338,30 @@ export type Database = {
         }
         Relationships: []
       }
+      system_logs: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          message: string
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: string
+          message: string
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       tier_feature_access: {
         Row: {
           enabled: boolean
@@ -1314,6 +1394,79 @@ export type Database = {
             columns: ["tier_id"]
             isOneToOne: false
             referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tier_progression: {
+        Row: {
+          brand_id: string
+          current_tier: string
+          id: string
+          lifetime_spend: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_id: string
+          current_tier?: string
+          id?: string
+          lifetime_spend?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string
+          current_tier?: string
+          id?: string
+          lifetime_spend?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tier_progression_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          brand_id: string
+          created_at: string
+          id: string
+          points_earned: number
+          source: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          brand_id: string
+          created_at?: string
+          id?: string
+          points_earned?: number
+          source?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          brand_id?: string
+          created_at?: string
+          id?: string
+          points_earned?: number
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
             referencedColumns: ["id"]
           },
         ]
