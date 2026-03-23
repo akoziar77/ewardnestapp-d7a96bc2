@@ -72,23 +72,12 @@ export default function MerchantLogin() {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Signup failed");
 
-      // 2. Create merchant
-      const { data: merchant, error: merchantError } = await supabase
-        .from("merchants")
-        .insert({ name: businessName.trim() })
-        .select("id")
-        .single();
-      if (merchantError) throw merchantError;
-
-      // 3. Link user to merchant
-      const { error: linkError } = await supabase
-        .from("merchant_users")
-        .insert({
-          user_id: authData.user.id,
-          merchant_id: merchant.id,
-          role: "owner",
-        });
-      if (linkError) throw linkError;
+      // 2. Create merchant + link via secure edge function
+      const { data, error: fnError } = await supabase.functions.invoke("merchant-signup", {
+        body: { business_name: businessName.trim() },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
 
       toast({ title: "Account created!", description: "Let's set up your store." });
       navigate("/merchant/onboarding", { replace: true });
