@@ -13,7 +13,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft,
   DollarSign,
   Receipt,
   Award,
