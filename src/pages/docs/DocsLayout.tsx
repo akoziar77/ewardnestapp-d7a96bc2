@@ -1,22 +1,19 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Book, Webhook, Zap, KeyRound, Shield, Code2, FileText, FlaskConical, ChevronLeft } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { NavLink, Outlet } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const sections = [
-  { label: "Getting Started", path: "/docs", icon: Book, end: true },
-  { label: "Authentication", path: "/docs/auth", icon: Shield },
-  { label: "API Keys", path: "/docs/api-keys", icon: KeyRound },
-  { label: "Webhooks", path: "/docs/webhooks", icon: Webhook },
-  { label: "Events", path: "/docs/events", icon: Zap },
-  { label: "Node SDK", path: "/docs/sdk-node", icon: Code2 },
-  { label: "Testing", path: "/docs/testing", icon: FlaskConical },
-  { label: "Changelog", path: "/docs/changelog", icon: FileText },
+const links = [
+  { title: "Introduction", href: "/docs", end: true },
+  { title: "Webhooks", href: "/docs/webhooks" },
+  { title: "Events", href: "/docs/events" },
+  { title: "Authentication", href: "/docs/auth" },
+  { title: "API Keys", href: "/docs/api-keys" },
+  { title: "SDKs", href: "/docs/sdk-node" },
+  { title: "Testing Tools", href: "/docs/testing" },
+  { title: "Changelog", href: "/docs/changelog" },
 ];
 
 export default function DocsLayout() {
-  const location = useLocation();
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
@@ -33,39 +30,36 @@ export default function DocsLayout() {
 
       <div className="flex flex-1 max-w-7xl mx-auto w-full">
         {/* Sidebar */}
-        <aside className="hidden md:block w-56 shrink-0 border-r border-border">
-          <ScrollArea className="h-[calc(100vh-3.5rem)] py-6 px-3">
-            <nav className="flex flex-col gap-0.5">
-              {sections.map((s) => (
-                <NavLink
-                  key={s.path}
-                  to={s.path}
-                  end={s.end}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    )
-                  }
-                >
-                  <s.icon className="h-4 w-4 shrink-0" />
-                  {s.label}
-                </NavLink>
-              ))}
-            </nav>
-          </ScrollArea>
+        <aside className="hidden md:block w-64 shrink-0 h-[calc(100vh-3.5rem)] border-r border-border bg-muted/30 p-6 sticky top-14">
+          <nav className="space-y-1">
+            {links.map((l) => (
+              <NavLink
+                key={l.href}
+                to={l.href}
+                end={l.end}
+                className={({ isActive }) =>
+                  cn(
+                    "block rounded-md px-3 py-2 text-sm transition-colors",
+                    isActive
+                      ? "text-primary font-medium bg-primary/10"
+                      : "text-muted-foreground hover:text-primary hover:bg-muted/50"
+                  )
+                }
+              >
+                {l.title}
+              </NavLink>
+            ))}
+          </nav>
         </aside>
 
         {/* Mobile nav */}
         <div className="md:hidden border-b border-border overflow-x-auto">
           <div className="flex gap-1 px-4 py-2">
-            {sections.map((s) => (
+            {links.map((l) => (
               <NavLink
-                key={s.path}
-                to={s.path}
-                end={s.end}
+                key={l.href}
+                to={l.href}
+                end={l.end}
                 className={({ isActive }) =>
                   cn(
                     "whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
@@ -75,7 +69,7 @@ export default function DocsLayout() {
                   )
                 }
               >
-                {s.label}
+                {l.title}
               </NavLink>
             ))}
           </div>
