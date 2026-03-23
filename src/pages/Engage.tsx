@@ -121,21 +121,24 @@ export default function Engage() {
         body: { action },
       });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
-      setLastEarnResult({
-        basePoints: data.basePoints,
-        boostedPoints: data.boostedPoints,
-        bonus: data.bonus,
-        appliedBoosters: data.appliedBoosters,
-      });
-      const boosterText = data.appliedBoosters > 0
-        ? ` (🚀 ${data.bonus} bonus from boosters!)`
+      const boostedPoints = data?.boostedPoints ?? data?.points ?? 0;
+      const basePoints = data?.basePoints ?? 0;
+      const bonus = data?.bonus ?? 0;
+      const appliedBoosters = data?.appliedBoosters ?? 0;
+      const tier = data?.tier ?? "Hatchling";
+
+      setLastEarnResult({ basePoints, boostedPoints, bonus, appliedBoosters });
+
+      const boosterText = appliedBoosters > 0
+        ? ` (🚀 ${bonus} bonus from boosters!)`
         : "";
       toast({
-        title: `+${data.boostedPoints} Nest Points!${boosterText}`,
-        description: `Tier: ${data.tier}`,
+        title: `+${boostedPoints} Nest Points!${boosterText}`,
+        description: `Tier: ${tier}`,
       });
       queryClient.invalidateQueries({ queryKey: ["engage-profile"] });
       queryClient.invalidateQueries({ queryKey: ["nest-activities"] });
@@ -143,8 +146,9 @@ export default function Engage() {
       setEarningAction(null);
       setTimeout(() => setLastEarnResult(null), 4000);
     },
-    onError: () => {
-      toast({ title: "Failed to earn points", variant: "destructive" });
+    onError: (err) => {
+      console.error("Earn mutation error:", err);
+      toast({ title: "Failed to earn points", description: String(err), variant: "destructive" });
       setEarningAction(null);
     },
   });
