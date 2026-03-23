@@ -593,6 +593,48 @@ export type Database = {
         }
         Relationships: []
       }
+      dlq_events: {
+        Row: {
+          error_message: string | null
+          event_id: string
+          failed_at: string
+          id: string
+          payload: Json
+          subscription_id: string
+        }
+        Insert: {
+          error_message?: string | null
+          event_id: string
+          failed_at?: string
+          id?: string
+          payload?: Json
+          subscription_id: string
+        }
+        Update: {
+          error_message?: string | null
+          event_id?: string
+          failed_at?: string
+          id?: string
+          payload?: Json
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dlq_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dlq_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -677,6 +719,94 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+        }
+        Relationships: []
+      }
+      event_log: {
+        Row: {
+          actor_id: string | null
+          brand_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          source: Database["public"]["Enums"]["event_source"]
+        }
+        Insert: {
+          actor_id?: string | null
+          brand_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          source?: Database["public"]["Enums"]["event_source"]
+        }
+        Update: {
+          actor_id?: string | null
+          brand_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          source?: Database["public"]["Enums"]["event_source"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_log_event_type_fkey"
+            columns: ["event_type"]
+            isOneToOne: false
+            referencedRelation: "event_types"
+            referencedColumns: ["event_key"]
+          },
+        ]
+      }
+      event_replay_queue: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          processed: boolean
+          requested_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          processed?: boolean
+          requested_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          processed?: boolean
+          requested_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_replay_queue_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_log"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_types: {
+        Row: {
+          description: string | null
+          event_key: string
+          id: number
+        }
+        Insert: {
+          description?: string | null
+          event_key: string
+          id?: number
+        }
+        Update: {
+          description?: string | null
+          event_key?: string
+          id?: number
         }
         Relationships: []
       }
@@ -1828,6 +1958,102 @@ export type Database = {
           },
         ]
       }
+      webhook_delivery_log: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          error_message: string | null
+          event_id: string
+          id: string
+          response_body: string | null
+          response_status: number | null
+          status: Database["public"]["Enums"]["delivery_status"]
+          subscription_id: string
+        }
+        Insert: {
+          attempt_number?: number
+          created_at?: string
+          error_message?: string | null
+          event_id: string
+          id?: string
+          response_body?: string | null
+          response_status?: number | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+          subscription_id: string
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          error_message?: string | null
+          event_id?: string
+          id?: string
+          response_body?: string | null
+          response_status?: number | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_delivery_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_delivery_log_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_subscriptions: {
+        Row: {
+          brand_id: string
+          created_at: string
+          event_type: string
+          id: string
+          is_active: boolean
+          secret: string
+          url: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          is_active?: boolean
+          secret: string
+          url: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          is_active?: boolean
+          secret?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_subscriptions_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_subscriptions_event_type_fkey"
+            columns: ["event_type"]
+            isOneToOne: false
+            referencedRelation: "event_types"
+            referencedColumns: ["event_key"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1866,7 +2092,8 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      delivery_status: "pending" | "success" | "failed" | "retrying" | "dead"
+      event_source: "system" | "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1993,6 +2220,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      delivery_status: ["pending", "success", "failed", "retrying", "dead"],
+      event_source: ["system", "user", "admin"],
+    },
   },
 } as const
