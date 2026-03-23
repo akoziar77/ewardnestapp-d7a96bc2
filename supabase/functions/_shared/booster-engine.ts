@@ -6,13 +6,10 @@ import {
   isUserTargeted,
   getOrCreateTier,
   toNumber,
-  nowTimestamp,
-  isSameDay,
-  daysBetween,
 } from "./utils.ts";
 
 // =======================================================
-// BOOSTER ENGINE — CORE PROCESSOR
+// BOOSTER ENGINE — CORE PROCESSOR (V2)
 // =======================================================
 
 interface ApplyBoostersInput {
@@ -21,6 +18,8 @@ interface ApplyBoostersInput {
   brand_id?: string;
   amount: number;
   action_type: string;
+  /** Line items from receipt (used by sku/category boosters) */
+  items?: { name: string; qty?: number; price?: number; category?: string }[];
 }
 
 interface BoosterResult {
@@ -34,6 +33,7 @@ export async function applyBoosters({
   brand_id,
   amount,
   action_type,
+  items,
 }: ApplyBoostersInput): Promise<BoosterResult> {
   const boosters = await getActiveBoosters(client, brand_id);
   if (!boosters.length) return { totalBonusPoints: 0, appliedBoosterIds: [] };
@@ -42,7 +42,15 @@ export async function applyBoosters({
   const appliedBoosterIds: string[] = [];
 
   for (const booster of boosters) {
-    const bonus = await processBooster({ client, booster, user_id, brand_id, amount, action_type });
+    const bonus = await processBooster({
+      client,
+      booster,
+      user_id,
+      brand_id,
+      amount,
+      action_type,
+      items,
+    });
     if (bonus > 0) {
       totalBonusPoints += bonus;
       appliedBoosterIds.push(booster.id);
@@ -63,9 +71,18 @@ interface ProcessBoosterInput {
   brand_id?: string;
   amount: number;
   action_type: string;
+  items?: { name: string; qty?: number; price?: number; category?: string }[];
 }
 
-async function processBooster({ client, booster, user_id, brand_id, amount, action_type }: ProcessBoosterInput): Promise<number> {
+async function processBooster({
+  client,
+  booster,
+  user_id,
+  brand_id,
+  amount,
+  action_type,
+  items,
+}: ProcessBoosterInput): Promise<number> {
   const now = new Date();
 
   // Check date validity
@@ -99,6 +116,17 @@ async function processBooster({ client, booster, user_id, brand_id, amount, acti
       return await processFlatBonusBooster(client, booster, user_id, action_type);
     case "streak":
       return await processStreakBooster(client, booster, user_id);
+    // ── V2 receipt-based types ──
+    case "sku":
+      return await processSkuBooster(client, booster, user_id, items ?? []);
+    case "category":
+      return await processCategoryBooster(client, booster, user_id, items ?? []);
+    case "threshold":
+      return processThresholdBooster(client, booster, user_id, amount);
+    case "time_window":
+      return processTimeWindowBooster(client, booster, user_id);
+    case "multi_brand":
+      return await processMultiBrandBooster(client, booster, user_id);
     default:
       return 0;
   }
@@ -121,7 +149,6 @@ async function processTieredBooster(
   const rules = await getBoosterTierRules(client, booster.id as string);
   if (!rules.length) return 0;
 
-  // Match on tier column (existing schema uses "tier" not "tier_name")
   const rule = rules.find((r: Record<string, unknown>) => r.tier === tier?.current_tier);
   if (!rule) return 0;
 
@@ -152,7 +179,6 @@ async function processActionBooster(
   const rules = await getBoosterActionRules(client, booster.id as string);
   if (!rules.length) return 0;
 
-  // Match on action column (existing schema uses "action" not "action_type")
   const rule = rules.find((r: Record<string, unknown>) => r.action === action_type);
   if (!rule) return 0;
 
@@ -233,7 +259,6 @@ async function processStreakBooster(
   booster: Record<string, unknown>,
   user_id: string
 ): Promise<number> {
-  // Read current streak from profiles
   const { data: profile } = await client
     .from("profiles")
     .select("streak_count")
@@ -241,6 +266,8 @@ async function processStreakBooster(
     .single();
 
   const streakCount = profile?.streak_count ?? 0;
+  const requiredStreak = toNumber(booster.required_streak, 0);
+  if (requiredStreak > 0 && streakCount < requiredStreak) return 0;
   if (streakCount <= 0) return 0;
 
   const bonus = toNumber(booster.bonus_value, 1) * streakCount;
@@ -255,6 +282,181 @@ async function processStreakBooster(
   });
 
   return Math.floor(bonus);
+}
+
+// =======================================================
+// SKU BOOSTER (V2)
+// =======================================================
+
+async function processSkuBooster(
+  client: SupabaseClient,
+  booster: Record<string, unknown>,
+  user_id: string,
+  items: { name: string; qty?: number; price?: number }[]
+): Promise<number> {
+  if (!items.length) return 0;
+
+  const { data: rules } = await client
+    .from("booster_sku_rules")
+    .select("sku_keyword, points")
+    .eq("booster_id", booster.id as string);
+
+  if (!rules || !rules.length) return 0;
+
+  let bonus = 0;
+  for (const item of items) {
+    const itemName = (item.name ?? "").toLowerCase();
+    for (const rule of rules) {
+      if (itemName.includes(rule.sku_keyword.toLowerCase())) {
+        bonus += rule.points * (item.qty ?? 1);
+      }
+    }
+  }
+
+  if (bonus > 0) {
+    await logBoosterActivity(client, {
+      booster_id: booster.id as string,
+      user_id,
+      action: "sku",
+      base_points: 0,
+      bonus_points: bonus,
+      total_points: bonus,
+    });
+  }
+
+  return bonus;
+}
+
+// =======================================================
+// CATEGORY BOOSTER (V2)
+// =======================================================
+
+async function processCategoryBooster(
+  client: SupabaseClient,
+  booster: Record<string, unknown>,
+  user_id: string,
+  items: { name: string; qty?: number; price?: number; category?: string }[]
+): Promise<number> {
+  if (!items.length) return 0;
+
+  const { data: rules } = await client
+    .from("booster_category_rules")
+    .select("category_keyword, points")
+    .eq("booster_id", booster.id as string);
+
+  if (!rules || !rules.length) return 0;
+
+  let bonus = 0;
+  for (const item of items) {
+    const catName = (item.category ?? item.name ?? "").toLowerCase();
+    for (const rule of rules) {
+      if (catName.includes(rule.category_keyword.toLowerCase())) {
+        bonus += rule.points * (item.qty ?? 1);
+      }
+    }
+  }
+
+  if (bonus > 0) {
+    await logBoosterActivity(client, {
+      booster_id: booster.id as string,
+      user_id,
+      action: "category",
+      base_points: 0,
+      bonus_points: bonus,
+      total_points: bonus,
+    });
+  }
+
+  return bonus;
+}
+
+// =======================================================
+// SPEND THRESHOLD BOOSTER (V2)
+// =======================================================
+
+function processThresholdBooster(
+  client: SupabaseClient,
+  booster: Record<string, unknown>,
+  user_id: string,
+  amount: number
+): number {
+  const minSpend = toNumber(booster.min_spend, 0);
+  if (minSpend <= 0 || amount < minSpend) return 0;
+
+  const bonus = toNumber(booster.bonus_value, 0);
+  if (bonus <= 0) return 0;
+
+  logBoosterActivity(client, {
+    booster_id: booster.id as string,
+    user_id,
+    action: "threshold",
+    base_points: Math.floor(amount),
+    bonus_points: bonus,
+    total_points: Math.floor(amount) + bonus,
+  });
+
+  return bonus;
+}
+
+// =======================================================
+// TIME WINDOW BOOSTER (V2)
+// =======================================================
+
+function processTimeWindowBooster(
+  client: SupabaseClient,
+  booster: Record<string, unknown>,
+  user_id: string
+): number {
+  // Uses existing start_at / end_at — already validated in processBooster
+  // If we reach here, the time window is valid
+  const bonus = toNumber(booster.bonus_value, 0);
+  if (bonus <= 0) return 0;
+
+  logBoosterActivity(client, {
+    booster_id: booster.id as string,
+    user_id,
+    action: "time_window",
+    base_points: 0,
+    bonus_points: bonus,
+    total_points: bonus,
+  });
+
+  return bonus;
+}
+
+// =======================================================
+// MULTI-BRAND BOOSTER (V2)
+// =======================================================
+
+async function processMultiBrandBooster(
+  client: SupabaseClient,
+  booster: Record<string, unknown>,
+  user_id: string
+): Promise<number> {
+  const requiredBrands = toNumber(booster.required_brands, 0);
+  if (requiredBrands <= 0) return 0;
+
+  const { data: txns } = await client
+    .from("transactions")
+    .select("brand_id")
+    .eq("user_id", user_id);
+
+  const uniqueBrands = new Set((txns ?? []).map((t: { brand_id: string }) => t.brand_id)).size;
+  if (uniqueBrands < requiredBrands) return 0;
+
+  const bonus = toNumber(booster.bonus_value, 0);
+  if (bonus <= 0) return 0;
+
+  await logBoosterActivity(client, {
+    booster_id: booster.id as string,
+    user_id,
+    action: "multi_brand",
+    base_points: 0,
+    bonus_points: bonus,
+    total_points: bonus,
+  });
+
+  return bonus;
 }
 
 // =======================================================
