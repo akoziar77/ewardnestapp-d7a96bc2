@@ -35,7 +35,7 @@ export default function AdminIntegrations() {
 
   const { data: jobs, isLoading: loadingJobs } = useQuery({
     queryKey: ["airbyte-jobs"],
-    queryFn: () => airbyteGithub("list_jobs"),
+    queryFn: () => githubExec("jobs", "list"),
     retry: 1,
   });
 
