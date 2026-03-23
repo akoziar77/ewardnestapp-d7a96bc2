@@ -197,16 +197,16 @@ Deno.serve(async (req) => {
         );
 
         // Apply boosters (including SKU-level if items have categories)
-        const boosterResult = await applyBoosters(supabaseAdmin, {
+        const boosterResult = await applyBoosters({
+          client: supabaseAdmin,
           user_id: userId,
           brand_id: brandId,
           amount: parsed.total,
           action_type: "receipt_scan",
-          base_points: basePoints,
         });
 
-        pointsAwarded = boosterResult.total_points ?? basePoints;
-        boosterBonus = boosterResult.bonus_points ?? 0;
+        pointsAwarded = basePoints + (boosterResult.totalBonusPoints ?? 0);
+        boosterBonus = boosterResult.totalBonusPoints ?? 0;
 
         // Update tier progression
         await updateTierProgression(supabaseAdmin, userId, brandId, parsed.total);
