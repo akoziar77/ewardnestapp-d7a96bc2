@@ -29,7 +29,7 @@ export default function AdminIntegrations() {
 
   const { data: connections, isLoading: loadingConns, error: connError } = useQuery({
     queryKey: ["airbyte-connections"],
-    queryFn: () => githubExec("connections", "list"),
+    queryFn: () => airbyteListConnections(),
     retry: 1,
   });
 
