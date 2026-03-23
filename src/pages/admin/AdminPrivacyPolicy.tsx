@@ -27,12 +27,34 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const POLICY_TYPES = [
+  { value: "privacy_policy", label: "Privacy Policy" },
+  { value: "terms_of_service", label: "Terms of Service" },
+  { value: "cookie_policy", label: "Cookie Policy" },
+  { value: "dpa", label: "DPA" },
+  { value: "merchant_privacy", label: "Merchant Privacy" },
+] as const;
+
+type PolicyType = (typeof POLICY_TYPES)[number]["value"];
+
+const policyTypeLabel = (t: string) =>
+  POLICY_TYPES.find((p) => p.value === t)?.label ?? t;
 
 interface PolicyRow {
   id: string;
   content_markdown: string;
   version: string;
+  policy_type: string;
   published_at: string;
   updated_by: string | null;
   created_at: string;
@@ -44,10 +66,12 @@ export default function AdminPrivacyPolicy() {
   const { toast } = useToast();
   const qc = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [version, setVersion] = useState("");
+  const [policyType, setPolicyType] = useState<PolicyType>("privacy_policy");
   const [content, setContent] = useState("");
   const [previewContent, setPreviewContent] = useState("");
 
@@ -63,6 +87,10 @@ export default function AdminPrivacyPolicy() {
     },
   });
 
+  const filtered = policies?.filter(
+    (p) => activeTab === "all" || p.policy_type === activeTab
+  );
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (editingId) {
@@ -71,6 +99,7 @@ export default function AdminPrivacyPolicy() {
           .update({
             content_markdown: content,
             version,
+            policy_type: policyType,
             updated_by: user?.id,
           } as any)
           .eq("id", editingId);
@@ -81,6 +110,7 @@ export default function AdminPrivacyPolicy() {
           .insert({
             content_markdown: content,
             version,
+            policy_type: policyType,
             updated_by: user?.id,
           } as any);
         if (error) throw error;
@@ -114,17 +144,23 @@ export default function AdminPrivacyPolicy() {
     setDialogOpen(false);
     setEditingId(null);
     setVersion("");
+    setPolicyType("privacy_policy");
     setContent("");
   };
 
   const openEdit = (p: PolicyRow) => {
     setEditingId(p.id);
     setVersion(p.version);
+    setPolicyType(p.policy_type as PolicyType);
     setContent(p.content_markdown);
     setDialogOpen(true);
   };
 
-  const latestVersion = policies?.[0]?.version;
+  // Determine latest version per type
+  const latestByType = new Map<string, string>();
+  policies?.forEach((p) => {
+    if (!latestByType.has(p.policy_type)) latestByType.set(p.policy_type, p.id);
+  });
 
   return (
     <div className="min-h-screen bg-background p-4 pb-24">
@@ -135,13 +171,25 @@ export default function AdminPrivacyPolicy() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold tracking-tight">Privacy Policies</h1>
-            <p className="text-sm text-muted-foreground">Manage versions and view consent</p>
+            <h1 className="text-xl font-bold tracking-tight">Legal & Compliance</h1>
+            <p className="text-sm text-muted-foreground">Manage policy versions and consent</p>
           </div>
           <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1.5 active:scale-95 transition-transform">
             <Plus className="h-4 w-4" /> New version
           </Button>
         </div>
+
+        {/* Type filter tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
+          <TabsList className="w-full flex-wrap h-auto gap-1 bg-muted/50 p-1">
+            <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+            {POLICY_TYPES.map((t) => (
+              <TabsTrigger key={t.value} value={t.value} className="text-xs">
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         {/* Policies list */}
         {isLoading ? (
@@ -150,26 +198,29 @@ export default function AdminPrivacyPolicy() {
               <Skeleton key={i} className="h-20 rounded-2xl" />
             ))}
           </div>
-        ) : !policies?.length ? (
+        ) : !filtered?.length ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
               <FileText className="h-8 w-8 text-muted-foreground" />
             </div>
             <p className="font-semibold">No policies yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Create your first privacy policy version</p>
+            <p className="text-sm text-muted-foreground mt-1">Create your first policy version</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {policies.map((p) => (
+            {filtered.map((p) => (
               <div
                 key={p.id}
                 className="rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-sm">v{p.version}</span>
-                      {p.version === latestVersion && (
+                      <Badge variant="secondary" className="text-[10px] h-5">
+                        {policyTypeLabel(p.policy_type)}
+                      </Badge>
+                      {latestByType.get(p.policy_type) === p.id && (
                         <Badge variant="default" className="text-[10px] h-5 gap-1">
                           <Check className="h-3 w-3" /> Current
                         </Badge>
@@ -206,7 +257,7 @@ export default function AdminPrivacyPolicy() {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete policy v{p.version}?</AlertDialogTitle>
+                          <AlertDialogTitle>Delete {policyTypeLabel(p.policy_type)} v{p.version}?</AlertDialogTitle>
                           <AlertDialogDescription>
                             This cannot be undone. Users who consented to this version will keep their consent records.
                           </AlertDialogDescription>
@@ -234,6 +285,21 @@ export default function AdminPrivacyPolicy() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
+                <label className="text-sm font-medium mb-1.5 block">Policy Type</label>
+                <Select value={policyType} onValueChange={(v) => setPolicyType(v as PolicyType)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {POLICY_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <label className="text-sm font-medium mb-1.5 block">Version</label>
                 <Input
                   placeholder="e.g. 1.0, 2.1"
@@ -244,7 +310,7 @@ export default function AdminPrivacyPolicy() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Content (Markdown)</label>
                 <Textarea
-                  placeholder="Write your privacy policy in Markdown…"
+                  placeholder="Write your policy in Markdown…"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={12}
