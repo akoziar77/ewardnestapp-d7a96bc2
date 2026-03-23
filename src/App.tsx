@@ -45,6 +45,15 @@ import AdminEventExplorer from "./pages/admin/AdminEventExplorer";
 import ReceiptUpload from "./pages/ReceiptUpload";
 import ConsentBanner from "./components/ConsentBanner";
 import NotFound from "./pages/NotFound";
+import DocsLayout from "./pages/docs/DocsLayout";
+import DocsHome from "./pages/docs/DocsHome";
+import AuthDoc from "./pages/docs/AuthDoc";
+import ApiKeysDoc from "./pages/docs/ApiKeysDoc";
+import WebhooksDoc from "./pages/docs/WebhooksDoc";
+import EventsDoc from "./pages/docs/EventsDoc";
+import SdkNodeDoc from "./pages/docs/SdkNodeDoc";
+import TestingDoc from "./pages/docs/TestingDoc";
+import ChangelogDoc from "./pages/docs/ChangelogDoc";
 
 const queryClient = new QueryClient();
 
