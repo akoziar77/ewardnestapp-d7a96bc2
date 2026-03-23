@@ -94,7 +94,7 @@ function AppRoutes() {
       </Route>
 
       {/* Signed-in: any role (user, manager, admin) */}
-      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["user", "manager", "admin"]} />}>
+      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["user", "manager", "admin"]} rolesLoading={rolesLoading} />}>
         <Route path="/" element={<PageGate pageKey="home"><Index /></PageGate>} />
         <Route path="/home" element={<PageGate pageKey="home"><Index /></PageGate>} />
         <Route path="/onboarding" element={<PageGate pageKey="onboarding"><Onboarding /></PageGate>} />
