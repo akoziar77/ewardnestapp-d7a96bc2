@@ -123,7 +123,7 @@ function AppRoutes() {
       </Route>
 
       {/* Admin only — with sidebar layout */}
-      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} />}>
+      <Route element={<ProtectedRoute signedIn={signedIn} roles={roles} required={["admin"]} rolesLoading={rolesLoading} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<PageGate pageKey="admin_dashboard"><AdminDashboard /></PageGate>} />
           <Route path="program-settings" element={<PageGate pageKey="admin_program_settings"><AdminProgramSettings /></PageGate>} />
