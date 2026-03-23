@@ -1,0 +1,20 @@
+INSERT INTO page_access (page_key, page_label, role_name, allowed) VALUES
+  ('admin_dashboard', 'Dashboard', 'admin', true),
+  ('admin_dashboard', 'Dashboard', 'manager', false),
+  ('admin_dashboard', 'Dashboard', 'user', false),
+  ('admin_program_settings', 'Program Settings', 'admin', true),
+  ('admin_program_settings', 'Program Settings', 'manager', false),
+  ('admin_program_settings', 'Program Settings', 'user', false),
+  ('admin_brands', 'Brands', 'admin', true),
+  ('admin_brands', 'Brands', 'manager', false),
+  ('admin_brands', 'Brands', 'user', false),
+  ('admin_rewards', 'Rewards', 'admin', true),
+  ('admin_rewards', 'Rewards', 'manager', false),
+  ('admin_rewards', 'Rewards', 'user', false),
+  ('admin_automations', 'Automations', 'admin', true),
+  ('admin_automations', 'Automations', 'manager', false),
+  ('admin_automations', 'Automations', 'user', false),
+  ('admin_integrations', 'Integrations', 'admin', true),
+  ('admin_integrations', 'Integrations', 'manager', false),
+  ('admin_integrations', 'Integrations', 'user', false)
+ON CONFLICT DO NOTHING;
