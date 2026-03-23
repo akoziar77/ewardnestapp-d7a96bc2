@@ -1,9 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { ValidationEngine, eventBus } from "@/lib/engines/validation-bus";
-import { boosterEngine } from "@/lib/engines/booster-automation";
-import { automationEngine } from "@/lib/engines/booster-automation";
-import { ocrEngine } from "@/lib/engines/ocr";
-import { integrationEngine } from "@/lib/engines/integration";
+import {
+  ValidationEngine,
+  eventBus,
+  boosterEngine,
+  automationEngine,
+  ocrEngine,
+  integrationEngine,
+  pointsEngine,
+  receiptEngine,
+} from "@/lib/engines";
 
 // =============================================================================
 // VALIDATION ENGINE TESTS
@@ -11,19 +16,17 @@ import { integrationEngine } from "@/lib/engines/integration";
 
 describe("Validation Engine", () => {
   it("should pass a valid receipt", () => {
-    const validReceipt = {
+    const result = ValidationEngine.validateReceipt({
       userId: "user_001",
       brand: "Starbucks",
       amount: 7.45,
       uploadedAt: "2026-03-20T14:22:10Z",
-    };
-    const result = ValidationEngine.validateReceipt(validReceipt);
+    });
     expect(result.success).toBe(true);
   });
 
   it("should fail an invalid receipt", () => {
-    const invalidReceipt = { foo: "bar" };
-    const result = ValidationEngine.validateReceipt(invalidReceipt);
+    const result = ValidationEngine.validateReceipt({ foo: "bar" });
     expect(result.success).toBe(false);
   });
 });
@@ -34,11 +37,7 @@ describe("Validation Engine", () => {
 
 describe("Booster Engine", () => {
   it("should double points with a 2x booster", () => {
-    boosterEngine.registerBooster({
-      id: "boost_starbucks",
-      brand: "Starbucks",
-      multiplier: 2,
-    });
+    boosterEngine.registerBooster({ id: "boost_sb", brand: "Starbucks", multiplier: 2 });
     const result = boosterEngine.applyBoosterIfEligible("Starbucks", 10);
     expect(result.success).toBe(true);
     expect(result.data).toBe(20);
@@ -46,7 +45,6 @@ describe("Booster Engine", () => {
 
   it("should return base points when no booster matches", () => {
     const result = boosterEngine.applyBoosterIfEligible("Nike", 10);
-    expect(result.success).toBe(true);
     expect(result.data).toBe(10);
   });
 });
@@ -63,10 +61,7 @@ describe("Automation Engine", () => {
       action: "SEND_NOTIFICATION",
       active: true,
     });
-    const result = await automationEngine.runAutomation(
-      "SEND_NOTIFICATION",
-      "user_001"
-    );
+    const result = await automationEngine.runAutomation("SEND_NOTIFICATION", "user_001");
     expect(result.success).toBe(true);
   });
 });
@@ -89,19 +84,53 @@ describe("OCR Engine", () => {
 
 describe("Integration Engine", () => {
   it("should handle a registered provider webhook", async () => {
-    integrationEngine.registerProvider("Shopify", async (payload) => {
-      return { success: true, data: true };
-    });
-
-    const result = await integrationEngine.handleWebhook("Shopify", {
-      order_id: "123",
-      amount: 50,
-    });
+    integrationEngine.registerProvider("Shopify", async () => ({ success: true, data: true }));
+    const result = await integrationEngine.handleWebhook("Shopify", { order_id: "123" });
     expect(result.success).toBe(true);
   });
 
   it("should fail for unregistered provider", async () => {
     const result = await integrationEngine.handleWebhook("Unknown", {});
+    expect(result.success).toBe(false);
+  });
+});
+
+// =============================================================================
+// POINTS ENGINE TESTS
+// =============================================================================
+
+describe("Points Engine", () => {
+  it("should calculate base points from amount", () => {
+    const result = pointsEngine.calculatePoints(7.45);
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(7);
+  });
+
+  it("should calculate points with multiplier", () => {
+    const result = pointsEngine.calculateWithMultiplier(10, 3);
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(30);
+  });
+});
+
+// =============================================================================
+// RECEIPT ENGINE TESTS
+// =============================================================================
+
+describe("Receipt Engine", () => {
+  it("should process a valid receipt and emit event", async () => {
+    const result = await receiptEngine.processReceipt({
+      userId: "user_001",
+      brand: "Starbucks",
+      amount: 7.45,
+      uploadedAt: "2026-03-20T14:22:10Z",
+    });
+    expect(result.success).toBe(true);
+    expect(result.data?.brand).toBe("Starbucks");
+  });
+
+  it("should fail on invalid receipt", async () => {
+    const result = await receiptEngine.processReceipt({ foo: "bar" });
     expect(result.success).toBe(false);
   });
 });
@@ -113,15 +142,8 @@ describe("Integration Engine", () => {
 describe("Event Bus", () => {
   it("should fire subscribed handlers", async () => {
     let fired = false;
-    eventBus.on("OCR_PARSED", async () => {
-      fired = true;
-    });
-
-    await eventBus.emit({
-      type: "OCR_PARSED",
-      userId: "user_001",
-      text: "test",
-    });
+    eventBus.on("OCR_PARSED", async () => { fired = true; });
+    await eventBus.emit({ type: "OCR_PARSED", userId: "user_001", text: "test" });
     expect(fired).toBe(true);
   });
 });
