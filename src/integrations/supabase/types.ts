@@ -1163,28 +1163,34 @@ export type Database = {
       }
       receipt_line_items: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           item_name: string | null
           price: number | null
           quantity: number | null
           receipt_id: string
+          sku: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           item_name?: string | null
           price?: number | null
           quantity?: number | null
           receipt_id: string
+          sku?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           item_name?: string | null
           price?: number | null
           quantity?: number | null
           receipt_id?: string
+          sku?: string | null
         }
         Relationships: [
           {
@@ -1233,40 +1239,49 @@ export type Database = {
       }
       receipt_uploads: {
         Row: {
+          admin_review_flag: boolean
           brand_id: string | null
           confidence: number | null
           created_at: string
           file_path: string | null
           id: string
           merchant_name: string | null
+          normalized_merchant: string | null
           ocr_text: string | null
           purchase_date: string | null
+          retry_count: number
           status: string
           total_amount: number | null
           user_id: string
         }
         Insert: {
+          admin_review_flag?: boolean
           brand_id?: string | null
           confidence?: number | null
           created_at?: string
           file_path?: string | null
           id?: string
           merchant_name?: string | null
+          normalized_merchant?: string | null
           ocr_text?: string | null
           purchase_date?: string | null
+          retry_count?: number
           status?: string
           total_amount?: number | null
           user_id: string
         }
         Update: {
+          admin_review_flag?: boolean
           brand_id?: string | null
           confidence?: number | null
           created_at?: string
           file_path?: string | null
           id?: string
           merchant_name?: string | null
+          normalized_merchant?: string | null
           ocr_text?: string | null
           purchase_date?: string | null
+          retry_count?: number
           status?: string
           total_amount?: number | null
           user_id?: string
