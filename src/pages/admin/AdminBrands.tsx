@@ -44,7 +44,7 @@ export default function AdminBrands() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("brands")
-        .select("id, name, logo_emoji, category, created_at")
+        .select("id, name, logo_emoji, category, show_in_onboarding, created_at")
         .order("name");
       if (error) throw error;
       return data ?? [];
