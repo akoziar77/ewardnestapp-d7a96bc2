@@ -48,7 +48,7 @@ export default function Auth() {
           email: email.trim(),
           password,
           options: {
-            data: { display_name: displayName.trim() || undefined },
+            data: { display_name: [firstName.trim(), lastName.trim()].filter(Boolean).join(" ") || undefined },
             emailRedirectTo: window.location.origin,
           },
         });
