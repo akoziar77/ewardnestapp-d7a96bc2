@@ -1,14 +1,8 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Check, QrCode } from "lucide-react";
-
-const DEMO_MERCHANTS = [
-  { name: "Brew & Bean", category: "Coffee", emoji: "☕" },
-  { name: "FreshMart", category: "Grocery", emoji: "🛒" },
-  { name: "Glow Studio", category: "Beauty", emoji: "💆" },
-  { name: "Pedal Co.", category: "Fitness", emoji: "🚴" },
-  { name: "BookNook", category: "Books", emoji: "📚" },
-  { name: "Sushi Spot", category: "Dining", emoji: "🍣" },
-];
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   title: string;
@@ -16,12 +10,24 @@ interface Props {
 }
 
 export default function MerchantSelectStep({ title, description }: Props) {
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const toggle = (idx: number) => {
+  const { data: brands = [], isLoading } = useQuery({
+    queryKey: ["onboarding-brands"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("brands")
+        .select("id, name, logo_emoji, category")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const toggle = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
@@ -36,29 +42,39 @@ export default function MerchantSelectStep({ title, description }: Props) {
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {DEMO_MERCHANTS.map((m, i) => {
-          const isSelected = selected.has(i);
-          return (
-            <button
-              key={i}
-              onClick={() => toggle(i)}
-              className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all duration-200 active:scale-[0.96] ${
-                isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/30"
-              }`}
-            >
-              {isSelected && (
-                <div className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary">
-                  <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                </div>
-              )}
-              <span className="text-3xl">{m.emoji}</span>
-              <span className="text-sm font-medium">{m.name}</span>
-              <span className="text-xs text-muted-foreground">{m.category}</span>
-            </button>
-          );
-        })}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-2xl" />
+          ))}
+        </div>
+      ) : brands.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">No brands available yet.</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {brands.map((b) => {
+            const isSelected = selected.has(b.id);
+            return (
+              <button
+                key={b.id}
+                onClick={() => toggle(b.id)}
+                className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all duration-200 active:scale-[0.96] ${
+                  isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/30"
+                }`}
+              >
+                {isSelected && (
+                  <div className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                    <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                  </div>
+                )}
+                <span className="text-3xl">{b.logo_emoji}</span>
+                <span className="text-sm font-medium">{b.name}</span>
+                {b.category && <span className="text-xs text-muted-foreground">{b.category}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
