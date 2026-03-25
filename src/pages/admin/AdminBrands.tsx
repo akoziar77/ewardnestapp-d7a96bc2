@@ -30,6 +30,7 @@ const EMPTY: Omit<Brand, "id" | "created_at"> = {
   name: "",
   logo_emoji: "🏪",
   category: "",
+  show_in_onboarding: false,
 };
 
 export default function AdminBrands() {
