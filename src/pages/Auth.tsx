@@ -14,7 +14,8 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState(() => localStorage.getItem("remembered_email") ?? "");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remembered_email"));
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,7 @@ export default function Auth() {
           email: email.trim(),
           password,
           options: {
-            data: { display_name: displayName.trim() || undefined },
+            data: { display_name: [firstName.trim(), lastName.trim()].filter(Boolean).join(" ") || undefined },
             emailRedirectTo: window.location.origin,
           },
         });
@@ -95,16 +96,29 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
-            <div className="space-y-2">
-              <Label htmlFor="name">Display name</Label>
-              <Input
-                id="name"
-                placeholder="First and last name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                autoComplete="name"
-                className="h-12"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First name</Label>
+                <Input
+                  id="firstName"
+                  placeholder="First name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  autoComplete="given-name"
+                  className="h-12"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last name</Label>
+                <Input
+                  id="lastName"
+                  placeholder="Last name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  autoComplete="family-name"
+                  className="h-12"
+                />
+              </div>
             </div>
           )}
 
