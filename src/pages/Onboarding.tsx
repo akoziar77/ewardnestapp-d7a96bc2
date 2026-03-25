@@ -69,7 +69,11 @@ export default function Onboarding() {
     navigate("/", { replace: true });
   };
 
-  const next = () => {
+  const next = async () => {
+    // Save brand selections when leaving the merchant_select step
+    if (current?.step_type === "merchant_select") {
+      await saveBrandSelections();
+    }
     if (isLastStep) {
       completeOnboarding();
     } else {
