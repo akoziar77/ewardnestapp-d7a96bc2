@@ -19,6 +19,7 @@ export default function MerchantSelectStep({ title, description, onSelectionChan
       const { data, error } = await supabase
         .from("brands")
         .select("id, name, logo_emoji, category")
+        .eq("show_in_onboarding", true)
         .order("name");
       if (error) throw error;
       return data ?? [];
