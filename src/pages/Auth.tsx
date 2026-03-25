@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Bird, Eye, EyeOff } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import SignUpFields from "@/components/auth/SignUpFields";
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,6 +17,13 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobYear, setDobYear] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remembered_email"));
   const [loading, setLoading] = useState(false);
@@ -23,7 +31,6 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (user) {
       navigate("/", { replace: true });
@@ -36,7 +43,6 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // Handle remember me
       if (rememberMe) {
         localStorage.setItem("remembered_email", email.trim());
       } else {
@@ -44,6 +50,10 @@ export default function Auth() {
       }
 
       if (isSignUp) {
+        const dob = dobYear && dobMonth && dobDay
+          ? `${dobYear}-${dobMonth}-${dobDay}`
+          : undefined;
+
         const { error, data } = await supabase.auth.signUp({
           email: email.trim(),
           password,
@@ -52,12 +62,16 @@ export default function Auth() {
               display_name: [firstName.trim(), lastName.trim()].filter(Boolean).join(" ") || undefined,
               first_name: firstName.trim() || undefined,
               last_name: lastName.trim() || undefined,
+              address: address.trim() || undefined,
+              city: city.trim() || undefined,
+              state: state.trim() || undefined,
+              zip_code: zipCode.trim() || undefined,
+              date_of_birth: dob,
             },
             emailRedirectTo: window.location.origin,
           },
         });
         if (error) throw error;
-        // If auto-confirmed, session exists — onAuthStateChange will fire and redirect
         if (!data.session) {
           toast({ title: "Account created!", description: "Check your email to confirm." });
         }
@@ -67,7 +81,6 @@ export default function Auth() {
           password,
         });
         if (error) throw error;
-        // onAuthStateChange will fire and redirect via useEffect
       }
     } catch (err: any) {
       toast({
@@ -100,30 +113,17 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First name</Label>
-                <Input
-                  id="firstName"
-                  placeholder="First name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  autoComplete="given-name"
-                  className="h-12"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input
-                  id="lastName"
-                  placeholder="Last name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  autoComplete="family-name"
-                  className="h-12"
-                />
-              </div>
-            </div>
+            <SignUpFields
+              firstName={firstName} setFirstName={setFirstName}
+              lastName={lastName} setLastName={setLastName}
+              address={address} setAddress={setAddress}
+              city={city} setCity={setCity}
+              state={state} setState={setState}
+              zipCode={zipCode} setZipCode={setZipCode}
+              dobMonth={dobMonth} setDobMonth={setDobMonth}
+              dobDay={dobDay} setDobDay={setDobDay}
+              dobYear={dobYear} setDobYear={setDobYear}
+            />
           )}
 
           <div className="space-y-2">
@@ -239,7 +239,6 @@ export default function Auth() {
                 });
                 setLoading(false);
               }
-              // If redirected, page will navigate away — don't setLoading(false)
               if (!result?.redirected) {
                 setLoading(false);
               }
