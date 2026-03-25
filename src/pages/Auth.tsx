@@ -99,7 +99,7 @@ export default function Auth() {
               <Label htmlFor="name">Display name</Label>
               <Input
                 id="name"
-                placeholder="How should we call you?"
+                placeholder="First and last name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 autoComplete="name"
