@@ -31,6 +31,7 @@ interface OnboardingStep {
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [completing, setCompleting] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -51,9 +52,16 @@ export default function Onboarding() {
   const current = steps[step];
   const isLastStep = step === totalSteps - 1;
 
+  const saveBrandSelections = async () => {
+    if (!user || selectedBrands.length === 0) return;
+    const rows = selectedBrands.map((brand_id) => ({ user_id: user.id, brand_id }));
+    await supabase.from("favorite_brands").upsert(rows, { onConflict: "user_id,brand_id" });
+  };
+
   const completeOnboarding = async () => {
     if (!user) return;
     setCompleting(true);
+    await saveBrandSelections();
     await supabase
       .from("profiles")
       .update({ onboarding_completed: true })
@@ -61,7 +69,11 @@ export default function Onboarding() {
     navigate("/", { replace: true });
   };
 
-  const next = () => {
+  const next = async () => {
+    // Save brand selections when leaving the merchant_select step
+    if (current?.step_type === "merchant_select") {
+      await saveBrandSelections();
+    }
     if (isLastStep) {
       completeOnboarding();
     } else {
@@ -127,6 +139,7 @@ export default function Onboarding() {
           <MerchantSelectStep
             title={current.title}
             description={current.description}
+            onSelectionChange={setSelectedBrands}
           />
         )}
       </div>

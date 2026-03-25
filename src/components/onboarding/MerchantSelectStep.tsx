@@ -7,9 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface Props {
   title: string;
   description: string;
+  onSelectionChange?: (selectedIds: string[]) => void;
 }
 
-export default function MerchantSelectStep({ title, description }: Props) {
+export default function MerchantSelectStep({ title, description, onSelectionChange }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const { data: brands = [], isLoading } = useQuery({
@@ -28,6 +29,7 @@ export default function MerchantSelectStep({ title, description }: Props) {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
+      onSelectionChange?.(Array.from(next));
       return next;
     });
   };
@@ -51,7 +53,7 @@ export default function MerchantSelectStep({ title, description }: Props) {
       ) : brands.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-8">No brands available yet.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-1">
           {brands.map((b) => {
             const isSelected = selected.has(b.id);
             return (
