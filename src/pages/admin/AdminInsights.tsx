@@ -116,7 +116,39 @@ export default function AdminInsights() {
   return (
     <div className="pb-24">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* ── Summary Metrics ── */}
+        {/* ── Brand Report Export ── */}
+        <section>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Download className="h-5 w-5 text-primary" />
+            Export Brand Report
+          </h2>
+          <Card>
+            <CardContent className="p-4 flex flex-wrap items-end gap-3">
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">Brand</span>
+                <Select value={exportBrandId} onValueChange={setExportBrandId}>
+                  <SelectTrigger className="w-[200px] h-9">
+                    <SelectValue placeholder="Select a brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(brandsListQ.data ?? []).map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {exportBrandId && (
+                <BrandReportExport
+                  brandId={exportBrandId}
+                  brandName={brandsListQ.data?.find((b) => b.id === exportBrandId)?.name}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard
             icon={<DollarSign className="h-5 w-5" />}
