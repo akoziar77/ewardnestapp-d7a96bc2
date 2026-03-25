@@ -1278,6 +1278,7 @@ export type Database = {
           challenges_completed: number
           city: string | null
           created_at: string
+          date_of_birth: string | null
           display_name: string | null
           first_name: string | null
           id: string
@@ -1299,6 +1300,7 @@ export type Database = {
           challenges_completed?: number
           city?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           first_name?: string | null
           id?: string
@@ -1320,6 +1322,7 @@ export type Database = {
           challenges_completed?: number
           city?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           first_name?: string | null
           id?: string
