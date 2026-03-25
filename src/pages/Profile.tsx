@@ -38,10 +38,6 @@ import {
   Locate,
   Trash2,
   Crown,
-  FileText,
-  Settings,
-  Store,
-  Layout,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/hooks/useGeofence";
 import { hasFeatureAccess } from "@/lib/featureGates";
