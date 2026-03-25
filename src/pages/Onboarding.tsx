@@ -52,9 +52,16 @@ export default function Onboarding() {
   const current = steps[step];
   const isLastStep = step === totalSteps - 1;
 
+  const saveBrandSelections = async () => {
+    if (!user || selectedBrands.length === 0) return;
+    const rows = selectedBrands.map((brand_id) => ({ user_id: user.id, brand_id }));
+    await supabase.from("favorite_brands").upsert(rows, { onConflict: "user_id,brand_id" });
+  };
+
   const completeOnboarding = async () => {
     if (!user) return;
     setCompleting(true);
+    await saveBrandSelections();
     await supabase
       .from("profiles")
       .update({ onboarding_completed: true })
