@@ -253,6 +253,107 @@ Deno.serve(async (req) => {
         return jsonResponse({ boosters: result });
       }
 
+      // ── Full report (PDF/CSV export) ──
+      case "full_report": {
+        const startDate = body.start_date ? new Date(body.start_date) : (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d; })();
+        const endDate = body.end_date ? new Date(body.end_date) : new Date();
+        const endDateStr = endDate.toISOString();
+        const startDateStr = startDate.toISOString();
+
+        // Brand name
+        const { data: brandRow } = await supabaseAdmin
+          .from("brands")
+          .select("name, logo_emoji, category")
+          .eq("id", authorizedBrandId)
+          .maybeSingle();
+
+        // Receipts in range
+        const { data: receipts } = await supabaseAdmin
+          .from("receipt_uploads")
+          .select("id, total_amount, status, confidence, user_id, created_at, purchase_date")
+          .eq("brand_id", authorizedBrandId)
+          .gte("created_at", startDateStr)
+          .lte("created_at", endDateStr);
+
+        const allReceipts = receipts ?? [];
+        const approved = allReceipts.filter((r) => r.status === "approved");
+        const totalSpend = allReceipts.reduce((s, r) => s + (Number(r.total_amount) || 0), 0);
+        const avgBasket = allReceipts.length ? totalSpend / allReceipts.length : 0;
+
+        // Transactions in range
+        const { data: txns } = await supabaseAdmin
+          .from("transactions")
+          .select("points_earned, amount, user_id, created_at")
+          .eq("brand_id", authorizedBrandId)
+          .gte("created_at", startDateStr)
+          .lte("created_at", endDateStr);
+
+        const totalPoints = (txns ?? []).reduce((s, t) => s + (t.points_earned || 0), 0);
+
+        // Line items from receipts in range
+        const receiptIds = allReceipts.map((r) => r.id);
+        let skuItems: any[] = [];
+        if (receiptIds.length > 0) {
+          const { data: items } = await supabaseAdmin
+            .from("receipt_line_items")
+            .select("item_name, quantity, price, category, sku")
+            .in("receipt_id", receiptIds);
+
+          const skuMap: Record<string, { qty: number; revenue: number; category: string | null }> = {};
+          for (const item of items ?? []) {
+            const key = item.item_name ?? "Unknown";
+            if (!skuMap[key]) skuMap[key] = { qty: 0, revenue: 0, category: item.category };
+            skuMap[key].qty += Number(item.quantity) || 0;
+            skuMap[key].revenue += (Number(item.price) || 0) * (Number(item.quantity) || 1);
+          }
+          skuItems = Object.entries(skuMap)
+            .map(([name, s]) => ({ name, quantity_sold: s.qty, revenue: Math.round(s.revenue * 100) / 100, category: s.category }))
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 50);
+        }
+
+        // Top customers
+        const custMap: Record<string, { spend: number; count: number }> = {};
+        for (const r of allReceipts) {
+          if (!r.user_id) continue;
+          if (!custMap[r.user_id]) custMap[r.user_id] = { spend: 0, count: 0 };
+          custMap[r.user_id].spend += Number(r.total_amount) || 0;
+          custMap[r.user_id].count++;
+        }
+        const customers = Object.entries(custMap)
+          .map(([user_id, s]) => ({ user_id, total_spend: Math.round(s.spend * 100) / 100, receipt_count: s.count }))
+          .sort((a, b) => b.total_spend - a.total_spend)
+          .slice(0, 20);
+
+        // Daily timeseries
+        const dayMap: Record<string, { spend: number; count: number }> = {};
+        for (const r of allReceipts) {
+          const day = r.created_at.split("T")[0];
+          if (!dayMap[day]) dayMap[day] = { spend: 0, count: 0 };
+          dayMap[day].spend += Number(r.total_amount) || 0;
+          dayMap[day].count++;
+        }
+        const timeseries = Object.entries(dayMap)
+          .map(([date, s]) => ({ date, spend: Math.round(s.spend * 100) / 100, receipt_count: s.count }))
+          .sort((a, b) => (a.date > b.date ? 1 : -1));
+
+        return jsonResponse({
+          brand: brandRow ?? { name: authorizedBrandId },
+          period: { start: startDateStr, end: endDateStr },
+          summary: {
+            total_spend: Math.round(totalSpend * 100) / 100,
+            receipt_count: allReceipts.length,
+            approved_count: approved.length,
+            avg_basket: Math.round(avgBasket * 100) / 100,
+            total_points_awarded: totalPoints,
+            unique_customers: Object.keys(custMap).length,
+          },
+          top_products: skuItems,
+          top_customers: customers,
+          timeseries,
+        });
+      }
+
       default:
         return errorResponse("invalid_action", 400, {
           valid_actions: [
@@ -261,6 +362,7 @@ Deno.serve(async (req) => {
             "top_customers",
             "timeseries",
             "booster_performance",
+            "full_report",
           ],
         });
     }
