@@ -22,6 +22,7 @@ interface Brand {
   name: string;
   logo_emoji: string;
   category: string | null;
+  show_in_onboarding: boolean;
   created_at: string;
 }
 
