@@ -136,7 +136,14 @@ export default function AdminBrands() {
                     </Badge>
                   )}
                 </div>
-                <div className="flex gap-1 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <Switch
+                      checked={b.show_in_onboarding}
+                      onCheckedChange={(v) => toggleOnboarding.mutate({ id: b.id, show: v })}
+                    />
+                    <span className="text-[10px] text-muted-foreground">Onboarding</span>
+                  </div>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(b)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
