@@ -139,6 +139,7 @@ export default function Onboarding() {
           <MerchantSelectStep
             title={current.title}
             description={current.description}
+            onSelectionChange={setSelectedBrands}
           />
         )}
       </div>
