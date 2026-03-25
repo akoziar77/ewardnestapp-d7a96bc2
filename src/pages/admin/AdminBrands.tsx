@@ -88,6 +88,15 @@ export default function AdminBrands() {
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
+  const toggleOnboarding = useMutation({
+    mutationFn: async ({ id, show }: { id: string; show: boolean }) => {
+      const { error } = await supabase.from("brands").update({ show_in_onboarding: show }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-brands"] }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   const openNew = () => {
     setIsNew(true);
     setEditing({ ...EMPTY });
