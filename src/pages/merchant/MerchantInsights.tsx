@@ -108,7 +108,7 @@ export default function MerchantInsights() {
   return (
     <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-foreground">
             Receipt Insights
@@ -117,16 +117,21 @@ export default function MerchantInsights() {
             Analytics powered by receipt data
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={refetchAll}
-          disabled={loading}
-        >
-          <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refetchAll}
+            disabled={loading}
+          >
+            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
+
+      {/* Export */}
+      <BrandReportExport brandId={brandId} />
 
       {/* Summary metrics */}
       {loading ? (
