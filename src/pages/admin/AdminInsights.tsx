@@ -53,6 +53,16 @@ async function fetchInsight(action: string, extra?: Record<string, unknown>) {
 }
 
 export default function AdminInsights() {
+  const [exportBrandId, setExportBrandId] = useState<string>("");
+
+  // Fetch brands list for export selector
+  const brandsListQ = useQuery({
+    queryKey: ["brands-list-for-export"],
+    queryFn: async () => {
+      const { data } = await supabase.from("brands").select("id, name").order("name");
+      return data ?? [];
+    },
+  });
 
   const summaryQ = useQuery({
     queryKey: ["admin-insights", "summary"],
