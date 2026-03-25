@@ -209,17 +209,30 @@ export default function Auth() {
           disabled={loading}
           onClick={async () => {
             setLoading(true);
-            const { error } = await lovable.auth.signInWithOAuth("google", {
-              redirect_uri: window.location.origin,
-            });
-            if (error) {
+            try {
+              const result = await lovable.auth.signInWithOAuth("google", {
+                redirect_uri: window.location.origin,
+              });
+              if (result?.error) {
+                toast({
+                  title: "Error",
+                  description: result.error.message || "Google sign-in failed",
+                  variant: "destructive",
+                });
+                setLoading(false);
+              }
+              // If redirected, page will navigate away — don't setLoading(false)
+              if (!result?.redirected) {
+                setLoading(false);
+              }
+            } catch (err: any) {
               toast({
                 title: "Error",
-                description: error.message || "Google sign-in failed",
+                description: err.message || "Google sign-in failed",
                 variant: "destructive",
               });
+              setLoading(false);
             }
-            setLoading(false);
           }}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -238,17 +251,29 @@ export default function Auth() {
           disabled={loading}
           onClick={async () => {
             setLoading(true);
-            const { error } = await lovable.auth.signInWithOAuth("apple", {
-              redirect_uri: window.location.origin,
-            });
-            if (error) {
+            try {
+              const result = await lovable.auth.signInWithOAuth("apple", {
+                redirect_uri: window.location.origin,
+              });
+              if (result?.error) {
+                toast({
+                  title: "Error",
+                  description: result.error.message || "Apple sign-in failed",
+                  variant: "destructive",
+                });
+                setLoading(false);
+              }
+              if (!result?.redirected) {
+                setLoading(false);
+              }
+            } catch (err: any) {
               toast({
                 title: "Error",
-                description: error.message || "Apple sign-in failed",
+                description: err.message || "Apple sign-in failed",
                 variant: "destructive",
               });
+              setLoading(false);
             }
-            setLoading(false);
           }}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
