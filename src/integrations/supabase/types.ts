@@ -516,6 +516,7 @@ export type Database = {
           milestone_points: number
           milestone_visits: number
           name: string
+          show_in_onboarding: boolean
           visit_expiry_months: number
           website_url: string | null
         }
@@ -534,6 +535,7 @@ export type Database = {
           milestone_points?: number
           milestone_visits?: number
           name: string
+          show_in_onboarding?: boolean
           visit_expiry_months?: number
           website_url?: string | null
         }
@@ -552,6 +554,7 @@ export type Database = {
           milestone_points?: number
           milestone_visits?: number
           name?: string
+          show_in_onboarding?: boolean
           visit_expiry_months?: number
           website_url?: string | null
         }

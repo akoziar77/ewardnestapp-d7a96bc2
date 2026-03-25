@@ -15,12 +15,14 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface Brand {
   id: string;
   name: string;
   logo_emoji: string;
   category: string | null;
+  show_in_onboarding: boolean;
   created_at: string;
 }
 
@@ -28,6 +30,7 @@ const EMPTY: Omit<Brand, "id" | "created_at"> = {
   name: "",
   logo_emoji: "🏪",
   category: "",
+  show_in_onboarding: false,
 };
 
 export default function AdminBrands() {
@@ -42,7 +45,7 @@ export default function AdminBrands() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("brands")
-        .select("id, name, logo_emoji, category, created_at")
+        .select("id, name, logo_emoji, category, show_in_onboarding, created_at")
         .order("name");
       if (error) throw error;
       return data ?? [];
@@ -85,6 +88,15 @@ export default function AdminBrands() {
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
+  const toggleOnboarding = useMutation({
+    mutationFn: async ({ id, show }: { id: string; show: boolean }) => {
+      const { error } = await supabase.from("brands").update({ show_in_onboarding: show }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-brands"] }),
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   const openNew = () => {
     setIsNew(true);
     setEditing({ ...EMPTY });
@@ -124,7 +136,14 @@ export default function AdminBrands() {
                     </Badge>
                   )}
                 </div>
-                <div className="flex gap-1 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <Switch
+                      checked={b.show_in_onboarding}
+                      onCheckedChange={(v) => toggleOnboarding.mutate({ id: b.id, show: v })}
+                    />
+                    <span className="text-[10px] text-muted-foreground">Onboarding</span>
+                  </div>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(b)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
