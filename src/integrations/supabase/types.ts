@@ -1279,8 +1279,10 @@ export type Database = {
           city: string | null
           created_at: string
           display_name: string | null
+          first_name: string | null
           id: string
           last_check_in: string | null
+          last_name: string | null
           nest_points: number
           onboarding_completed: boolean
           phone: string | null
@@ -1298,8 +1300,10 @@ export type Database = {
           city?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id?: string
           last_check_in?: string | null
+          last_name?: string | null
           nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
@@ -1317,8 +1321,10 @@ export type Database = {
           city?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id?: string
           last_check_in?: string | null
+          last_name?: string | null
           nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
