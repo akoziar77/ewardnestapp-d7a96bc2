@@ -31,6 +31,7 @@ interface OnboardingStep {
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [completing, setCompleting] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
 
