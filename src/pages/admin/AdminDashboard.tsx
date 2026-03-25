@@ -1,10 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Receipt, Gift, Store, TrendingUp, ArrowUpRight } from "lucide-react";
+import {
+  Users, Receipt, Gift, Store, TrendingUp, ChevronRight,
+  Shield, FileText, Settings, Layout, Zap, Navigation, Lock,
+  Megaphone, Workflow, Plug, BarChart3, Webhook, Activity,
+} from "lucide-react";
+
+const quickLinks = [
+  { to: "/merchant", icon: Store, label: "Merchant Dashboard" },
+  { to: "/admin/users", icon: Users, label: "Manage Users" },
+  { to: "/admin/program-settings", icon: Settings, label: "Program Settings" },
+  { to: "/admin/program-settings/page-access", icon: Lock, label: "Page Access Control" },
+  { to: "/admin/program-settings/privacy-policy", icon: FileText, label: "Privacy Policies" },
+  { to: "/admin/program-settings/quick-actions", icon: Settings, label: "Quick Actions" },
+  { to: "/admin/program-settings/onboarding", icon: Navigation, label: "Onboarding Flow" },
+  { to: "/admin/program-settings/pages", icon: Layout, label: "Page Directory" },
+  { to: "/admin/brands", icon: Store, label: "Brands" },
+  { to: "/admin/receipts", icon: Receipt, label: "Receipts" },
+  { to: "/admin/rewards", icon: Gift, label: "Rewards" },
+  { to: "/admin/campaigns", icon: Megaphone, label: "Campaigns" },
+  { to: "/admin/automations", icon: Workflow, label: "Automations" },
+  { to: "/admin/automations/webhooks", icon: Webhook, label: "Webhooks" },
+  { to: "/admin/automations/events", icon: Activity, label: "Events" },
+  { to: "/admin/integrations", icon: Plug, label: "Integrations" },
+  { to: "/admin/analytics", icon: BarChart3, label: "Analytics" },
+];
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin-dashboard-stats"],
     queryFn: async () => {
@@ -62,18 +89,27 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Quick activity placeholder */}
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-            <TrendingUp className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <p className="font-medium text-foreground">Activity feed coming soon</p>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-            Recent transactions, user signups, and system events will appear here.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Quick links */}
+      <div className="space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+          Quick Links
+        </p>
+        <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
+          {quickLinks.map(({ to, icon: Icon, label }) => (
+            <button
+              key={to}
+              onClick={() => navigate(to)}
+              className="flex w-full items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Icon className="h-5 w-5 text-primary shrink-0" />
+                <p className="text-sm font-medium">{label}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
