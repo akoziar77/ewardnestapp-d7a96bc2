@@ -1,0 +1,1 @@
+ALTER TABLE public.prizes ADD COLUMN tier text NOT NULL DEFAULT 'Bronze';
