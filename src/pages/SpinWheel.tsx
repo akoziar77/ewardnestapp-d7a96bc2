@@ -8,7 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift } from "lucide-react";
+import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift, Flame } from "lucide-react";
 import { format } from "date-fns";
 
 const TIER_SPIN_COST: Record<string, number> = {
