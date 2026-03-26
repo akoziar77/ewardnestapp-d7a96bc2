@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, Receipt, Gift, Store, TrendingUp, ChevronRight,
   Shield, FileText, Settings, Layout, Zap, Navigation, Lock,
-  Megaphone, Workflow, Plug, BarChart3, Webhook, Activity, Dices,
+  Megaphone, Workflow, Plug, BarChart3, Webhook, Activity, Dices, Upload,
 } from "lucide-react";
 
 const quickLinks = [
@@ -28,6 +28,7 @@ const quickLinks = [
   { to: "/admin/integrations", icon: Plug, label: "Integrations" },
   { to: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { to: "/admin/spin-setup", icon: Dices, label: "Spin Setup" },
+  { to: "/admin/location-import", icon: Upload, label: "Location Import" },
 ];
 
 export default function AdminDashboard() {
