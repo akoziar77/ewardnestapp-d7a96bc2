@@ -170,6 +170,24 @@ export default function SpinWheel() {
           </div>
         )}
 
+        {/* Jackpot Meter */}
+        <div className="px-4 py-3 rounded-xl bg-accent/10 border border-accent/20">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5 text-accent" /> Jackpot Meter
+            </span>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {profile?.jackpot_meter ?? 0} / {profile?.jackpot_max ?? 25}
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${((profile?.jackpot_meter ?? 0) / (profile?.jackpot_max ?? 25)) * 100}%` }}
+            />
+          </div>
+        </div>
+
         {/* Wheel */}
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
