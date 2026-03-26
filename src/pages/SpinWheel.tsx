@@ -44,7 +44,7 @@ export default function SpinWheel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("nest_points, last_free_spin_date, free_spins_used_today, tier")
+        .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_max")
         .eq("user_id", user!.id)
         .single();
       if (error) throw error;
