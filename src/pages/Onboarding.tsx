@@ -7,15 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Bird, Gift, QrCode, Sparkles, Check, ChevronRight, Bell, MapPin,
-  Star, Heart, Zap, Shield, Trophy, Crown, Flame, Target, Rocket,
+  Star, Heart, Zap, Shield, Trophy, Crown, Flame, Target, Rocket, Cake,
   type LucideIcon,
 } from "lucide-react";
 import PermissionsStep from "@/components/onboarding/PermissionsStep";
 import MerchantSelectStep from "@/components/onboarding/MerchantSelectStep";
+import AddressStep from "@/components/onboarding/AddressStep";
+import DobStep from "@/components/onboarding/DobStep";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
-  Trophy, Crown, Flame, Target, Rocket,
+  Trophy, Crown, Flame, Target, Rocket, Cake,
 };
 
 interface OnboardingStep {
@@ -141,6 +143,14 @@ export default function Onboarding() {
             description={current.description}
             onSelectionChange={setSelectedBrands}
           />
+        )}
+
+        {current.step_type === "address_input" && (
+          <AddressStep title={current.title} description={current.description} />
+        )}
+
+        {current.step_type === "dob_input" && (
+          <DobStep title={current.title} description={current.description} />
         )}
       </div>
 

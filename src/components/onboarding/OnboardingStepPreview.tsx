@@ -1,13 +1,13 @@
 import {
   Bird, Gift, QrCode, Sparkles, Bell, MapPin, Star, Heart, Zap, Shield,
-  Trophy, Crown, Flame, Target, Rocket, ChevronRight, Check,
+  Trophy, Crown, Flame, Target, Rocket, ChevronRight, Check, Cake, Info,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
-  Trophy, Crown, Flame, Target, Rocket,
+  Trophy, Crown, Flame, Target, Rocket, Cake,
 };
 
 interface OnboardingStep {
@@ -137,6 +137,57 @@ export default function OnboardingStepPreview({ steps, selectedIndex, onSelectIn
                       <span className="font-medium">Brand {i + 1}</span>
                     </div>
                   ))}
+                </div>
+              </>
+            )}
+
+            {current.step_type === "address_input" && (
+              <>
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-md">
+                  <MapPin className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <h3 className="mt-5 text-lg font-bold tracking-tight leading-snug max-w-[240px]">
+                  {current.title}
+                </h3>
+                <p className="mt-2 text-xs text-muted-foreground max-w-[220px] leading-relaxed">
+                  {current.description}
+                </p>
+                <div className="mt-3 w-full space-y-1.5">
+                  <div className="h-8 rounded-lg border bg-muted/30 w-full" />
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <div className="h-8 rounded-lg border bg-muted/30 col-span-1" />
+                    <div className="h-8 rounded-lg border bg-muted/30 col-span-1" />
+                    <div className="h-8 rounded-lg border bg-muted/30 col-span-1" />
+                  </div>
+                  <div className="flex items-start gap-1.5 rounded-lg bg-muted/50 p-2">
+                    <Info className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-muted-foreground">Optional — skip anytime</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {current.step_type === "dob_input" && (
+              <>
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-md">
+                  <Cake className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <h3 className="mt-5 text-lg font-bold tracking-tight leading-snug max-w-[240px]">
+                  {current.title}
+                </h3>
+                <p className="mt-2 text-xs text-muted-foreground max-w-[220px] leading-relaxed">
+                  {current.description}
+                </p>
+                <div className="mt-3 w-full space-y-1.5">
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <div className="h-8 rounded-lg border bg-muted/30" />
+                    <div className="h-8 rounded-lg border bg-muted/30" />
+                    <div className="h-8 rounded-lg border bg-muted/30" />
+                  </div>
+                  <div className="flex items-start gap-1.5 rounded-lg bg-muted/50 p-2">
+                    <Info className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-muted-foreground">Optional — for birthday rewards</p>
+                  </div>
                 </div>
               </>
             )}
