@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, RotateCw, Trophy, Coins, Clock } from "lucide-react";
+import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift } from "lucide-react";
 import { format } from "date-fns";
 
 const SPIN_COST = 50;
@@ -31,15 +31,14 @@ export default function SpinWheel() {
   const queryClient = useQueryClient();
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
-  const [wonPrize, setWonPrize] = useState<null | { name: string; reward_type: string; reward_value: string; image_url?: string }>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [wonPrize, setWonPrize] = useState<null | { name: string; reward_type: string; reward_value: string; image_url?: string; free_spin?: boolean }>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["spin-profile", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("nest_points")
+        .select("nest_points, last_free_spin_date, free_spins_used_today")
         .eq("user_id", user!.id)
         .single();
       if (error) throw error;
@@ -76,6 +75,11 @@ export default function SpinWheel() {
     enabled: !!user,
   });
 
+  // Determine if free spin is available
+  const today = new Date().toISOString().split("T")[0];
+  const freeSpinsUsed = profile?.last_free_spin_date === today ? (profile?.free_spins_used_today ?? 0) : 0;
+  const hasFreeSpinAvailable = freeSpinsUsed < 1;
+
   const spinMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("spin-wheel");
@@ -84,22 +88,22 @@ export default function SpinWheel() {
       return data;
     },
     onSuccess: (data) => {
-      // Calculate landing angle for the won prize
       const prizeIndex = prizes?.findIndex((p: any) => p.id === data.prize.id) ?? 0;
       const segmentCount = prizes?.length ?? 1;
       const segmentAngle = 360 / segmentCount;
-      // Spin multiple rotations + land on the prize segment
       const targetAngle = 360 * 5 + (360 - (prizeIndex * segmentAngle + segmentAngle / 2));
       setRotation((prev) => prev + targetAngle);
 
       setTimeout(() => {
         setSpinning(false);
-        setWonPrize(data.prize);
+        setWonPrize({ ...data.prize, free_spin: data.free_spin });
         toast({
           title: `🎉 You won: ${data.prize.name}!`,
-          description: data.prize.reward_type === "points"
-            ? `+${data.prize.reward_value} Nest Points`
-            : data.prize.reward_value,
+          description: data.free_spin
+            ? "Free daily spin!"
+            : data.prize.reward_type === "points"
+              ? `+${data.prize.reward_value} Nest Points`
+              : data.prize.reward_value,
         });
         queryClient.invalidateQueries({ queryKey: ["spin-profile"] });
         queryClient.invalidateQueries({ queryKey: ["spin-history"] });
@@ -118,18 +122,19 @@ export default function SpinWheel() {
 
   const handleSpin = useCallback(() => {
     if (spinning) return;
-    if ((profile?.nest_points ?? 0) < SPIN_COST) {
+    if (!hasFreeSpinAvailable && (profile?.nest_points ?? 0) < SPIN_COST) {
       toast({ title: "Not enough points", description: `You need ${SPIN_COST} Nest Points to spin`, variant: "destructive" });
       return;
     }
     setSpinning(true);
     setWonPrize(null);
     spinMutation.mutate();
-  }, [spinning, profile, spinMutation, toast]);
+  }, [spinning, profile, hasFreeSpinAvailable, spinMutation, toast]);
 
   const nestPoints = profile?.nest_points ?? 0;
   const segmentCount = prizes?.length || 1;
   const segmentAngle = 360 / segmentCount;
+  const canSpin = hasFreeSpinAvailable || nestPoints >= SPIN_COST;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -148,6 +153,14 @@ export default function SpinWheel() {
       </div>
 
       <div className="max-w-lg mx-auto px-4 pt-5 space-y-6">
+        {/* Free spin banner */}
+        {hasFreeSpinAvailable && (
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20">
+            <Gift className="h-4 w-4 text-primary shrink-0" />
+            <p className="text-sm font-medium text-primary">Daily free spin available!</p>
+          </div>
+        )}
+
         {/* Wheel */}
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
@@ -212,26 +225,33 @@ export default function SpinWheel() {
           <Button
             size="lg"
             onClick={handleSpin}
-            disabled={spinning || nestPoints < SPIN_COST || !prizes?.length}
+            disabled={spinning || !canSpin || !prizes?.length}
             className="gap-2 px-8 active:scale-95 transition-transform"
           >
             <RotateCw className={`h-5 w-5 ${spinning ? "animate-spin" : ""}`} />
-            {spinning ? "Spinning…" : `Spin (${SPIN_COST} pts)`}
+            {spinning
+              ? "Spinning…"
+              : hasFreeSpinAvailable
+                ? "Free Spin!"
+                : `Spin (${SPIN_COST} pts)`}
           </Button>
 
-          {nestPoints < SPIN_COST && (
+          {!hasFreeSpinAvailable && nestPoints < SPIN_COST && (
             <p className="text-sm text-destructive">
               You need {SPIN_COST - nestPoints} more points to spin
             </p>
           )}
         </div>
 
-        {/* Won Prize Modal-like Card */}
+        {/* Won Prize Card */}
         {wonPrize && (
           <Card className="border-0 shadow-lg bg-primary/5 animate-in fade-in slide-in-from-bottom-4">
             <CardContent className="p-5 text-center space-y-3">
               <Trophy className="h-10 w-10 text-primary mx-auto" />
               <h2 className="text-xl font-bold text-foreground">You Won!</h2>
+              {wonPrize.free_spin && (
+                <Badge variant="outline" className="text-xs">🎁 Free Spin</Badge>
+              )}
               <p className="text-lg font-semibold text-primary">{wonPrize.name}</p>
               {wonPrize.reward_type === "points" && (
                 <Badge variant="secondary" className="text-sm">+{wonPrize.reward_value} Nest Points</Badge>
@@ -265,7 +285,7 @@ export default function SpinWheel() {
                       </p>
                     </div>
                     <Badge variant="outline" className="text-xs tabular-nums">
-                      -{log.points_spent} pts
+                      {log.points_spent === 0 ? "Free" : `-${log.points_spent} pts`}
                     </Badge>
                   </div>
                 ))}

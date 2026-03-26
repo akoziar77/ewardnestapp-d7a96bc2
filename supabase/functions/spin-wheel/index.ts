@@ -25,24 +25,55 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) return errorResponse("unauthorized", 401);
 
-    // Step 1: Check user points
+    // Step 1: Check user points & free spin status
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .select("nest_points")
+      .select("nest_points, last_free_spin_date, free_spins_used_today")
       .eq("user_id", user.id)
       .single();
 
     if (profileErr || !profile) return errorResponse("Profile not found", 404);
 
-    if (profile.nest_points < SPIN_COST) {
-      return jsonResponse({ error: "not_enough_points", message: "Not enough points to spin", required: SPIN_COST, current: profile.nest_points }, 400);
+    // Daily free spin logic
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    let freeSpinsUsed = profile.free_spins_used_today ?? 0;
+
+    // Reset counter if it's a new day
+    if (profile.last_free_spin_date !== today) {
+      freeSpinsUsed = 0;
     }
 
-    // Step 2: Deduct points
-    await supabaseAdmin
-      .from("profiles")
-      .update({ nest_points: profile.nest_points - SPIN_COST })
-      .eq("user_id", user.id);
+    const isFreeSpin = freeSpinsUsed < 1;
+
+    // If not a free spin, check points
+    if (!isFreeSpin && profile.nest_points < SPIN_COST) {
+      return jsonResponse({
+        error: "not_enough_points",
+        message: "Not enough points to spin",
+        required: SPIN_COST,
+        current: profile.nest_points,
+        free_spin_available: false,
+      }, 400);
+    }
+
+    // Step 2: Deduct points (skip if free spin)
+    if (!isFreeSpin) {
+      await supabaseAdmin
+        .from("profiles")
+        .update({ nest_points: profile.nest_points - SPIN_COST })
+        .eq("user_id", user.id);
+    }
+
+    // Update free spin tracking
+    if (isFreeSpin) {
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          last_free_spin_date: today,
+          free_spins_used_today: freeSpinsUsed + 1,
+        })
+        .eq("user_id", user.id);
+    }
 
     // Step 3: Load prizes
     const { data: prizes, error: prizesErr } = await supabaseAdmin
@@ -51,11 +82,13 @@ Deno.serve(async (req) => {
       .eq("active", true);
 
     if (prizesErr || !prizes || prizes.length === 0) {
-      // Refund points
-      await supabaseAdmin
-        .from("profiles")
-        .update({ nest_points: profile.nest_points })
-        .eq("user_id", user.id);
+      // Refund points if not free spin
+      if (!isFreeSpin) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ nest_points: profile.nest_points })
+          .eq("user_id", user.id);
+      }
       return errorResponse("No prizes available", 500);
     }
 
@@ -73,9 +106,9 @@ Deno.serve(async (req) => {
     }
 
     // Step 7: Award prize
+    const currentPoints = isFreeSpin ? profile.nest_points : (profile.nest_points - SPIN_COST);
     if (selectedPrize.reward_type === "points") {
       const pointsWon = parseInt(selectedPrize.reward_value) || 0;
-      const currentPoints = profile.nest_points - SPIN_COST;
       await supabaseAdmin
         .from("profiles")
         .update({ nest_points: currentPoints + pointsWon })
@@ -86,12 +119,18 @@ Deno.serve(async (req) => {
     await supabaseAdmin.from("spin_logs").insert({
       user_id: user.id,
       prize_id: selectedPrize.id,
-      points_spent: SPIN_COST,
+      points_spent: isFreeSpin ? 0 : SPIN_COST,
     });
+
+    const pointsSpent = isFreeSpin ? 0 : SPIN_COST;
+    const newBalance = selectedPrize.reward_type === "points"
+      ? (currentPoints + (parseInt(selectedPrize.reward_value) || 0))
+      : currentPoints;
 
     // Step 9: Return result
     return jsonResponse({
       success: true,
+      free_spin: isFreeSpin,
       prize: {
         id: selectedPrize.id,
         name: selectedPrize.name,
@@ -99,10 +138,8 @@ Deno.serve(async (req) => {
         reward_value: selectedPrize.reward_value,
         image_url: selectedPrize.image_url,
       },
-      points_spent: SPIN_COST,
-      new_balance: selectedPrize.reward_type === "points"
-        ? (profile.nest_points - SPIN_COST + (parseInt(selectedPrize.reward_value) || 0))
-        : (profile.nest_points - SPIN_COST),
+      points_spent: pointsSpent,
+      new_balance: newBalance,
     });
   } catch (err) {
     console.error("spin-wheel error:", err);
