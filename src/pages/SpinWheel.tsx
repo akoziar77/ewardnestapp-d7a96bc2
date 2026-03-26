@@ -131,19 +131,19 @@ export default function SpinWheel() {
 
   const handleSpin = useCallback(() => {
     if (spinning) return;
-    if (!hasFreeSpinAvailable && (profile?.nest_points ?? 0) < SPIN_COST) {
-      toast({ title: "Not enough points", description: `You need ${SPIN_COST} Nest Points to spin`, variant: "destructive" });
+    if (!hasFreeSpinAvailable && (profile?.nest_points ?? 0) < spinCost) {
+      toast({ title: "Not enough points", description: `You need ${spinCost} Nest Points to spin`, variant: "destructive" });
       return;
     }
     setSpinning(true);
     setWonPrize(null);
     spinMutation.mutate();
-  }, [spinning, profile, hasFreeSpinAvailable, spinMutation, toast]);
+  }, [spinning, profile, hasFreeSpinAvailable, spinCost, spinMutation, toast]);
 
   const nestPoints = profile?.nest_points ?? 0;
   const segmentCount = prizes?.length || 1;
   const segmentAngle = 360 / segmentCount;
-  const canSpin = hasFreeSpinAvailable || nestPoints >= SPIN_COST;
+  const canSpin = hasFreeSpinAvailable || nestPoints >= spinCost;
 
   return (
     <div className="min-h-screen bg-background pb-24">
