@@ -109,6 +109,7 @@ function AppRoutes() {
         <Route path="/engage" element={<PageGate pageKey="engage"><Engage /></PageGate>} />
         <Route path="/receipts" element={<PageGate pageKey="receipts"><ReceiptUpload /></PageGate>} />
         <Route path="/spin" element={<PageGate pageKey="spin"><SpinWheel /></PageGate>} />
+        <Route path="/rewards-store" element={<PageGate pageKey="rewards_store"><RewardsStore /></PageGate>} />
       </Route>
 
       {/* Manager or admin */}
