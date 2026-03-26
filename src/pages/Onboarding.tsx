@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Bird, Gift, QrCode, Sparkles, Check, ChevronRight, Bell, MapPin,
-  Star, Heart, Zap, Shield, Trophy, Crown, Flame, Target, Rocket,
+  Star, Heart, Zap, Shield, Trophy, Crown, Flame, Target, Rocket, Cake,
   type LucideIcon,
 } from "lucide-react";
 import PermissionsStep from "@/components/onboarding/PermissionsStep";
