@@ -31,6 +31,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import Engage from "./pages/Engage";
 import SpinWheel from "./pages/SpinWheel";
+import RewardsStore from "./pages/RewardsStore";
 import ManageTiers from "./pages/ManageTiers";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminPageAccess from "./pages/admin/AdminPageAccess";
