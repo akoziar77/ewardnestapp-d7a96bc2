@@ -28,6 +28,7 @@ const quickLinks = [
   { to: "/admin/integrations", icon: Plug, label: "Integrations" },
   { to: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { to: "/admin/spin-setup", icon: Dices, label: "Spin Setup" },
+  { to: "/admin/location-import", icon: Upload, label: "Location Import" },
 ];
 
 export default function AdminDashboard() {

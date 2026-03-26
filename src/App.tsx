@@ -149,6 +149,7 @@ function AppRoutes() {
           <Route path="integrations" element={<PageGate pageKey="admin_integrations"><AdminIntegrations /></PageGate>} />
           <Route path="analytics" element={<PageGate pageKey="admin_insights"><AdminInsights /></PageGate>} />
           <Route path="spin-setup" element={<PageGate pageKey="admin_spin_setup"><AdminSpinSetup /></PageGate>} />
+          <Route path="location-import" element={<PageGate pageKey="admin_brands"><AdminLocationImport /></PageGate>} />
         </Route>
       </Route>
 
