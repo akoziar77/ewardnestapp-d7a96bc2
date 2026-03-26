@@ -1317,8 +1317,10 @@ export type Database = {
           date_of_birth: string | null
           display_name: string | null
           first_name: string | null
+          free_spins_used_today: number
           id: string
           last_check_in: string | null
+          last_free_spin_date: string | null
           last_name: string | null
           nest_points: number
           onboarding_completed: boolean
@@ -1339,8 +1341,10 @@ export type Database = {
           date_of_birth?: string | null
           display_name?: string | null
           first_name?: string | null
+          free_spins_used_today?: number
           id?: string
           last_check_in?: string | null
+          last_free_spin_date?: string | null
           last_name?: string | null
           nest_points?: number
           onboarding_completed?: boolean
@@ -1361,8 +1365,10 @@ export type Database = {
           date_of_birth?: string | null
           display_name?: string | null
           first_name?: string | null
+          free_spins_used_today?: number
           id?: string
           last_check_in?: string | null
+          last_free_spin_date?: string | null
           last_name?: string | null
           nest_points?: number
           onboarding_completed?: boolean
