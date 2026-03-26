@@ -167,7 +167,7 @@ export default function Home() {
   });
 
   const quickActionIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    QrCode, Gift, Store, Clock, Heart, MapPin, Star, Settings, History, TrendingUp, UserPlus, Sparkles, Shield, Bell, Search, Calendar, Camera, Bookmark, Zap,
+    QrCode, Gift, Store, Clock, Heart, MapPin, Star, Settings, History, TrendingUp, UserPlus, Sparkles, Shield, Bell, Search, Calendar, Camera, Bookmark, Zap, Dices, ShoppingCart, Coffee, Wallet, Rocket,
   };
 
   const { data: quickActions } = useQuery({
