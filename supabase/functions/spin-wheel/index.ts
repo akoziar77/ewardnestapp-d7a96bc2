@@ -1,7 +1,17 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, jsonResponse, errorResponse } from "../_shared/utils.ts";
 
-const SPIN_COST = 50;
+const TIER_SPIN_COST: Record<string, number> = {
+  Bronze: 50,
+  Hatchling: 50,
+  Silver: 40,
+  Gold: 30,
+  Platinum: 20,
+};
+
+function getSpinCost(tier: string): number {
+  return TIER_SPIN_COST[tier] ?? 50;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -28,29 +38,29 @@ Deno.serve(async (req) => {
     // Step 1: Check user points & free spin status
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .select("nest_points, last_free_spin_date, free_spins_used_today")
+      .select("nest_points, last_free_spin_date, free_spins_used_today, tier")
       .eq("user_id", user.id)
       .single();
 
     if (profileErr || !profile) return errorResponse("Profile not found", 404);
 
+    const spinCost = getSpinCost(profile.tier);
+
     // Daily free spin logic
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0];
     let freeSpinsUsed = profile.free_spins_used_today ?? 0;
 
-    // Reset counter if it's a new day
     if (profile.last_free_spin_date !== today) {
       freeSpinsUsed = 0;
     }
 
     const isFreeSpin = freeSpinsUsed < 1;
 
-    // If not a free spin, check points
-    if (!isFreeSpin && profile.nest_points < SPIN_COST) {
+    if (!isFreeSpin && profile.nest_points < spinCost) {
       return jsonResponse({
         error: "not_enough_points",
         message: "Not enough points to spin",
-        required: SPIN_COST,
+        required: spinCost,
         current: profile.nest_points,
         free_spin_available: false,
       }, 400);
@@ -60,7 +70,7 @@ Deno.serve(async (req) => {
     if (!isFreeSpin) {
       await supabaseAdmin
         .from("profiles")
-        .update({ nest_points: profile.nest_points - SPIN_COST })
+        .update({ nest_points: profile.nest_points - spinCost })
         .eq("user_id", user.id);
     }
 
@@ -82,7 +92,6 @@ Deno.serve(async (req) => {
       .eq("active", true);
 
     if (prizesErr || !prizes || prizes.length === 0) {
-      // Refund points if not free spin
       if (!isFreeSpin) {
         await supabaseAdmin
           .from("profiles")
@@ -106,7 +115,7 @@ Deno.serve(async (req) => {
     }
 
     // Step 7: Award prize
-    const currentPoints = isFreeSpin ? profile.nest_points : (profile.nest_points - SPIN_COST);
+    const currentPoints = isFreeSpin ? profile.nest_points : (profile.nest_points - spinCost);
     if (selectedPrize.reward_type === "points") {
       const pointsWon = parseInt(selectedPrize.reward_value) || 0;
       await supabaseAdmin
@@ -119,18 +128,18 @@ Deno.serve(async (req) => {
     await supabaseAdmin.from("spin_logs").insert({
       user_id: user.id,
       prize_id: selectedPrize.id,
-      points_spent: isFreeSpin ? 0 : SPIN_COST,
+      points_spent: isFreeSpin ? 0 : spinCost,
     });
 
-    const pointsSpent = isFreeSpin ? 0 : SPIN_COST;
+    const pointsSpent = isFreeSpin ? 0 : spinCost;
     const newBalance = selectedPrize.reward_type === "points"
       ? (currentPoints + (parseInt(selectedPrize.reward_value) || 0))
       : currentPoints;
 
-    // Step 9: Return result
     return jsonResponse({
       success: true,
       free_spin: isFreeSpin,
+      spin_cost: spinCost,
       prize: {
         id: selectedPrize.id,
         name: selectedPrize.name,
