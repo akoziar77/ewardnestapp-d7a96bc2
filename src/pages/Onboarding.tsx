@@ -144,6 +144,14 @@ export default function Onboarding() {
             onSelectionChange={setSelectedBrands}
           />
         )}
+
+        {current.step_type === "address_input" && (
+          <AddressStep title={current.title} description={current.description} />
+        )}
+
+        {current.step_type === "dob_input" && (
+          <DobStep title={current.title} description={current.description} />
+        )}
       </div>
 
       {/* Bottom actions */}
