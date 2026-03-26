@@ -242,12 +242,12 @@ export default function SpinWheel() {
               ? "Spinning…"
               : hasFreeSpinAvailable
                 ? "Free Spin!"
-                : `Spin (${SPIN_COST} pts)`}
+                : `Spin (${spinCost} pts)`}
           </Button>
 
-          {!hasFreeSpinAvailable && nestPoints < SPIN_COST && (
+          {!hasFreeSpinAvailable && nestPoints < spinCost && (
             <p className="text-sm text-destructive">
-              You need {SPIN_COST - nestPoints} more points to spin
+              You need {spinCost - nestPoints} more points to spin
             </p>
           )}
         </div>
