@@ -129,15 +129,19 @@ Deno.serve(async (req) => {
       ? 0 // Reset on jackpot win
       : Math.min(jackpotMeter + (profile.jackpot_increment ?? 1), profile.jackpot_max ?? 25);
 
-    // Step 7: Award prize
+    // Step 7: Award prize & update jackpot meter
     const currentPoints = isFreeSpin ? profile.nest_points : (profile.nest_points - spinCost);
+    const profileUpdate: Record<string, unknown> = { jackpot_meter: newJackpotMeter };
+
     if (selectedPrize.reward_type === "points") {
       const pointsWon = parseInt(selectedPrize.reward_value) || 0;
-      await supabaseAdmin
-        .from("profiles")
-        .update({ nest_points: currentPoints + pointsWon })
-        .eq("user_id", user.id);
+      profileUpdate.nest_points = currentPoints + pointsWon;
     }
+
+    await supabaseAdmin
+      .from("profiles")
+      .update(profileUpdate)
+      .eq("user_id", user.id);
 
     // Step 8: Log spin
     await supabaseAdmin.from("spin_logs").insert({
