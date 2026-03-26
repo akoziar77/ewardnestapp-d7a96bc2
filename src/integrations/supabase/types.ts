@@ -1274,6 +1274,39 @@ export type Database = {
         }
         Relationships: []
       }
+      prizes: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          reward_type: string
+          reward_value: string
+          weight: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          reward_type?: string
+          reward_value?: string
+          weight?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          reward_type?: string
+          reward_value?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -1620,6 +1653,38 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      spin_logs: {
+        Row: {
+          created_at: string
+          id: string
+          points_spent: number
+          prize_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points_spent?: number
+          prize_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points_spent?: number
+          prize_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spin_logs_prize_id_fkey"
+            columns: ["prize_id"]
+            isOneToOne: false
+            referencedRelation: "prizes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_features: {
         Row: {

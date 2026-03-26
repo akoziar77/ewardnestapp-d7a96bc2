@@ -30,6 +30,7 @@ import MerchantOnboarding from "./pages/merchant/MerchantOnboarding";
 import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import Engage from "./pages/Engage";
+import SpinWheel from "./pages/SpinWheel";
 import ManageTiers from "./pages/ManageTiers";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminPageAccess from "./pages/admin/AdminPageAccess";
@@ -106,6 +107,7 @@ function AppRoutes() {
         <Route path="/brands/settings" element={<PageGate pageKey="brands_settings"><BrandSettings /></PageGate>} />
         <Route path="/engage" element={<PageGate pageKey="engage"><Engage /></PageGate>} />
         <Route path="/receipts" element={<PageGate pageKey="receipts"><ReceiptUpload /></PageGate>} />
+        <Route path="/spin" element={<PageGate pageKey="spin"><SpinWheel /></PageGate>} />
       </Route>
 
       {/* Manager or admin */}
