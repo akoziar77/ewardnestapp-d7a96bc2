@@ -1283,6 +1283,7 @@ export type Database = {
           name: string
           reward_type: string
           reward_value: string
+          tier: string
           weight: number
         }
         Insert: {
@@ -1293,6 +1294,7 @@ export type Database = {
           name: string
           reward_type?: string
           reward_value?: string
+          tier?: string
           weight?: number
         }
         Update: {
@@ -1303,6 +1305,7 @@ export type Database = {
           name?: string
           reward_type?: string
           reward_value?: string
+          tier?: string
           weight?: number
         }
         Relationships: []
