@@ -31,6 +31,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import Engage from "./pages/Engage";
 import SpinWheel from "./pages/SpinWheel";
+import RewardsStore from "./pages/RewardsStore";
 import ManageTiers from "./pages/ManageTiers";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminPageAccess from "./pages/admin/AdminPageAccess";
@@ -108,6 +109,7 @@ function AppRoutes() {
         <Route path="/engage" element={<PageGate pageKey="engage"><Engage /></PageGate>} />
         <Route path="/receipts" element={<PageGate pageKey="receipts"><ReceiptUpload /></PageGate>} />
         <Route path="/spin" element={<PageGate pageKey="spin"><SpinWheel /></PageGate>} />
+        <Route path="/rewards-store" element={<PageGate pageKey="rewards_store"><RewardsStore /></PageGate>} />
       </Route>
 
       {/* Manager or admin */}

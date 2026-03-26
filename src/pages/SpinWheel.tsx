@@ -8,7 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift, Flame } from "lucide-react";
+import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift, Flame, Zap, ShoppingBag } from "lucide-react";
 import { format } from "date-fns";
 
 const TIER_SPIN_COST: Record<string, number> = {
@@ -44,7 +44,7 @@ export default function SpinWheel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_max")
+        .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_max, streak_count")
         .eq("user_id", user!.id)
         .single();
       if (error) throw error;
@@ -162,29 +162,43 @@ export default function SpinWheel() {
       </div>
 
       <div className="max-w-lg mx-auto px-4 pt-5 space-y-6">
-        {/* Free spin banner */}
-        {hasFreeSpinAvailable && (
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20">
-            <Gift className="h-4 w-4 text-primary shrink-0" />
-            <p className="text-sm font-medium text-primary">Daily free spin available!</p>
-          </div>
-        )}
+        {/* Status banners */}
+        <div className="space-y-3">
+          {hasFreeSpinAvailable && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20">
+              <Gift className="h-4 w-4 text-primary shrink-0" />
+              <p className="text-sm font-medium text-primary">Daily free spin available!</p>
+            </div>
+          )}
 
-        {/* Jackpot Meter */}
-        <div className="px-4 py-3 rounded-xl bg-accent/10 border border-accent/20">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              <Flame className="h-3.5 w-3.5 text-accent" /> Jackpot Meter
-            </span>
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {profile?.jackpot_meter ?? 0} / {profile?.jackpot_max ?? 25}
-            </span>
-          </div>
-          <div className="h-2 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-accent transition-all duration-500"
-              style={{ width: `${((profile?.jackpot_meter ?? 0) / (profile?.jackpot_max ?? 25)) * 100}%` }}
-            />
+          {/* Streak & Jackpot row */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Streak */}
+            <div className="px-3 py-2.5 rounded-xl bg-secondary/10 border border-secondary/20">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Zap className="h-3.5 w-3.5 text-secondary" />
+                <span className="text-xs font-semibold text-foreground">Streak</span>
+              </div>
+              <p className="text-lg font-bold text-secondary tabular-nums">{profile?.streak_count ?? 0} 🔥</p>
+            </div>
+
+            {/* Jackpot Meter */}
+            <div className="px-3 py-2.5 rounded-xl bg-accent/10 border border-accent/20">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <Flame className="h-3.5 w-3.5 text-accent" /> Jackpot
+                </span>
+                <span className="text-[10px] tabular-nums text-muted-foreground">
+                  {profile?.jackpot_meter ?? 0}/{profile?.jackpot_max ?? 25}
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-accent transition-all duration-500"
+                  style={{ width: `${((profile?.jackpot_meter ?? 0) / (profile?.jackpot_max ?? 25)) * 100}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -320,6 +334,16 @@ export default function SpinWheel() {
             </Card>
           </div>
         )}
+
+        {/* Rewards Store Link */}
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          onClick={() => navigate("/rewards-store")}
+        >
+          <ShoppingBag className="h-4 w-4" />
+          Rewards Store
+        </Button>
       </div>
 
       <BottomNav />

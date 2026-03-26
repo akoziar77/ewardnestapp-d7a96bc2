@@ -1328,6 +1328,7 @@ export type Database = {
           last_check_in: string | null
           last_free_spin_date: string | null
           last_name: string | null
+          last_streak_date: string | null
           nest_points: number
           onboarding_completed: boolean
           phone: string | null
@@ -1355,6 +1356,7 @@ export type Database = {
           last_check_in?: string | null
           last_free_spin_date?: string | null
           last_name?: string | null
+          last_streak_date?: string | null
           nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
@@ -1382,6 +1384,7 @@ export type Database = {
           last_check_in?: string | null
           last_free_spin_date?: string | null
           last_name?: string | null
+          last_streak_date?: string | null
           nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
@@ -1703,6 +1706,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      store_rewards: {
+        Row: {
+          active: boolean
+          cost_points: number
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          reward_type: string
+          reward_value: string
+        }
+        Insert: {
+          active?: boolean
+          cost_points: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          reward_type?: string
+          reward_value?: string
+        }
+        Update: {
+          active?: boolean
+          cost_points?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          reward_type?: string
+          reward_value?: string
+        }
+        Relationships: []
       }
       subscription_features: {
         Row: {
