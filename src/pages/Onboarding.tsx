@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import PermissionsStep from "@/components/onboarding/PermissionsStep";
 import MerchantSelectStep from "@/components/onboarding/MerchantSelectStep";
+import AddressStep from "@/components/onboarding/AddressStep";
+import DobStep from "@/components/onboarding/DobStep";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
