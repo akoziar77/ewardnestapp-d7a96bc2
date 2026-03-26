@@ -136,6 +136,14 @@ export default function AdminLayout() {
             >
               <Menu className="h-5 w-5" />
             </button>
+            {location.pathname !== "/admin" && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="p-2 rounded-lg text-muted-foreground hover:bg-muted active:scale-95 transition-transform"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
             <h1 className="text-base font-semibold text-foreground md:text-lg">
               {currentLabel}
             </h1>
