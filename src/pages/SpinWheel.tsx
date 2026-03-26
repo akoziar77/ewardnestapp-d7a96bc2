@@ -11,7 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift } from "lucide-react";
 import { format } from "date-fns";
 
-const SPIN_COST = 50;
+const TIER_SPIN_COST: Record<string, number> = {
+  Bronze: 50,
+  Hatchling: 50,
+  Silver: 40,
+  Gold: 30,
+  Platinum: 20,
+};
 
 const SEGMENT_COLORS = [
   "hsl(var(--primary))",
@@ -38,7 +44,7 @@ export default function SpinWheel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("nest_points, last_free_spin_date, free_spins_used_today")
+        .select("nest_points, last_free_spin_date, free_spins_used_today, tier")
         .eq("user_id", user!.id)
         .single();
       if (error) throw error;
@@ -74,6 +80,9 @@ export default function SpinWheel() {
     },
     enabled: !!user,
   });
+
+  // Tier-based spin cost
+  const spinCost = TIER_SPIN_COST[profile?.tier ?? "Bronze"] ?? 50;
 
   // Determine if free spin is available
   const today = new Date().toISOString().split("T")[0];
@@ -122,19 +131,19 @@ export default function SpinWheel() {
 
   const handleSpin = useCallback(() => {
     if (spinning) return;
-    if (!hasFreeSpinAvailable && (profile?.nest_points ?? 0) < SPIN_COST) {
-      toast({ title: "Not enough points", description: `You need ${SPIN_COST} Nest Points to spin`, variant: "destructive" });
+    if (!hasFreeSpinAvailable && (profile?.nest_points ?? 0) < spinCost) {
+      toast({ title: "Not enough points", description: `You need ${spinCost} Nest Points to spin`, variant: "destructive" });
       return;
     }
     setSpinning(true);
     setWonPrize(null);
     spinMutation.mutate();
-  }, [spinning, profile, hasFreeSpinAvailable, spinMutation, toast]);
+  }, [spinning, profile, hasFreeSpinAvailable, spinCost, spinMutation, toast]);
 
   const nestPoints = profile?.nest_points ?? 0;
   const segmentCount = prizes?.length || 1;
   const segmentAngle = 360 / segmentCount;
-  const canSpin = hasFreeSpinAvailable || nestPoints >= SPIN_COST;
+  const canSpin = hasFreeSpinAvailable || nestPoints >= spinCost;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -233,12 +242,12 @@ export default function SpinWheel() {
               ? "Spinning…"
               : hasFreeSpinAvailable
                 ? "Free Spin!"
-                : `Spin (${SPIN_COST} pts)`}
+                : `Spin (${spinCost} pts)`}
           </Button>
 
-          {!hasFreeSpinAvailable && nestPoints < SPIN_COST && (
+          {!hasFreeSpinAvailable && nestPoints < spinCost && (
             <p className="text-sm text-destructive">
-              You need {SPIN_COST - nestPoints} more points to spin
+              You need {spinCost - nestPoints} more points to spin
             </p>
           )}
         </div>
