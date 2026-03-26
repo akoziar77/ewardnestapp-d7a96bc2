@@ -11,7 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift } from "lucide-react";
 import { format } from "date-fns";
 
-const SPIN_COST = 50;
+const TIER_SPIN_COST: Record<string, number> = {
+  Bronze: 50,
+  Hatchling: 50,
+  Silver: 40,
+  Gold: 30,
+  Platinum: 20,
+};
 
 const SEGMENT_COLORS = [
   "hsl(var(--primary))",
