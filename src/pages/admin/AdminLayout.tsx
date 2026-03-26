@@ -24,6 +24,7 @@ import {
   Navigation,
   Lock,
   Dices,
+  Upload,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
