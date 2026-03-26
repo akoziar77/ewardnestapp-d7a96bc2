@@ -1322,6 +1322,9 @@ export type Database = {
           first_name: string | null
           free_spins_used_today: number
           id: string
+          jackpot_increment: number
+          jackpot_max: number
+          jackpot_meter: number
           last_check_in: string | null
           last_free_spin_date: string | null
           last_name: string | null
@@ -1346,6 +1349,9 @@ export type Database = {
           first_name?: string | null
           free_spins_used_today?: number
           id?: string
+          jackpot_increment?: number
+          jackpot_max?: number
+          jackpot_meter?: number
           last_check_in?: string | null
           last_free_spin_date?: string | null
           last_name?: string | null
@@ -1370,6 +1376,9 @@ export type Database = {
           first_name?: string | null
           free_spins_used_today?: number
           id?: string
+          jackpot_increment?: number
+          jackpot_max?: number
+          jackpot_meter?: number
           last_check_in?: string | null
           last_free_spin_date?: string | null
           last_name?: string | null
