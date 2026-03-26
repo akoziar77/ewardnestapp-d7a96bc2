@@ -23,6 +23,7 @@ import {
   Webhook,
   Navigation,
   Lock,
+  Dices,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ const navItems = [
   { to: "/admin/program-settings/page-access", icon: Lock, label: "Page Access", end: false },
   { to: "/admin/program-settings/pages", icon: FileText, label: "Page Directory", end: false },
   { to: "/admin/program-settings/privacy-policy", icon: FileText, label: "Privacy Policy", end: false },
+  { to: "/admin/spin-setup", icon: Dices, label: "Spin Setup", end: false },
 ];
 
 export default function AdminLayout() {
