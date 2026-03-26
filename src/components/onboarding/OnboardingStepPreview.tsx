@@ -1,6 +1,6 @@
 import {
   Bird, Gift, QrCode, Sparkles, Bell, MapPin, Star, Heart, Zap, Shield,
-  Trophy, Crown, Flame, Target, Rocket, ChevronRight, Check,
+  Trophy, Crown, Flame, Target, Rocket, ChevronRight, Check, Cake, Info,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
