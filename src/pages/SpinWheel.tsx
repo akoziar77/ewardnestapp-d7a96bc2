@@ -334,6 +334,16 @@ export default function SpinWheel() {
             </Card>
           </div>
         )}
+
+        {/* Rewards Store Link */}
+        <Button
+          variant="outline"
+          className="w-full gap-2"
+          onClick={() => navigate("/rewards-store")}
+        >
+          <ShoppingBag className="h-4 w-4" />
+          Rewards Store
+        </Button>
       </div>
 
       <BottomNav />
