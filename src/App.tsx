@@ -53,6 +53,7 @@ import AdminProgramSettings from "./pages/admin/AdminProgramSettings";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAutomations from "./pages/admin/AdminAutomations";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
+import AdminSpinSetup from "./pages/admin/AdminSpinSetup";
 import ReceiptUpload from "./pages/ReceiptUpload";
 import ConsentBanner from "./components/ConsentBanner";
 import NotFound from "./pages/NotFound";
