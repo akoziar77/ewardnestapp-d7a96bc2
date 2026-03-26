@@ -81,6 +81,9 @@ export default function SpinWheel() {
     enabled: !!user,
   });
 
+  // Tier-based spin cost
+  const spinCost = TIER_SPIN_COST[profile?.tier ?? "Bronze"] ?? 50;
+
   // Determine if free spin is available
   const today = new Date().toISOString().split("T")[0];
   const freeSpinsUsed = profile?.last_free_spin_date === today ? (profile?.free_spins_used_today ?? 0) : 0;
