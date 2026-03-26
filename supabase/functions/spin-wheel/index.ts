@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     // Step 1: Check user points & free spin status
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .select("nest_points, last_free_spin_date, free_spins_used_today, tier")
+      .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_increment, jackpot_max")
       .eq("user_id", user.id)
       .single();
 
@@ -101,28 +101,47 @@ Deno.serve(async (req) => {
       return errorResponse("No prizes available", 500);
     }
 
-    // Step 4-6: Weighted random selection
-    const totalWeight = prizes.reduce((sum, p) => sum + (p.weight ?? 1), 0);
-    let randomNumber = Math.random() * totalWeight;
-    let selectedPrize = prizes[0];
+    // Jackpot meter: boost jackpot prize weight
+    const jackpotMeter = profile.jackpot_meter ?? 0;
+    const adjustedPrizes = prizes.map((p) => ({
+      ...p,
+      effectiveWeight: (p.reward_value === "500" && p.reward_type === "points")
+        ? (p.weight ?? 1) + jackpotMeter
+        : (p.weight ?? 1),
+    }));
 
-    for (const prize of prizes) {
-      randomNumber -= (prize.weight ?? 1);
+    // Step 4-6: Weighted random selection
+    const totalWeight = adjustedPrizes.reduce((sum, p) => sum + p.effectiveWeight, 0);
+    let randomNumber = Math.random() * totalWeight;
+    let selectedPrize = adjustedPrizes[0];
+
+    for (const prize of adjustedPrizes) {
+      randomNumber -= prize.effectiveWeight;
       if (randomNumber <= 0) {
         selectedPrize = prize;
         break;
       }
     }
 
-    // Step 7: Award prize
+    // Update jackpot meter
+    const isJackpotWin = selectedPrize.reward_value === "500" && selectedPrize.reward_type === "points";
+    const newJackpotMeter = isJackpotWin
+      ? 0 // Reset on jackpot win
+      : Math.min(jackpotMeter + (profile.jackpot_increment ?? 1), profile.jackpot_max ?? 25);
+
+    // Step 7: Award prize & update jackpot meter
     const currentPoints = isFreeSpin ? profile.nest_points : (profile.nest_points - spinCost);
+    const profileUpdate: Record<string, unknown> = { jackpot_meter: newJackpotMeter };
+
     if (selectedPrize.reward_type === "points") {
       const pointsWon = parseInt(selectedPrize.reward_value) || 0;
-      await supabaseAdmin
-        .from("profiles")
-        .update({ nest_points: currentPoints + pointsWon })
-        .eq("user_id", user.id);
+      profileUpdate.nest_points = currentPoints + pointsWon;
     }
+
+    await supabaseAdmin
+      .from("profiles")
+      .update(profileUpdate)
+      .eq("user_id", user.id);
 
     // Step 8: Log spin
     await supabaseAdmin.from("spin_logs").insert({
@@ -140,6 +159,8 @@ Deno.serve(async (req) => {
       success: true,
       free_spin: isFreeSpin,
       spin_cost: spinCost,
+      jackpot_meter: newJackpotMeter,
+      jackpot_max: profile.jackpot_max ?? 25,
       prize: {
         id: selectedPrize.id,
         name: selectedPrize.name,

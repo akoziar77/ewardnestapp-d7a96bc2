@@ -8,7 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift } from "lucide-react";
+import { ChevronLeft, RotateCw, Trophy, Coins, Clock, Gift, Flame } from "lucide-react";
 import { format } from "date-fns";
 
 const TIER_SPIN_COST: Record<string, number> = {
@@ -44,7 +44,7 @@ export default function SpinWheel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("nest_points, last_free_spin_date, free_spins_used_today, tier")
+        .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_max")
         .eq("user_id", user!.id)
         .single();
       if (error) throw error;
@@ -169,6 +169,24 @@ export default function SpinWheel() {
             <p className="text-sm font-medium text-primary">Daily free spin available!</p>
           </div>
         )}
+
+        {/* Jackpot Meter */}
+        <div className="px-4 py-3 rounded-xl bg-accent/10 border border-accent/20">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5 text-accent" /> Jackpot Meter
+            </span>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {profile?.jackpot_meter ?? 0} / {profile?.jackpot_max ?? 25}
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${((profile?.jackpot_meter ?? 0) / (profile?.jackpot_max ?? 25)) * 100}%` }}
+            />
+          </div>
+        </div>
 
         {/* Wheel */}
         <div className="flex flex-col items-center gap-4">
