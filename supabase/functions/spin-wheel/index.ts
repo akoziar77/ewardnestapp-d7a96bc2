@@ -101,18 +101,33 @@ Deno.serve(async (req) => {
       return errorResponse("No prizes available", 500);
     }
 
-    // Step 4-6: Weighted random selection
-    const totalWeight = prizes.reduce((sum, p) => sum + (p.weight ?? 1), 0);
-    let randomNumber = Math.random() * totalWeight;
-    let selectedPrize = prizes[0];
+    // Jackpot meter: boost jackpot prize weight
+    const jackpotMeter = profile.jackpot_meter ?? 0;
+    const adjustedPrizes = prizes.map((p) => ({
+      ...p,
+      effectiveWeight: (p.reward_value === "500" && p.reward_type === "points")
+        ? (p.weight ?? 1) + jackpotMeter
+        : (p.weight ?? 1),
+    }));
 
-    for (const prize of prizes) {
-      randomNumber -= (prize.weight ?? 1);
+    // Step 4-6: Weighted random selection
+    const totalWeight = adjustedPrizes.reduce((sum, p) => sum + p.effectiveWeight, 0);
+    let randomNumber = Math.random() * totalWeight;
+    let selectedPrize = adjustedPrizes[0];
+
+    for (const prize of adjustedPrizes) {
+      randomNumber -= prize.effectiveWeight;
       if (randomNumber <= 0) {
         selectedPrize = prize;
         break;
       }
     }
+
+    // Update jackpot meter
+    const isJackpotWin = selectedPrize.reward_value === "500" && selectedPrize.reward_type === "points";
+    const newJackpotMeter = isJackpotWin
+      ? 0 // Reset on jackpot win
+      : Math.min(jackpotMeter + (profile.jackpot_increment ?? 1), profile.jackpot_max ?? 25);
 
     // Step 7: Award prize
     const currentPoints = isFreeSpin ? profile.nest_points : (profile.nest_points - spinCost);
