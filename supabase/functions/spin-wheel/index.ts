@@ -13,6 +13,12 @@ function getSpinCost(tier: string): number {
   return TIER_SPIN_COST[tier] ?? 50;
 }
 
+function getYesterday(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split("T")[0];
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,27 +41,27 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) return errorResponse("unauthorized", 401);
 
-    // Step 1: Check user points & free spin status
+    // Step 1: Load profile
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_increment, jackpot_max")
+      .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_increment, jackpot_max, streak_count, last_streak_date")
       .eq("user_id", user.id)
       .single();
 
     if (profileErr || !profile) return errorResponse("Profile not found", 404);
 
     const spinCost = getSpinCost(profile.tier);
-
-    // Daily free spin logic
     const today = new Date().toISOString().split("T")[0];
-    let freeSpinsUsed = profile.free_spins_used_today ?? 0;
+    const yesterday = getYesterday();
 
+    // Step 1-2: Daily free spin logic
+    let freeSpinsUsed = profile.free_spins_used_today ?? 0;
     if (profile.last_free_spin_date !== today) {
       freeSpinsUsed = 0;
     }
-
     const isFreeSpin = freeSpinsUsed < 1;
 
+    // Step 3: Check points (if not free spin)
     if (!isFreeSpin && profile.nest_points < spinCost) {
       return jsonResponse({
         error: "not_enough_points",
@@ -66,16 +72,13 @@ Deno.serve(async (req) => {
       }, 400);
     }
 
-    // Step 2: Deduct points (skip if free spin)
+    // Step 4: Deduct points or mark free spin
     if (!isFreeSpin) {
       await supabaseAdmin
         .from("profiles")
         .update({ nest_points: profile.nest_points - spinCost })
         .eq("user_id", user.id);
-    }
-
-    // Update free spin tracking
-    if (isFreeSpin) {
+    } else {
       await supabaseAdmin
         .from("profiles")
         .update({
@@ -85,7 +88,21 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id);
     }
 
-    // Step 3: Load prizes
+    // Step 6: Update streak
+    let newStreak = profile.streak_count ?? 0;
+    const lastStreakDate = profile.last_streak_date;
+
+    if (lastStreakDate === yesterday) {
+      newStreak += 1;
+    } else if (lastStreakDate !== today) {
+      newStreak = 1;
+    }
+    // If lastStreakDate === today, streak already counted for today
+
+    // Step 7: Increase jackpot meter
+    const jackpotMeter = profile.jackpot_meter ?? 0;
+
+    // Step 8-9: Load prizes & boost jackpot + streak
     const { data: prizes, error: prizesErr } = await supabaseAdmin
       .from("prizes")
       .select("*")
@@ -101,16 +118,17 @@ Deno.serve(async (req) => {
       return errorResponse("No prizes available", 500);
     }
 
-    // Jackpot meter: boost jackpot prize weight
-    const jackpotMeter = profile.jackpot_meter ?? 0;
-    const adjustedPrizes = prizes.map((p) => ({
-      ...p,
-      effectiveWeight: (p.reward_value === "500" && p.reward_type === "points")
-        ? (p.weight ?? 1) + jackpotMeter
-        : (p.weight ?? 1),
-    }));
+    // Step 9-10: Apply jackpot boost + streak bonus
+    const streakBonus = newStreak * 0.5;
+    const adjustedPrizes = prizes.map((p) => {
+      let w = (p.weight ?? 1) + streakBonus;
+      if (p.reward_value === "500" && p.reward_type === "points") {
+        w += jackpotMeter;
+      }
+      return { ...p, effectiveWeight: w };
+    });
 
-    // Step 4-6: Weighted random selection
+    // Step 11-13: Weighted random selection
     const totalWeight = adjustedPrizes.reduce((sum, p) => sum + p.effectiveWeight, 0);
     let randomNumber = Math.random() * totalWeight;
     let selectedPrize = adjustedPrizes[0];
@@ -123,15 +141,19 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update jackpot meter
+    // Step 12/15: Jackpot meter update
     const isJackpotWin = selectedPrize.reward_value === "500" && selectedPrize.reward_type === "points";
     const newJackpotMeter = isJackpotWin
-      ? 0 // Reset on jackpot win
+      ? 0
       : Math.min(jackpotMeter + (profile.jackpot_increment ?? 1), profile.jackpot_max ?? 25);
 
-    // Step 7: Award prize & update jackpot meter
+    // Step 14: Award prize & update profile
     const currentPoints = isFreeSpin ? profile.nest_points : (profile.nest_points - spinCost);
-    const profileUpdate: Record<string, unknown> = { jackpot_meter: newJackpotMeter };
+    const profileUpdate: Record<string, unknown> = {
+      jackpot_meter: newJackpotMeter,
+      streak_count: newStreak,
+      last_streak_date: today,
+    };
 
     if (selectedPrize.reward_type === "points") {
       const pointsWon = parseInt(selectedPrize.reward_value) || 0;
@@ -143,7 +165,7 @@ Deno.serve(async (req) => {
       .update(profileUpdate)
       .eq("user_id", user.id);
 
-    // Step 8: Log spin
+    // Step 16: Log spin
     await supabaseAdmin.from("spin_logs").insert({
       user_id: user.id,
       prize_id: selectedPrize.id,
@@ -155,12 +177,14 @@ Deno.serve(async (req) => {
       ? (currentPoints + (parseInt(selectedPrize.reward_value) || 0))
       : currentPoints;
 
+    // Step 17: Return result
     return jsonResponse({
       success: true,
       free_spin: isFreeSpin,
       spin_cost: spinCost,
       jackpot_meter: newJackpotMeter,
       jackpot_max: profile.jackpot_max ?? 25,
+      streak_count: newStreak,
       prize: {
         id: selectedPrize.id,
         name: selectedPrize.name,
