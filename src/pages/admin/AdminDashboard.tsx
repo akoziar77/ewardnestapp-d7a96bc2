@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, Receipt, Gift, Store, TrendingUp, ChevronRight,
   Shield, FileText, Settings, Layout, Zap, Navigation, Lock,
-  Megaphone, Workflow, Plug, BarChart3, Webhook, Activity, Dices,
+  Megaphone, Workflow, Plug, BarChart3, Webhook, Activity, Dices, Upload,
 } from "lucide-react";
 
 const quickLinks = [
