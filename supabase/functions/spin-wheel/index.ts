@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     // Step 1: Check user points & free spin status
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
-      .select("nest_points, last_free_spin_date, free_spins_used_today, tier")
+      .select("nest_points, last_free_spin_date, free_spins_used_today, tier, jackpot_meter, jackpot_increment, jackpot_max")
       .eq("user_id", user.id)
       .single();
 
