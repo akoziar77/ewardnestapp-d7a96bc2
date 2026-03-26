@@ -159,6 +159,8 @@ Deno.serve(async (req) => {
       success: true,
       free_spin: isFreeSpin,
       spin_cost: spinCost,
+      jackpot_meter: newJackpotMeter,
+      jackpot_max: profile.jackpot_max ?? 25,
       prize: {
         id: selectedPrize.id,
         name: selectedPrize.name,
