@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
-  Trophy, Crown, Flame, Target, Rocket,
+  Trophy, Crown, Flame, Target, Rocket, Cake,
 };
 
 interface OnboardingStep {
