@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       api_key: nrelKey,
       status: "E", // open stations only
       access: "public",
-      limit: String(Math.min(Number(limit), 500)),
+      limit: String(Math.min(Number(limit), 200)),
     });
 
     if (state) params.set("state", state);
