@@ -183,7 +183,7 @@ export default function AdminLocationImport() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="nrel-limit">Max Results</Label>
-                  <Input id="nrel-limit" type="number" min={1} max={500} value={nrelLimit}
+                  <Input id="nrel-limit" type="number" min={1} max={200} value={nrelLimit}
                     onChange={(e) => setNrelLimit(e.target.value)} />
                 </div>
               </div>
