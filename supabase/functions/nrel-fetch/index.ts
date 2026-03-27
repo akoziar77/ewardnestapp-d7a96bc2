@@ -182,7 +182,10 @@ function extractBrand(stationName: string, groupCode?: string): string {
     "Casey's", "QuikTrip", "Wawa", "Sheetz", "RaceTrac",
     "Speedway", "Circle K", "7-Eleven", "Murphy", "Costco",
     "Sam's Club", "BJ's", "Kroger", "HEB", "Buc-ee's",
-    "Pilot", "Flying J", "Love's", "TA", "Petro",
+    "Pilot", "Flying J", "Love's",
+    "Clean Energy", "ChargePoint", "Tesla Supercharger", "Tesla",
+    "Electrify America", "EVgo", "Blink", "Francis Energy",
+    "Volta", "Ferrellgas", "TG Fuels",
   ];
 
   const upper = stationName.toUpperCase();
