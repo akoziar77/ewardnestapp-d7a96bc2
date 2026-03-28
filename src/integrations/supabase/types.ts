@@ -378,6 +378,7 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
+          external_id: string | null
           geofence_radius_meters: number
           geometry: unknown
           id: string
@@ -395,6 +396,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          external_id?: string | null
           geofence_radius_meters?: number
           geometry?: unknown
           id?: string
@@ -412,6 +414,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          external_id?: string | null
           geofence_radius_meters?: number
           geometry?: unknown
           id?: string
@@ -516,6 +519,7 @@ export type Database = {
           milestone_points: number
           milestone_visits: number
           name: string
+          normalized_name: string
           show_in_onboarding: boolean
           visit_expiry_months: number
           website_url: string | null
@@ -535,6 +539,7 @@ export type Database = {
           milestone_points?: number
           milestone_visits?: number
           name: string
+          normalized_name: string
           show_in_onboarding?: boolean
           visit_expiry_months?: number
           website_url?: string | null
@@ -554,6 +559,7 @@ export type Database = {
           milestone_points?: number
           milestone_visits?: number
           name?: string
+          normalized_name?: string
           show_in_onboarding?: boolean
           visit_expiry_months?: number
           website_url?: string | null
