@@ -32,13 +32,13 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { state, zip, radius = 25, fuel_type, paginate = true } = body;
+    const { state, zip, radius = 25, fuel_type, paginate = true, max_pages = 50 } = body;
 
     if (!state && !zip) return errorResponse("Provide either 'state' or 'zip' parameter");
 
     const db = createClient(supabaseUrl, serviceKey);
 
-    // Fetch ALL brands for matching
+    // Fetch brands for matching
     const { data: brands } = await db.from("brands").select("id, name");
     const brandMap = new Map<string, string>();
     for (const b of brands ?? []) brandMap.set(normalize(b.name), b.id);
@@ -46,31 +46,18 @@ Deno.serve(async (req) => {
     const { data: aliases } = await db.from("brand_aliases").select("alias, brand_id");
     for (const a of aliases ?? []) brandMap.set(normalize(a.alias), a.brand_id);
 
-    // Pre-load existing locations for duplicate detection (much faster than per-station queries)
-    const existingSet = new Set<string>();
-    let existOffset = 0;
-    while (true) {
-      let query = db.from("brand_locations").select("brand_id, latitude, longitude").range(existOffset, existOffset + 999);
-      if (state) query = query.eq("state", state);
-      const { data: existing } = await query;
-      if (!existing || existing.length === 0) break;
-      for (const loc of existing) {
-        if (loc.latitude != null && loc.longitude != null) {
-          existingSet.add(dedupKey(loc.brand_id, loc.latitude, loc.longitude));
-        }
-      }
-      if (existing.length < 1000) break;
-      existOffset += 1000;
-    }
+    // In-memory dedup set (for this run only — skip DB pre-load to save memory)
+    const seenKeys = new Set<string>();
 
     let totalFetched = 0;
     let imported = 0;
     let skipped = 0;
+    let duplicates = 0;
     const errors: string[] = [];
     let offset = 0;
-    let hasMore = true;
+    let pageCount = 0;
 
-    while (hasMore) {
+    while (pageCount < max_pages) {
       const params = new URLSearchParams({
         api_key: nrelKey,
         status: "E",
@@ -88,38 +75,35 @@ Deno.serve(async (req) => {
 
       const nrelResp = await fetch(`${NREL_BASE}?${params.toString()}`);
       if (!nrelResp.ok) {
-        const errText = await nrelResp.text();
-        if (totalFetched === 0) return errorResponse(`NREL API error: ${nrelResp.status} — ${errText}`, 502);
+        if (totalFetched === 0) {
+          const errText = await nrelResp.text();
+          return errorResponse(`NREL API error: ${nrelResp.status} — ${errText}`, 502);
+        }
         break;
       }
 
       const nrelData = await nrelResp.json();
       const stations = nrelData.fuel_stations ?? [];
       totalFetched += stations.length;
+      pageCount++;
 
-      // Batch insert — collect rows first
       const rows: Array<Record<string, unknown>> = [];
 
       for (const s of stations) {
         const stationName = String(s.station_name ?? "").trim();
-        const brandName = extractBrand(stationName, s.groups_with_access_code, s.ev_network);
-        const brandKey = normalize(brandName);
-        const brandId = brandMap.get(brandKey);
+        const brandName = extractBrand(stationName, s.ev_network);
+        const brandId = brandMap.get(normalize(brandName));
 
-        if (!brandId) {
-          skipped++;
-          if (errors.length < 30) errors.push(`No brand: "${brandName}"`);
-          continue;
-        }
+        if (!brandId) { skipped++; continue; }
 
         const lat = Number(s.latitude);
         const lng = Number(s.longitude);
         if (isNaN(lat) || isNaN(lng)) { skipped++; continue; }
 
-        const key = dedupKey(brandId, lat, lng);
-        if (existingSet.has(key)) { skipped++; continue; }
+        const key = `${brandId}:${Math.round(lat * 10000)}:${Math.round(lng * 10000)}`;
+        if (seenKeys.has(key)) { duplicates++; continue; }
+        seenKeys.add(key);
 
-        existingSet.add(key); // prevent duplicates within this run
         rows.push({
           brand_id: brandId,
           name: stationName || `${brandName} Station`,
@@ -133,20 +117,29 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Batch insert in chunks of 50
-      for (let i = 0; i < rows.length; i += 50) {
-        const chunk = rows.slice(i, i + 50);
-        const { error: insertErr, count } = await db.from("brand_locations").insert(chunk);
+      // Insert in chunks — use upsert-like behavior via onConflict if possible,
+      // otherwise just insert and catch errors
+      for (let i = 0; i < rows.length; i += 25) {
+        const chunk = rows.slice(i, i + 25);
+        const { error: insertErr } = await db.from("brand_locations").insert(chunk);
         if (insertErr) {
-          skipped += chunk.length;
-          if (errors.length < 30) errors.push(`Batch insert: ${insertErr.message}`);
+          // If batch fails, try individual inserts
+          for (const row of chunk) {
+            const { error: singleErr } = await db.from("brand_locations").insert(row);
+            if (singleErr) {
+              skipped++;
+              if (errors.length < 20) errors.push(singleErr.message);
+            } else {
+              imported++;
+            }
+          }
         } else {
           imported += chunk.length;
         }
       }
 
-      if (!paginate || stations.length < PAGE_SIZE) hasMore = false;
-      else offset += PAGE_SIZE;
+      if (!paginate || stations.length < PAGE_SIZE) break;
+      offset += PAGE_SIZE;
     }
 
     return jsonResponse({
@@ -154,9 +147,10 @@ Deno.serve(async (req) => {
       total: totalFetched,
       imported,
       skipped,
+      duplicates,
       brands_in_db: brandMap.size,
-      pages_fetched: Math.ceil(totalFetched / PAGE_SIZE) || 1,
-      errors: errors.slice(0, 30),
+      pages_fetched: pageCount,
+      errors: errors.slice(0, 20),
     });
   } catch (err) {
     console.error("NREL FETCH ERROR:", err);
@@ -168,12 +162,7 @@ function normalize(name: string): string {
   return name.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-/** Round to ~10m precision for dedup */
-function dedupKey(brandId: string, lat: number, lng: number): string {
-  return `${brandId}:${Math.round(lat * 10000)}:${Math.round(lng * 10000)}`;
-}
-
-function extractBrand(stationName: string, groupCode?: string, evNetwork?: string): string {
+function extractBrand(stationName: string, evNetwork?: string): string {
   const knownBrands = [
     "Shell", "BP", "Chevron", "ExxonMobil", "Exxon", "Mobil",
     "Valero", "Marathon", "Sunoco", "Phillips 66", "Citgo",
@@ -194,10 +183,13 @@ function extractBrand(stationName: string, groupCode?: string, evNetwork?: strin
 
   if (evNetwork) {
     const netUpper = evNetwork.toUpperCase();
-    const evBrands = ["ChargePoint", "Tesla", "Electrify America", "EVgo", "Blink", "Francis Energy", "Volta"];
-    for (const brand of evBrands) {
-      if (netUpper.includes(brand.toUpperCase())) return brand;
-    }
+    if (netUpper.includes("CHARGEPOINT")) return "ChargePoint";
+    if (netUpper.includes("TESLA")) return "Tesla Supercharger";
+    if (netUpper.includes("ELECTRIFY")) return "Electrify America";
+    if (netUpper.includes("EVGO")) return "EVgo";
+    if (netUpper.includes("BLINK")) return "Blink";
+    if (netUpper.includes("FRANCIS")) return "Francis Energy";
+    if (netUpper.includes("VOLTA")) return "Volta";
   }
 
   return stationName.split(/\s+/).slice(0, 2).join(" ");
