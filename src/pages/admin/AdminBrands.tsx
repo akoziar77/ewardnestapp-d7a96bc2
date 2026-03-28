@@ -63,7 +63,7 @@ export default function AdminBrands() {
       } else {
         const { error } = await supabase
           .from("brands")
-          .insert({ name: brand.name!, logo_emoji: brand.logo_emoji!, category: brand.category || null });
+          .insert({ name: brand.name!, logo_emoji: brand.logo_emoji!, category: brand.category || null, normalized_name: brand.name!.toLowerCase().replace(/[^a-z0-9]/g, '') } as any);
         if (error) throw error;
       }
     },
