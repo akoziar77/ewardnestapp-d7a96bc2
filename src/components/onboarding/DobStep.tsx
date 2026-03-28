@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Cake, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -44,41 +44,39 @@ export default function DobStep({ title, description }: Props) {
     setSaved(true);
   };
 
-  // Save when all three fields are filled
   const handleChange = (setter: (v: string) => void, value: string) => {
     setter(value);
     setSaved(false);
-    // We'll save on the next render via useEffect-like pattern — but simpler to just save on Continue
   };
 
-  // Expose a way for parent to trigger save — we auto-save when all fields are set
   if (hasAll && !saved) {
     save();
   }
 
   return (
-    <div className="w-full max-w-sm animate-in fade-in slide-in-from-right-4 duration-500">
+    <div className="w-full max-w-sm mx-auto">
       <div className="mb-6 text-center">
-        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary shadow-lg shadow-primary/10">
-          <Cake className="h-10 w-10 text-primary-foreground" />
-        </div>
-        <h2 className="text-balance text-2xl font-bold tracking-tight leading-snug">{title}</h2>
-        <p className="mt-2 text-sm text-muted-foreground max-w-xs mx-auto">{description}</p>
+        <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
+          {title}
+        </h1>
+        <p className="mt-2 text-[15px] text-white/60 max-w-[300px] mx-auto leading-relaxed">
+          {description}
+        </p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
-        <div className="flex items-start gap-2 rounded-xl bg-muted/50 p-3">
-          <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            We use your birthday to send you special rewards and offers on your special day. This is completely optional.
+      <div className="rounded-2xl bg-white/[0.06] p-4 space-y-4">
+        <div className="flex items-start gap-2 rounded-xl bg-white/[0.04] p-3">
+          <Info className="h-4 w-4 text-white/40 shrink-0 mt-0.5" />
+          <p className="text-xs text-white/40 leading-relaxed">
+            We use your birthday to send you special rewards. This is completely optional.
           </p>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
           <div className="space-y-2">
-            <Label className="text-xs">Month</Label>
+            <Label className="text-xs text-white/60">Month</Label>
             <Select value={month} onValueChange={(v) => handleChange(setMonth, v)}>
-              <SelectTrigger className="h-11">
+              <SelectTrigger className="h-11 bg-white/[0.06] border-white/10 text-white">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
@@ -89,9 +87,9 @@ export default function DobStep({ title, description }: Props) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="text-xs">Day</Label>
+            <Label className="text-xs text-white/60">Day</Label>
             <Select value={day} onValueChange={(v) => handleChange(setDay, v)}>
-              <SelectTrigger className="h-11">
+              <SelectTrigger className="h-11 bg-white/[0.06] border-white/10 text-white">
                 <SelectValue placeholder="Day" />
               </SelectTrigger>
               <SelectContent>
@@ -102,9 +100,9 @@ export default function DobStep({ title, description }: Props) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="text-xs">Year</Label>
+            <Label className="text-xs text-white/60">Year</Label>
             <Select value={year} onValueChange={(v) => handleChange(setYear, v)}>
-              <SelectTrigger className="h-11">
+              <SelectTrigger className="h-11 bg-white/[0.06] border-white/10 text-white">
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
               <SelectContent>
@@ -117,7 +115,7 @@ export default function DobStep({ title, description }: Props) {
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center mt-4">
+      <p className="text-xs text-white/30 text-center mt-4">
         You can skip this and add it later in Settings.
       </p>
     </div>

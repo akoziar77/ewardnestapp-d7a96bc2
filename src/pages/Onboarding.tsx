@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Bird, Gift, QrCode, Sparkles, Check, ChevronRight, Bell, MapPin,
+  Bird, Gift, QrCode, Sparkles, Check, Bell, MapPin,
   Star, Heart, Zap, Shield, Trophy, Crown, Flame, Target, Rocket, Cake,
   type LucideIcon,
 } from "lucide-react";
@@ -15,9 +15,34 @@ import MerchantSelectStep from "@/components/onboarding/MerchantSelectStep";
 import AddressStep from "@/components/onboarding/AddressStep";
 import DobStep from "@/components/onboarding/DobStep";
 
+import onboardingRewards from "@/assets/onboarding-rewards.png";
+import onboardingScan from "@/assets/onboarding-scan.png";
+import onboardingBrands from "@/assets/onboarding-brands.png";
+import onboardingNotifications from "@/assets/onboarding-notifications.png";
+import onboardingLocation from "@/assets/onboarding-location.png";
+
 const ICON_MAP: Record<string, LucideIcon> = {
   Bird, Gift, Sparkles, Bell, QrCode, Star, Heart, Zap, Shield, MapPin,
   Trophy, Crown, Flame, Target, Rocket, Cake,
+};
+
+const STEP_IMAGES: Record<string, string> = {
+  Bird: onboardingRewards,
+  Gift: onboardingRewards,
+  Sparkles: onboardingRewards,
+  QrCode: onboardingScan,
+  Star: onboardingRewards,
+  Heart: onboardingBrands,
+  Bell: onboardingNotifications,
+  MapPin: onboardingLocation,
+  Shield: onboardingRewards,
+  Trophy: onboardingRewards,
+  Crown: onboardingRewards,
+  Flame: onboardingRewards,
+  Target: onboardingRewards,
+  Rocket: onboardingRewards,
+  Cake: onboardingRewards,
+  Zap: onboardingRewards,
 };
 
 interface OnboardingStep {
@@ -72,7 +97,6 @@ export default function Onboarding() {
   };
 
   const next = async () => {
-    // Save brand selections when leaving the merchant_select step
     if (current?.step_type === "merchant_select") {
       await saveBrandSelections();
     }
@@ -83,96 +107,186 @@ export default function Onboarding() {
     }
   };
 
-  const skipIntro = () => {
-    const permIdx = steps.findIndex((s) => s.step_type === "permissions");
-    setStep(permIdx >= 0 ? permIdx : step + 1);
-  };
+  const skip = () => completeOnboarding();
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Skeleton className="h-12 w-48 rounded-lg" />
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Skeleton className="h-12 w-48 rounded-lg bg-white/10" />
       </div>
     );
   }
 
   if (!current) return null;
 
-  const Icon = ICON_MAP[current.icon_name] ?? Sparkles;
+  const heroImage = STEP_IMAGES[current.icon_name] || onboardingRewards;
+
+  // Determine if this is a step type that needs its own layout
+  const isPermissions = current.step_type === "permissions";
+  const isMerchantSelect = current.step_type === "merchant_select";
+  const isAddress = current.step_type === "address_input";
+  const isDob = current.step_type === "dob_input";
+  const isIntro = current.step_type === "intro";
+  const isSpecialStep = isPermissions || isMerchantSelect || isAddress || isDob;
 
   return (
-    <div className="flex min-h-screen flex-col px-6 py-12">
-      {/* Progress dots */}
-      <div className="flex items-center justify-center gap-2 mb-12">
-        {steps.map((_, i) => (
-          <div
-            key={i}
-            className={`h-2 rounded-full transition-all duration-500 ${
-              i === step ? "w-8 bg-primary" : i < step ? "w-2 bg-primary/40" : "w-2 bg-muted"
-            }`}
-          />
-        ))}
+    <div className="flex min-h-[100dvh] flex-col bg-black text-white relative overflow-hidden">
+      {/* Skip button */}
+      <div className="flex justify-end px-6 pt-4 z-10">
+        <button
+          onClick={skip}
+          className="text-sm font-medium text-white/70 hover:text-white transition-colors"
+        >
+          Skip
+        </button>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center">
-        {current.step_type === "intro" && (
-          <div className="flex flex-col items-center gap-6 text-center animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className={`flex h-20 w-20 items-center justify-center rounded-3xl ${current.color_class} shadow-lg shadow-primary/10`}>
-              <Icon className="h-10 w-10 text-primary-foreground" />
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col">
+        {isIntro && (
+          <div className="flex flex-1 flex-col items-center animate-in fade-in duration-500">
+            {/* Hero illustration - takes up ~45% of screen */}
+            <div className="flex flex-1 items-center justify-center px-8 pt-4 pb-2">
+              <img
+                src={heroImage}
+                alt=""
+                className="w-64 h-64 object-contain drop-shadow-2xl"
+                width={256}
+                height={256}
+              />
             </div>
-            <h2 className="text-balance text-2xl font-bold tracking-tight leading-snug max-w-xs">
-              {current.title}
-            </h2>
-            <p className="max-w-xs text-muted-foreground leading-relaxed">
-              {current.description}
-            </p>
+
+            {/* Text content */}
+            <div className="px-8 text-center pb-4">
+              <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
+                {current.title}
+              </h1>
+              <p className="mt-3 text-[15px] leading-relaxed text-white/60 max-w-[300px] mx-auto">
+                {current.description}
+              </p>
+            </div>
           </div>
         )}
 
-        {current.step_type === "permissions" && (
-          <PermissionsStep
-            title={current.title}
-            description={current.description}
-            onDone={next}
-          />
+        {isPermissions && (
+          <div className="flex flex-1 flex-col items-center animate-in fade-in duration-500">
+            <div className="flex items-center justify-center px-8 pt-8 pb-4">
+              <img
+                src={onboardingNotifications}
+                alt=""
+                className="w-48 h-48 object-contain drop-shadow-2xl"
+                loading="lazy"
+                width={192}
+                height={192}
+              />
+            </div>
+            <div className="flex-1 w-full px-6">
+              <PermissionsStep
+                title={current.title}
+                description={current.description}
+                onDone={next}
+              />
+            </div>
+          </div>
         )}
 
-        {current.step_type === "merchant_select" && (
-          <MerchantSelectStep
-            title={current.title}
-            description={current.description}
-            onSelectionChange={setSelectedBrands}
-          />
+        {isMerchantSelect && (
+          <div className="flex flex-1 flex-col animate-in fade-in duration-500 px-6">
+            <MerchantSelectStep
+              title={current.title}
+              description={current.description}
+              onSelectionChange={setSelectedBrands}
+            />
+          </div>
         )}
 
-        {current.step_type === "address_input" && (
-          <AddressStep title={current.title} description={current.description} />
+        {isAddress && (
+          <div className="flex flex-1 flex-col items-center animate-in fade-in duration-500">
+            <div className="flex items-center justify-center px-8 pt-8 pb-4">
+              <img
+                src={onboardingLocation}
+                alt=""
+                className="w-48 h-48 object-contain drop-shadow-2xl"
+                loading="lazy"
+                width={192}
+                height={192}
+              />
+            </div>
+            <div className="flex-1 w-full px-6">
+              <AddressStep title={current.title} description={current.description} />
+            </div>
+          </div>
         )}
 
-        {current.step_type === "dob_input" && (
-          <DobStep title={current.title} description={current.description} />
+        {isDob && (
+          <div className="flex flex-1 flex-col items-center animate-in fade-in duration-500">
+            <div className="flex items-center justify-center px-8 pt-8 pb-4">
+              <img
+                src={onboardingRewards}
+                alt=""
+                className="w-48 h-48 object-contain drop-shadow-2xl"
+                loading="lazy"
+                width={192}
+                height={192}
+              />
+            </div>
+            <div className="flex-1 w-full px-6">
+              <DobStep title={current.title} description={current.description} />
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Bottom actions */}
-      <div className="mt-8 flex flex-col gap-3">
+      {/* Bottom section: Button + Terms + Dots */}
+      <div className="px-6 pb-8 pt-4 space-y-4">
+        {/* CTA Button */}
         <Button
           onClick={next}
-          className="h-14 w-full text-base font-semibold active:scale-[0.97] transition-transform"
           disabled={completing}
+          className="h-14 w-full rounded-2xl bg-[hsl(220,90%,56%)] hover:bg-[hsl(220,90%,50%)] text-white text-base font-semibold active:scale-[0.97] transition-all border-0"
         >
-          {completing ? "Setting up…" : isLastStep ? "Finish" : "Continue"}
-          {!completing && <ChevronRight className="ml-1 h-5 w-5" />}
+          {completing
+            ? "Setting up…"
+            : isPermissions
+            ? "Allow Push Notification"
+            : isLastStep
+            ? "Get Started"
+            : "Next"}
         </Button>
 
-        {current.step_type === "intro" && (
+        {/* Secondary action for permissions */}
+        {isPermissions && (
           <button
-            onClick={skipIntro}
-            className="text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={next}
+            className="w-full text-center text-sm font-medium text-[hsl(220,90%,56%)] hover:text-[hsl(220,90%,70%)] transition-colors"
           >
-            Skip intro
+            Not Now
           </button>
         )}
+
+        {/* Terms text for intro */}
+        {isIntro && (
+          <p className="text-center text-xs text-white/40">
+            By using RewardsNest you agree to its{" "}
+            <span className="text-[hsl(220,90%,56%)]">Terms & Conditions</span>
+          </p>
+        )}
+
+        {/* Progress dots */}
+        <div className="flex items-center justify-center gap-2 pt-2">
+          {steps.map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 w-2 rounded-full transition-all duration-400 ${
+                i === step
+                  ? "bg-white"
+                  : i < step
+                  ? "bg-white/40"
+                  : "bg-white/20"
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

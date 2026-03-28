@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, QrCode } from "lucide-react";
+import { Check } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
@@ -36,43 +36,43 @@ export default function MerchantSelectStep({ title, description, onSelectionChan
   };
 
   return (
-    <div className="w-full max-w-sm animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-secondary shadow-lg shadow-secondary/10">
-          <QrCode className="h-10 w-10 text-secondary-foreground" />
-        </div>
-        <h2 className="text-balance text-2xl font-bold tracking-tight leading-snug">{title}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+    <div className="w-full max-w-sm mx-auto">
+      <div className="mb-6 text-center">
+        <h1 className="text-[28px] font-bold leading-tight tracking-tight text-white">
+          {title}
+        </h1>
+        <p className="mt-2 text-[15px] text-white/60">{description}</p>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-2xl" />
+        <div className="grid grid-cols-3 gap-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-2xl bg-white/10" />
           ))}
         </div>
       ) : brands.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">No brands available yet.</p>
+        <p className="text-sm text-white/40 text-center py-8">No brands available yet.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-1">
+        <div className="grid grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1">
           {brands.map((b) => {
             const isSelected = selected.has(b.id);
             return (
               <button
                 key={b.id}
                 onClick={() => toggle(b.id)}
-                className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all duration-200 active:scale-[0.96] ${
-                  isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/30"
+                className={`group relative flex flex-col items-center gap-1.5 rounded-2xl p-3 transition-all duration-200 active:scale-[0.94] ${
+                  isSelected
+                    ? "bg-[hsl(220,90%,56%)]/15 ring-1 ring-[hsl(220,90%,56%)]"
+                    : "bg-white/[0.06] hover:bg-white/[0.10]"
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary">
-                    <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                  <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(220,90%,56%)]">
+                    <Check className="h-3 w-3 text-white" />
                   </div>
                 )}
-                <span className="text-3xl">{b.logo_emoji}</span>
-                <span className="text-sm font-medium">{b.name}</span>
-                {b.category && <span className="text-xs text-muted-foreground">{b.category}</span>}
+                <span className="text-2xl">{b.logo_emoji}</span>
+                <span className="text-xs font-medium text-white/80 text-center leading-tight">{b.name}</span>
               </button>
             );
           })}
