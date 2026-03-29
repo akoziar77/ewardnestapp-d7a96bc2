@@ -27,6 +27,7 @@ import {
   Send,
   Lightbulb,
   MailIcon,
+  Shield,
 } from "lucide-react";
 
 interface MenuRow {
@@ -272,6 +273,15 @@ export default function Profile() {
               { icon: Database, color: "bg-muted-foreground", label: "Data and Storage" },
             ]}
           />
+
+          {/* Admin — only visible to admins */}
+          {isAdmin && (
+            <MenuGroup
+              rows={[
+                { icon: Shield, color: "bg-primary", label: "Admin Dashboard", onClick: () => navigate("/admin") },
+              ]}
+            />
+          )}
 
           {/* Community */}
           <MenuGroup
