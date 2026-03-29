@@ -2098,6 +2098,54 @@ export type Database = {
           },
         ]
       }
+      wallet_items: {
+        Row: {
+          back_image_path: string | null
+          card_number: string | null
+          category: string
+          created_at: string
+          doc_type: string
+          expiry_date: string | null
+          front_image_path: string | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back_image_path?: string | null
+          card_number?: string | null
+          category: string
+          created_at?: string
+          doc_type: string
+          expiry_date?: string | null
+          front_image_path?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back_image_path?: string | null
+          card_number?: string | null
+          category?: string
+          created_at?: string
+          doc_type?: string
+          expiry_date?: string | null
+          front_image_path?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       webhook_delivery_log: {
         Row: {
           attempt_number: number
