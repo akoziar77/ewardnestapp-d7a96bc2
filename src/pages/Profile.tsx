@@ -360,7 +360,7 @@ export default function Profile() {
                   </Button>
                 ),
               },
-              { icon: Settings, color: "bg-gray-600", label: "Settings", onClick: startEditing },
+              { icon: Settings, color: "bg-gray-600", label: "Settings", onClick: () => navigate("/profile/settings") },
               { icon: Database, color: "bg-gray-600", label: "Data and Storage" },
             ]}
           />

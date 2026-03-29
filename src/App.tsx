@@ -110,6 +110,9 @@ function AppRoutes() {
         <Route path="/rewards" element={<PageGate pageKey="rewards"><Rewards /></PageGate>} />
         <Route path="/history" element={<PageGate pageKey="history"><History /></PageGate>} />
         <Route path="/profile" element={<PageGate pageKey="profile"><Profile /></PageGate>} />
+        <Route path="/profile/settings" element={<PageGate pageKey="profile"><ProfileSettings /></PageGate>} />
+        <Route path="/profile/archived" element={<PageGate pageKey="profile"><ProfileArchived /></PageGate>} />
+        <Route path="/profile/deleted" element={<PageGate pageKey="profile"><ProfileDeleted /></PageGate>} />
         <Route path="/brands" element={<PageGate pageKey="brands"><Brands /></PageGate>} />
         <Route path="/brands/settings" element={<PageGate pageKey="brands_settings"><BrandSettings /></PageGate>} />
         <Route path="/engage" element={<PageGate pageKey="engage"><Engage /></PageGate>} />
