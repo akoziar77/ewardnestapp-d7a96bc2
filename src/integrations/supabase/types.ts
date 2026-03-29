@@ -1318,84 +1318,132 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           address: string | null
           avatar_url: string | null
+          beta_tester: boolean
           challenges_completed: number
           city: string | null
           created_at: string
           date_of_birth: string | null
+          device_type: string | null
           display_name: string | null
+          email_notifications: boolean
+          feature_flags: Json
           first_name: string | null
           free_spins_used_today: number
           id: string
+          install_date: string | null
           jackpot_increment: number
           jackpot_max: number
           jackpot_meter: number
           last_check_in: string | null
+          last_device_sync: string | null
           last_free_spin_date: string | null
           last_name: string | null
           last_streak_date: string | null
           nest_points: number
           onboarding_completed: boolean
           phone: string | null
+          preferred_brands: Json
+          preferred_categories: Json
+          push_notifications: boolean
+          pwa_installed: boolean
+          referral_code: string | null
+          referred_by: string | null
+          session_count: number
+          sms_notifications: boolean
           state: string | null
           streak_count: number
+          test_group: string
           tier: string
           updated_at: string
           user_id: string
           zip_code: string | null
         }
         Insert: {
+          account_status?: string
           address?: string | null
           avatar_url?: string | null
+          beta_tester?: boolean
           challenges_completed?: number
           city?: string | null
           created_at?: string
           date_of_birth?: string | null
+          device_type?: string | null
           display_name?: string | null
+          email_notifications?: boolean
+          feature_flags?: Json
           first_name?: string | null
           free_spins_used_today?: number
           id?: string
+          install_date?: string | null
           jackpot_increment?: number
           jackpot_max?: number
           jackpot_meter?: number
           last_check_in?: string | null
+          last_device_sync?: string | null
           last_free_spin_date?: string | null
           last_name?: string | null
           last_streak_date?: string | null
           nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
+          preferred_brands?: Json
+          preferred_categories?: Json
+          push_notifications?: boolean
+          pwa_installed?: boolean
+          referral_code?: string | null
+          referred_by?: string | null
+          session_count?: number
+          sms_notifications?: boolean
           state?: string | null
           streak_count?: number
+          test_group?: string
           tier?: string
           updated_at?: string
           user_id: string
           zip_code?: string | null
         }
         Update: {
+          account_status?: string
           address?: string | null
           avatar_url?: string | null
+          beta_tester?: boolean
           challenges_completed?: number
           city?: string | null
           created_at?: string
           date_of_birth?: string | null
+          device_type?: string | null
           display_name?: string | null
+          email_notifications?: boolean
+          feature_flags?: Json
           first_name?: string | null
           free_spins_used_today?: number
           id?: string
+          install_date?: string | null
           jackpot_increment?: number
           jackpot_max?: number
           jackpot_meter?: number
           last_check_in?: string | null
+          last_device_sync?: string | null
           last_free_spin_date?: string | null
           last_name?: string | null
           last_streak_date?: string | null
           nest_points?: number
           onboarding_completed?: boolean
           phone?: string | null
+          preferred_brands?: Json
+          preferred_categories?: Json
+          push_notifications?: boolean
+          pwa_installed?: boolean
+          referral_code?: string | null
+          referred_by?: string | null
+          session_count?: number
+          sms_notifications?: boolean
           state?: string | null
           streak_count?: number
+          test_group?: string
           tier?: string
           updated_at?: string
           user_id?: string
@@ -1621,6 +1669,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          redeemed_at: string | null
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          reward_points: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          redeemed_at?: string | null
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          reward_points?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          redeemed_at?: string | null
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          reward_points?: number
+          status?: string
+        }
+        Relationships: []
       }
       rewards: {
         Row: {
