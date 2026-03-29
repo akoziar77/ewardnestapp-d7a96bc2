@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +23,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft,
   User,
   Mail,
   Phone,
@@ -35,15 +34,56 @@ import {
   ChevronRight,
   Save,
   MapPin,
-  Locate,
   Trash2,
   Crown,
   FileText,
+  Heart,
+  Tag,
+  Clock,
+  Archive,
+  Settings,
+  Database,
+  ThumbsUp,
+  Send,
+  Lightbulb,
+  MailIcon,
+  Locate,
 } from "lucide-react";
 import { requestNotificationPermission } from "@/hooks/useGeofence";
 import { hasFeatureAccess } from "@/lib/featureGates";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import ConsentHistory from "@/components/ConsentHistory";
+
+interface MenuRow {
+  icon: React.ElementType;
+  color: string;
+  label: string;
+  onClick?: () => void;
+  trailing?: React.ReactNode;
+}
+
+function MenuGroup({ rows }: { rows: MenuRow[] }) {
+  return (
+    <div className="rounded-2xl bg-muted/50 overflow-hidden divide-y divide-border/50">
+      {rows.map((row) => {
+        const Icon = row.icon;
+        return (
+          <button
+            key={row.label}
+            onClick={row.onClick}
+            className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted active:scale-[0.98]"
+          >
+            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${row.color} text-white`}>
+              <Icon className="h-4.5 w-4.5" />
+            </span>
+            <span className="flex-1 text-[15px] font-medium text-foreground">{row.label}</span>
+            {row.trailing ?? <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Profile() {
   const { user, signOut, subscriptionTier } = useAuth();
@@ -82,7 +122,6 @@ export default function Profile() {
   const [formState, setFormState] = useState("");
   const [formZip, setFormZip] = useState("");
 
-  // Sync form when profile loads or edit starts
   const startEditing = () => {
     setFormName(profile?.display_name ?? "");
     setFormPhone(profile?.phone ?? "");
@@ -124,219 +163,127 @@ export default function Profile() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image must be under 2MB");
-      return;
-    }
-
+    if (file.size > 2 * 1024 * 1024) { toast.error("Image must be under 2MB"); return; }
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
       const path = `${user.id}/avatar.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
-
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
       const avatar_url = `${urlData.publicUrl}?t=${Date.now()}`;
-
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url })
-        .eq("user_id", user.id);
+      const { error: updateError } = await supabase.from("profiles").update({ avatar_url }).eq("user_id", user.id);
       if (updateError) throw updateError;
-
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast.success("Avatar updated");
-    } catch {
-      toast.error("Failed to upload avatar");
-    } finally {
+    } catch { toast.error("Failed to upload avatar"); } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   const initials = (profile?.display_name ?? user?.email ?? "?")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+    .split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-20">
+    <div className="flex min-h-screen flex-col bg-background pb-24">
       {/* Header */}
-      <header className="flex items-center gap-3 px-6 pt-12 pb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground transition-colors hover:text-foreground active:scale-95"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-xl font-bold tracking-tight">Profile</h1>
-      </header>
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border px-4 py-4">
+        <h1 className="text-center text-xl font-bold text-foreground">Profile</h1>
+      </div>
 
       {isLoading ? (
-        <div className="space-y-4 px-6 py-4">
+        <div className="space-y-4 px-4 py-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />
+            <div key={i} className="h-16 animate-pulse rounded-2xl bg-muted/50" />
           ))}
         </div>
       ) : (
-        <div className="flex-1 space-y-6 px-6 py-2">
-          {/* Avatar + name card */}
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-6">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="relative group active:scale-95 transition-transform"
-            >
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt="Avatar"
-                  className="h-20 w-20 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
-                  {initials}
+        <div className="max-w-lg mx-auto w-full flex-1 space-y-5 px-4 py-5">
+
+          {/* Avatar + Name card — mimics Folio's sign-in banner */}
+          <div className="rounded-2xl bg-muted/50 p-5">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="relative group active:scale-95 transition-transform shrink-0"
+              >
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Avatar" className="h-14 w-14 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500 text-white text-lg font-bold">
+                    {initials}
+                  </div>
+                )}
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="h-4 w-4 text-white" />
                 </div>
-              )}
-              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="h-5 w-5 text-white" />
+                {uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  </div>
+                )}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-bold text-foreground truncate">
+                  {profile?.display_name ?? "No name set"}
+                </p>
+                <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
               </div>
-              {uploading && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                </div>
-              )}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarUpload}
-            />
-            <div className="text-center">
-              <p className="text-lg font-semibold">
-                {profile?.display_name ?? "No name set"}
-              </p>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
             {!editing && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-1 active:scale-[0.97]"
+              <button
                 onClick={startEditing}
+                className="mt-3 text-sm font-semibold text-primary hover:underline"
               >
-                Edit profile
-              </Button>
+                Edit Profile
+              </button>
             )}
           </div>
 
           {/* Edit form */}
           {editing && (
-            <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
+            <div className="space-y-4 rounded-2xl bg-muted/50 p-5">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Display name
-                </Label>
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Display name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="name"
-                    value={formName}
-                    onChange={(e) => setFormName(e.target.value)}
-                    className="pl-10"
-                    placeholder="Your name"
-                  />
+                  <Input value={formName} onChange={(e) => setFormName(e.target.value)} className="pl-10" placeholder="Your name" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Phone number
-                </Label>
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    value={formPhone}
-                    onChange={(e) => setFormPhone(e.target.value)}
-                    className="pl-10"
-                    placeholder="+1 (555) 000-0000"
-                  />
+                  <Input value={formPhone} onChange={(e) => setFormPhone(e.target.value)} className="pl-10" placeholder="+1 (555) 000-0000" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Address
-                </Label>
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Address</Label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="address"
-                    value={formAddress}
-                    onChange={(e) => setFormAddress(e.target.value)}
-                    className="pl-10"
-                    placeholder="123 Main St"
-                  />
+                  <Input value={formAddress} onChange={(e) => setFormAddress(e.target.value)} className="pl-10" placeholder="123 Main St" />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="city" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    City
-                  </Label>
-                  <Input
-                    id="city"
-                    value={formCity}
-                    onChange={(e) => setFormCity(e.target.value)}
-                    placeholder="City"
-                  />
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">City</Label>
+                  <Input value={formCity} onChange={(e) => setFormCity(e.target.value)} placeholder="City" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="state" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    State
-                  </Label>
-                  <Input
-                    id="state"
-                    value={formState}
-                    onChange={(e) => setFormState(e.target.value)}
-                    placeholder="CA"
-                    maxLength={2}
-                  />
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">State</Label>
+                  <Input value={formState} onChange={(e) => setFormState(e.target.value)} placeholder="CA" maxLength={2} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="zip" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Zip code
-                  </Label>
-                  <Input
-                    id="zip"
-                    value={formZip}
-                    onChange={(e) => setFormZip(e.target.value)}
-                    placeholder="90210"
-                    maxLength={10}
-                  />
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Zip</Label>
+                  <Input value={formZip} onChange={(e) => setFormZip(e.target.value)} placeholder="90210" maxLength={10} />
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  className="flex-1 active:scale-[0.97]"
-                  onClick={() => setEditing(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1 gap-2 active:scale-[0.97]"
-                  onClick={() => updateMutation.mutate()}
-                  disabled={updateMutation.isPending}
-                >
+                <Button variant="outline" className="flex-1 active:scale-[0.97]" onClick={() => setEditing(false)}>Cancel</Button>
+                <Button className="flex-1 gap-2 active:scale-[0.97]" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
                   <Save className="h-4 w-4" />
                   {updateMutation.isPending ? "Saving…" : "Save"}
                 </Button>
@@ -344,215 +291,119 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Account details */}
-          <div className="space-y-1">
-            <p className="px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Account
-            </p>
-            <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
-              <div className="flex items-center gap-3 p-4">
-                <Mail className="h-5 w-5 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Email</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4">
-                <Phone className="h-5 w-5 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Phone</p>
-                  <p className="text-xs text-muted-foreground">
-                    {profile?.phone || "Not set"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4">
-                <MapPin className="h-5 w-5 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Address</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(() => {
-                      const p = profile as any;
-                      const parts = [p?.address, p?.city, p?.state, p?.zip_code].filter(Boolean);
-                      return parts.length > 0 ? parts.join(", ") : "Not set";
-                    })()}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4">
-                <Shield className="h-5 w-5 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Member since</p>
-                  <p className="text-xs text-muted-foreground">
-                    {user?.created_at
-                      ? new Date(user.created_at).toLocaleDateString(undefined, {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : "—"}
-                  </p>
-                </div>
-              </div>
-              {isAdmin && (
-                <button
-                  onClick={() => navigate("/admin")}
-                  className="flex w-full items-center justify-between p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <Shield className="h-5 w-5 text-primary shrink-0" />
-                    <p className="text-sm font-medium text-primary">Admin Dashboard</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
-              )}
-            </div>
-          </div>
+          {/* Favorites / Organization group */}
+          <MenuGroup
+            rows={[
+              { icon: Heart, color: "bg-red-500", label: "Favorites", onClick: () => navigate("/brands") },
+              { icon: Tag, color: "bg-green-500", label: "Labels" },
+              { icon: Clock, color: "bg-blue-500", label: "Expired" },
+              { icon: Archive, color: "bg-indigo-500", label: "Archived" },
+              { icon: Trash2, color: "bg-indigo-500", label: "Recently Deleted" },
+            ]}
+          />
 
-          {/* Preferences */}
-          <div className="space-y-1">
-            <p className="px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Preferences
-            </p>
-            <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <Bell className="h-5 w-5 text-muted-foreground" />
-                  <p className="text-sm font-medium">Push notifications</p>
-                </div>
-                <Switch
-                  checked={notificationsEnabled}
-                  onCheckedChange={async (checked) => {
-                    if (checked) {
-                      try {
-                        const granted = await requestNotificationPermission();
-                        if (granted) {
-                          if (pushSupported) {
-                            try {
-                              await subscribePush();
-                            } catch {
-                              // Service worker may fail in preview — still allow notifications
-                            }
+          {/* Settings group */}
+          <MenuGroup
+            rows={[
+              {
+                icon: Bell, color: "bg-gray-600", label: "Notifications",
+                trailing: (
+                  <Switch
+                    checked={notificationsEnabled}
+                    onCheckedChange={async (checked) => {
+                      if (checked) {
+                        try {
+                          const granted = await requestNotificationPermission();
+                          if (granted) {
+                            if (pushSupported) { try { await subscribePush(); } catch {} }
+                            setNotificationsEnabled(true);
+                            localStorage.setItem("notifications_enabled", "true");
+                            toast.success("Notifications enabled");
+                          } else {
+                            setNotificationsEnabled(false);
+                            toast.error("Notification permission was denied");
                           }
-                          setNotificationsEnabled(true);
-                          localStorage.setItem("notifications_enabled", "true");
-                          toast.success("Notifications enabled");
-                        } else {
-                          setNotificationsEnabled(false);
-                          toast.error("Notification permission was denied");
-                        }
-                      } catch {
-                        toast.error("Could not enable notifications");
+                        } catch { toast.error("Could not enable notifications"); }
+                      } else {
+                        setNotificationsEnabled(false);
+                        localStorage.setItem("notifications_enabled", "false");
                       }
-                    } else {
-                      setNotificationsEnabled(false);
-                      localStorage.setItem("notifications_enabled", "false");
-                    }
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <Locate className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Geofence alerts</p>
-                    <p className="text-xs text-muted-foreground">
-                      {hasFeatureAccess("geofence_alerts", subscriptionTier)
-                        ? "Get notified near brand locations"
-                        : "Pro plan required"}
-                    </p>
-                  </div>
-                </div>
-                {hasFeatureAccess("geofence_alerts", subscriptionTier) ? (
+                    }}
+                  />
+                ),
+              },
+              {
+                icon: Moon, color: "bg-gray-600", label: "Dark Mode",
+                trailing: (
+                  <Switch checked={theme === "dark"} onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} />
+                ),
+              },
+              {
+                icon: Locate, color: "bg-gray-600", label: "Geofence Alerts",
+                trailing: hasFeatureAccess("geofence_alerts", subscriptionTier) ? (
                   <Switch
                     checked={geofenceEnabled}
                     onCheckedChange={async (checked) => {
                       if (checked) {
                         const granted = await requestNotificationPermission();
-                        if (!granted) {
-                          toast.error("Enable notifications first");
-                          return;
-                        }
+                        if (!granted) { toast.error("Enable notifications first"); return; }
                         navigator.geolocation.getCurrentPosition(
-                          () => {
-                            setGeofenceEnabled(true);
-                            localStorage.setItem("geofence_enabled", "true");
-                            toast.success("Geofence alerts enabled");
-                          },
-                          () => {
-                            toast.error("Location permission is required for geofence alerts");
-                          }
+                          () => { setGeofenceEnabled(true); localStorage.setItem("geofence_enabled", "true"); toast.success("Geofence alerts enabled"); },
+                          () => { toast.error("Location permission is required"); }
                         );
-                      } else {
-                        setGeofenceEnabled(false);
-                        localStorage.setItem("geofence_enabled", "false");
-                      }
+                      } else { setGeofenceEnabled(false); localStorage.setItem("geofence_enabled", "false"); }
                     }}
                   />
                 ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs active:scale-[0.97]"
-                    onClick={() => navigate("/pricing")}
-                  >
-                    <Crown className="h-3 w-3 mr-1" />
-                    Upgrade
+                  <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate("/pricing")}>
+                    <Crown className="h-3 w-3 mr-1" /> Upgrade
                   </Button>
-                )}
-              </div>
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <Moon className="h-5 w-5 text-muted-foreground" />
-                  <p className="text-sm font-medium">Dark mode</p>
-                </div>
-                <Switch
-                  checked={theme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                />
-              </div>
-            </div>
-          </div>
+                ),
+              },
+              { icon: Settings, color: "bg-gray-600", label: "Settings", onClick: startEditing },
+              { icon: Database, color: "bg-gray-600", label: "Data and Storage" },
+            ]}
+          />
 
           {/* Subscription */}
-          <div className="space-y-1">
-            <p className="px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Subscription
-            </p>
-            <button
-              onClick={() => navigate("/pricing")}
-              className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted/50 active:scale-[0.98]"
-            >
-              <Crown className="h-5 w-5 text-primary shrink-0" />
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-sm font-medium">Plans & Pricing</p>
-                <p className="text-xs text-muted-foreground capitalize">{subscriptionTier} plan</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-            </button>
+          <MenuGroup
+            rows={[
+              { icon: Crown, color: "bg-amber-500", label: `Plans & Pricing (${subscriptionTier})`, onClick: () => navigate("/pricing") },
+              ...(isAdmin ? [{ icon: Shield as React.ElementType, color: "bg-blue-600", label: "Admin Dashboard", onClick: () => navigate("/admin") }] : []),
+            ]}
+          />
+
+          {/* Community group */}
+          <MenuGroup
+            rows={[
+              { icon: ThumbsUp, color: "bg-green-500", label: "Rate App" },
+              { icon: Send, color: "bg-blue-500", label: "Tell a Friend" },
+              { icon: Lightbulb, color: "bg-yellow-500", label: "Share an Idea" },
+              { icon: MailIcon, color: "bg-purple-500", label: "Contact Support" },
+            ]}
+          />
+
+          {/* Privacy consent */}
+          <div className="rounded-2xl bg-muted/50 p-4">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" /> Privacy Consent History
+            </h3>
+            <ConsentHistory />
           </div>
 
           {/* Sign out */}
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive/10 p-4 text-destructive transition-colors hover:bg-destructive/15 active:scale-[0.98]"
           >
             <LogOut className="h-5 w-5" />
             <span className="text-sm font-semibold">Sign out</span>
           </button>
 
           {/* Delete account */}
-        {/* Consent History */}
-        <div className="rounded-2xl border bg-card p-4 shadow-sm">
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <FileText className="h-4 w-4 text-muted-foreground" /> Privacy Consent History
-          </h3>
-          <ConsentHistory />
-        </div>
-
-        <AlertDialog>
+          <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98]">
+              <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive/5 border border-destructive/20 p-4 text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98]">
                 <Trash2 className="h-5 w-5" />
                 <span className="text-sm font-semibold">Delete account</span>
               </button>
@@ -575,9 +426,7 @@ export default function Profile() {
                       await signOut();
                       navigate("/auth", { replace: true });
                       toast.success("Account deleted");
-                    } catch {
-                      toast.error("Failed to delete account");
-                    }
+                    } catch { toast.error("Failed to delete account"); }
                   }}
                 >
                   Delete permanently
