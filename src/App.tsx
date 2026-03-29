@@ -30,6 +30,7 @@ import MerchantOnboarding from "./pages/merchant/MerchantOnboarding";
 import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import Engage from "./pages/Engage";
+import Wallet from "./pages/Wallet";
 import SpinWheel from "./pages/SpinWheel";
 import RewardsStore from "./pages/RewardsStore";
 import ManageTiers from "./pages/ManageTiers";
