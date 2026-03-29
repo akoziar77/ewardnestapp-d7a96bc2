@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Bird, Eye, EyeOff } from "lucide-react";
+import { Bird, Eye, EyeOff, Apple } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import SignUpFields from "@/components/auth/SignUpFields";
+import { lovable } from "@/integrations/lovable";
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -88,6 +89,27 @@ export default function Auth() {
         variant: "destructive",
       });
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSocialSignIn = async (provider: "google" | "apple") => {
+    setLoading(true);
+
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+
+      if (result?.error) {
+        throw result.error;
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || `Unable to continue with ${provider}`,
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };
@@ -216,6 +238,38 @@ export default function Auth() {
           >
             {loading ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
           </Button>
+
+          <div className="flex items-center gap-4 py-2">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">Or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-12 w-full text-base font-semibold"
+              disabled={loading}
+              onClick={() => handleSocialSignIn("google")}
+            >
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-foreground text-sm font-bold text-primary">
+                G
+              </span>
+              Continue with Google
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full text-base font-semibold"
+              disabled={loading}
+              onClick={() => handleSocialSignIn("apple")}
+            >
+              <Apple className="h-5 w-5" />
+              Continue with Apple
+            </Button>
+          </div>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
