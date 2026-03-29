@@ -45,9 +45,9 @@ export default function AddressStep({ title, description }: Props) {
       </div>
 
       <div className="rounded-2xl bg-white/[0.06] p-4 space-y-3">
-        <div className="flex items-start gap-2 rounded-xl bg-white/[0.04] p-3">
-          <Info className="h-4 w-4 text-white/40 shrink-0 mt-0.5" />
-          <p className="text-xs text-white/40 leading-relaxed">
+        <div className="flex items-start gap-2.5 rounded-xl bg-white/[0.08] p-3.5">
+          <Info className="h-4 w-4 text-white/50 shrink-0 mt-0.5" />
+          <p className="text-sm text-white/60 leading-relaxed">
             Your address helps us find nearby deals. This is completely optional.
           </p>
         </div>
