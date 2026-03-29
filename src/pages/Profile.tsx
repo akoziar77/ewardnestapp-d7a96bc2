@@ -274,6 +274,15 @@ export default function Profile() {
             ]}
           />
 
+          {/* Admin — only visible to admins */}
+          {isAdmin && (
+            <MenuGroup
+              rows={[
+                { icon: Shield, color: "bg-primary", label: "Admin Dashboard", onClick: () => navigate("/admin") },
+              ]}
+            />
+          )}
+
           {/* Community */}
           <MenuGroup
             rows={[
