@@ -16,6 +16,9 @@ import Scan from "./pages/Scan";
 import Rewards from "./pages/Rewards";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
+import ProfileSettings from "./pages/ProfileSettings";
+import ProfileArchived from "./pages/ProfileArchived";
+import ProfileDeleted from "./pages/ProfileDeleted";
 import Brands from "./pages/Brands";
 import BrandSettings from "./pages/BrandSettings";
 import MerchantLogin from "./pages/merchant/MerchantLogin";
@@ -107,6 +110,9 @@ function AppRoutes() {
         <Route path="/rewards" element={<PageGate pageKey="rewards"><Rewards /></PageGate>} />
         <Route path="/history" element={<PageGate pageKey="history"><History /></PageGate>} />
         <Route path="/profile" element={<PageGate pageKey="profile"><Profile /></PageGate>} />
+        <Route path="/profile/settings" element={<PageGate pageKey="profile"><ProfileSettings /></PageGate>} />
+        <Route path="/profile/archived" element={<PageGate pageKey="profile"><ProfileArchived /></PageGate>} />
+        <Route path="/profile/deleted" element={<PageGate pageKey="profile"><ProfileDeleted /></PageGate>} />
         <Route path="/brands" element={<PageGate pageKey="brands"><Brands /></PageGate>} />
         <Route path="/brands/settings" element={<PageGate pageKey="brands_settings"><BrandSettings /></PageGate>} />
         <Route path="/engage" element={<PageGate pageKey="engage"><Engage /></PageGate>} />
