@@ -1,7 +1,7 @@
+import { useState, useEffect, useMemo } from "react";
 import { CreditCard, FileBox, Trash2, FileText } from "lucide-react";
 import { getDocType } from "./walletCategories";
 import { supabase } from "@/integrations/supabase/client";
-import { useMemo } from "react";
 
 import { Plane, Car, Globe, Gift, ShoppingBag, Users, Cross, Shield, Baby, Heart, Smartphone, KeyRound } from "lucide-react";
 
@@ -25,19 +25,6 @@ export default function WalletItemCard({ item, onDelete }: Props) {
   const dt = getDocType(item.doc_type);
   const Icon = dt ? ICON_MAP[dt.icon] || FileBox : FileBox;
   const color = dt?.color || "bg-gray-500";
-
-  const thumbUrl = useMemo(() => {
-    if (!item.front_image_path) return null;
-    const { data } = supabase.storage.from("wallet-docs").getPublicUrl(item.front_image_path);
-    // For private buckets we need a signed URL; fall back to createSignedUrl
-    return null; // we'll use signed URL below
-  }, [item.front_image_path]);
-
-  // For private bucket, create signed URL
-  const [signedUrl, setSignedUrl] = useMemo(() => {
-    // Can't use hooks in useMemo — handle differently
-    return [null, () => {}];
-  }, []);
 
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-muted/50 p-4 transition-all hover:bg-muted">
@@ -72,15 +59,7 @@ function WalletThumb({ path, color }: { path: string; color: string }) {
     });
   }, [path]);
 
-  if (!url) {
-    return (
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${color} text-white`}>
-        <FileText className="h-6 w-6" />
-      </span>
-    );
-  }
-
-  if (path.endsWith(".pdf")) {
+  if (!url || path.endsWith(".pdf")) {
     return (
       <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${color} text-white`}>
         <FileText className="h-6 w-6" />
