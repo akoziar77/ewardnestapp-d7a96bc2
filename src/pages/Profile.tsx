@@ -27,6 +27,7 @@ import {
   Send,
   Lightbulb,
   MailIcon,
+  Shield,
 } from "lucide-react";
 
 interface MenuRow {
