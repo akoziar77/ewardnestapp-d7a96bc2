@@ -91,6 +91,7 @@ function AppRoutes() {
       <Route path="/auth" element={<Auth />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/landing" element={<Landing />} />
       <Route path="/merchant/login" element={<MerchantLogin />} />
 
       {/* Developer Portal (public) */}
