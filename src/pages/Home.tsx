@@ -40,6 +40,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [widgetLayout, setWidgetLayout] = useState<HomeWidget[]>(getWidgetLayout);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
   // Activate geofence monitoring when enabled in settings
   const geofenceActive = typeof window !== "undefined" && localStorage.getItem("geofence_enabled") === "true";
