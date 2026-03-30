@@ -147,6 +147,40 @@ export default function Scan() {
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Point your camera at a merchant's QR code to check in and earn points.
             </p>
+
+            {/* Manual code input */}
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground text-center">Or enter merchant code manually</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter merchant code"
+                  className="flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      const uuidMatch = val.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+                      if (uuidMatch) handleCheckin(val);
+                    }
+                  }}
+                  id="manual-merchant-code"
+                />
+                <Button
+                  onClick={() => {
+                    const input = document.getElementById("manual-merchant-code") as HTMLInputElement;
+                    const val = input?.value?.trim();
+                    if (val) {
+                      const uuidMatch = val.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+                      if (uuidMatch) handleCheckin(val);
+                      else setState({ status: "error", message: "Invalid merchant code format." });
+                    }
+                  }}
+                  className="rounded-xl px-5"
+                >
+                  Submit
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 

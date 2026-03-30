@@ -32,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import CustomerQRDialog from "@/components/CustomerQRDialog";
 
 export default function Home() {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [widgetLayout, setWidgetLayout] = useState<HomeWidget[]>(getWidgetLayout);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
   // Activate geofence monitoring when enabled in settings
   const geofenceActive = typeof window !== "undefined" && localStorage.getItem("geofence_enabled") === "true";
@@ -283,6 +285,20 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      {/* Show QR to cashier */}
+      <div className="px-6 pb-2">
+        <Button
+          onClick={() => setQrOpen(true)}
+          className="w-full h-14 text-base font-semibold rounded-2xl"
+          size="lg"
+        >
+          <QrCode className="h-5 w-5 mr-2" />
+          Show QR to cashier
+        </Button>
+      </div>
+
+      {user && <CustomerQRDialog open={qrOpen} onOpenChange={setQrOpen} userId={user.id} />}
 
       {/* Render widgets in layout order */}
       {widgetLayout.filter((w) => w.visible).map((widget) => {

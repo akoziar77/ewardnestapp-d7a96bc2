@@ -49,6 +49,7 @@ const navItems = [
   { to: "/admin/program-settings/privacy-policy", icon: FileText, label: "Privacy Policy", end: false },
   { to: "/admin/spin-setup", icon: Dices, label: "Spin Setup", end: false },
   { to: "/admin/location-import", icon: Upload, label: "Location Import", end: false },
+  { to: "/admin/ledger", icon: Receipt, label: "Ledger", end: false },
 ];
 
 export default function AdminLayout() {

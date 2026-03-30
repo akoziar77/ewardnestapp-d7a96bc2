@@ -62,6 +62,10 @@ import AdminUserDetail from "./pages/admin/AdminUserDetail";
 import AdminLocationImport from "./pages/admin/AdminLocationImport";
 import ReceiptUpload from "./pages/ReceiptUpload";
 import ConsentBanner from "./components/ConsentBanner";
+import Landing from "./pages/Landing";
+import AdminLedger from "./pages/admin/AdminLedger";
+import MerchantScan from "./pages/merchant/MerchantScan";
+import MerchantAwardPoints from "./pages/merchant/MerchantAwardPoints";
 import NotFound from "./pages/NotFound";
 import DocsLayout from "./pages/docs/DocsLayout";
 import DocsHome from "./pages/docs/DocsHome";
@@ -87,6 +91,7 @@ function AppRoutes() {
       <Route path="/auth" element={<Auth />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/landing" element={<Landing />} />
       <Route path="/merchant/login" element={<MerchantLogin />} />
 
       {/* Developer Portal (public) */}
@@ -134,6 +139,8 @@ function AppRoutes() {
           <Route path="qr" element={<MerchantQR />} />
           <Route path="insights" element={<MerchantInsights />} />
           <Route path="boosters" element={<MerchantBoosters />} />
+          <Route path="scan" element={<MerchantScan />} />
+          <Route path="award" element={<MerchantAwardPoints />} />
         </Route>
       </Route>
 
@@ -160,6 +167,7 @@ function AppRoutes() {
           <Route path="analytics" element={<PageGate pageKey="admin_insights"><AdminInsights /></PageGate>} />
           <Route path="spin-setup" element={<PageGate pageKey="admin_spin_setup"><AdminSpinSetup /></PageGate>} />
           <Route path="location-import" element={<PageGate pageKey="admin_brands"><AdminLocationImport /></PageGate>} />
+          <Route path="ledger" element={<PageGate pageKey="admin_dashboard"><AdminLedger /></PageGate>} />
         </Route>
       </Route>
 
