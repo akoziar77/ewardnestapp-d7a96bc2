@@ -58,6 +58,7 @@ import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAutomations from "./pages/admin/AdminAutomations";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminSpinSetup from "./pages/admin/AdminSpinSetup";
+import AdminUserDetail from "./pages/admin/AdminUserDetail";
 import AdminLocationImport from "./pages/admin/AdminLocationImport";
 import ReceiptUpload from "./pages/ReceiptUpload";
 import ConsentBanner from "./components/ConsentBanner";
@@ -148,6 +149,7 @@ function AppRoutes() {
           <Route path="program-settings/onboarding" element={<PageGate pageKey="admin_onboarding"><AdminOnboarding /></PageGate>} />
           <Route path="brands" element={<PageGate pageKey="admin_brands"><AdminBrands /></PageGate>} />
           <Route path="users" element={<PageGate pageKey="admin_roles"><AdminUsers /></PageGate>} />
+          <Route path="users/:userId" element={<PageGate pageKey="admin_roles"><AdminUserDetail /></PageGate>} />
           <Route path="receipts" element={<PageGate pageKey="admin_receipts"><AdminReceiptReview /></PageGate>} />
           <Route path="rewards" element={<PageGate pageKey="admin_rewards"><AdminRewardsPage /></PageGate>} />
           <Route path="campaigns" element={<PageGate pageKey="admin_boosters"><AdminCampaigns /></PageGate>} />
