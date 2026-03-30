@@ -32,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import CustomerQRDialog from "@/components/CustomerQRDialog";
 
 export default function Home() {
   const { user } = useAuth();
