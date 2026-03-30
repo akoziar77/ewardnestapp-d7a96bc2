@@ -139,6 +139,8 @@ function AppRoutes() {
           <Route path="qr" element={<MerchantQR />} />
           <Route path="insights" element={<MerchantInsights />} />
           <Route path="boosters" element={<MerchantBoosters />} />
+          <Route path="scan" element={<MerchantScan />} />
+          <Route path="award" element={<MerchantAwardPoints />} />
         </Route>
       </Route>
 
