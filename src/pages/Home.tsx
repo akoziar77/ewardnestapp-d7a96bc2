@@ -286,6 +286,20 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Show QR to cashier */}
+      <div className="px-6 pb-2">
+        <Button
+          onClick={() => setQrOpen(true)}
+          className="w-full h-14 text-base font-semibold rounded-2xl"
+          size="lg"
+        >
+          <QrCode className="h-5 w-5 mr-2" />
+          Show QR to cashier
+        </Button>
+      </div>
+
+      {user && <CustomerQRDialog open={qrOpen} onOpenChange={setQrOpen} userId={user.id} />}
+
       {/* Render widgets in layout order */}
       {widgetLayout.filter((w) => w.visible).map((widget) => {
         switch (widget.id) {

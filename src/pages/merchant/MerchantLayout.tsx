@@ -50,6 +50,8 @@ export default function MerchantLayout() {
     { to: "/merchant/qr", icon: QrCode, label: "QR Code", end: false },
     { to: "/merchant/insights", icon: PieChart, label: "Insights", end: false },
     { to: "/merchant/boosters", icon: Zap, label: "Boosters", end: false },
+    { to: "/merchant/scan", icon: Camera, label: "Scan", end: false },
+    { to: "/merchant/award", icon: Plus, label: "Award", end: false },
   ];
 
   return (
