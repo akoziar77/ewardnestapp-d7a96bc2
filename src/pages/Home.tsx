@@ -288,6 +288,11 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Points Badge */}
+      <div className="px-6 pb-2">
+        <PointsBadge points={totalPoints} tier={profile?.tier ?? "bronze"} />
+      </div>
+
       {/* Show QR to cashier */}
       <div className="px-6 pb-2">
         <Button
@@ -297,6 +302,26 @@ export default function Home() {
         >
           <QrCode className="h-5 w-5 mr-2" />
           Show QR to cashier
+        </Button>
+      </div>
+
+      {/* Action Row: Scan + Rewards */}
+      <div className="px-6 pb-4 flex gap-3">
+        <Button
+          variant="outline"
+          className="flex-1 h-12 rounded-2xl text-sm font-semibold"
+          onClick={() => navigate("/scan")}
+        >
+          <QrCode className="h-4 w-4 mr-2" />
+          Scan to Earn
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 h-12 rounded-2xl text-sm font-semibold"
+          onClick={() => navigate("/rewards")}
+        >
+          <Gift className="h-4 w-4 mr-2" />
+          Rewards
         </Button>
       </div>
 
