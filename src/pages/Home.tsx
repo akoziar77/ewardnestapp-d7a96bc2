@@ -25,6 +25,8 @@ import { Switch } from "@/components/ui/switch";
 import { getWidgetLayout, saveWidgetLayout, type HomeWidget } from "@/lib/homeWidgets";
 import HomeWidgetEditor from "@/components/HomeWidgetEditor";
 import NearbyBrandsWidget from "@/components/NearbyBrandsWidget";
+import PointsBadge from "@/components/home/PointsBadge";
+import ActiveRewardsCarousel from "@/components/home/ActiveRewardsCarousel";
 import { useGeofence } from "@/hooks/useGeofence";
 import {
   Dialog,
