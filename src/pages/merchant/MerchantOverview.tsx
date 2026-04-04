@@ -1,7 +1,9 @@
 import { useOutletContext } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Users, Gift, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { TrendingUp, Users, Gift, ArrowUpRight, ArrowDownRight, ScanLine, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 type Ctx = { merchantId: string; merchantName: string };
 
