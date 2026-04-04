@@ -9,6 +9,7 @@ type Ctx = { merchantId: string; merchantName: string };
 
 export default function MerchantOverview() {
   const { merchantId, merchantName } = useOutletContext<Ctx>();
+  const navigate = useNavigate();
 
   const { data: stats } = useQuery({
     queryKey: ["merchant-stats", merchantId],
