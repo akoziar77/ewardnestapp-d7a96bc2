@@ -207,6 +207,8 @@ export default function Rewards() {
         )}
       </div>
 
+      <p className="px-6 pb-4 text-xs text-muted-foreground text-center">Rewards may have expiry dates.</p>
+
       {/* Redeem dialog */}
       <Dialog
         open={!!selectedReward}
