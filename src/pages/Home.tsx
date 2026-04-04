@@ -48,6 +48,23 @@ export default function Home() {
   const geofenceActive = typeof window !== "undefined" && localStorage.getItem("geofence_enabled") === "true";
   useGeofence();
 
+  // Active rewards for carousel
+  const { data: activeRewards = [] } = useQuery({
+    queryKey: ["active-rewards-carousel", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("rewards")
+        .select("id, title, points_cost, description, merchant_id, merchants(name)")
+        .eq("active", true)
+        .order("points_cost", { ascending: true })
+        .limit(10);
+      return (data ?? []).map((r: any) => ({
+        ...r,
+        merchantName: r.merchants?.name ?? "",
+      }));
+    },
+    enabled: !!user,
+  });
 
   const handleSaveLayout = (widgets: HomeWidget[]) => {
     setWidgetLayout(widgets);
