@@ -344,6 +344,16 @@ export default function Home() {
 
       {user && <CustomerQRDialog open={qrOpen} onOpenChange={setQrOpen} userId={user.id} />}
 
+      {/* Active Rewards Carousel */}
+      {activeRewards.length > 0 && (
+        <div className="px-6 pb-2">
+          <ActiveRewardsCarousel
+            rewards={activeRewards}
+            onTap={() => navigate("/rewards")}
+          />
+        </div>
+      )}
+
       {/* Render widgets in layout order */}
       {widgetLayout.filter((w) => w.visible).map((widget) => {
         switch (widget.id) {
