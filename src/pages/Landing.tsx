@@ -54,6 +54,29 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Screenshots */}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-5xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight">See It in Action</h2>
+          <p className="mt-3 text-muted-foreground">Built for speed, designed for delight.</p>
+        </div>
+        <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
+          {[
+            { label: "Customer Wallet", desc: "Points, rewards, and QR — all in one place." },
+            { label: "Merchant Dashboard", desc: "Track visits, award points, manage rewards." },
+            { label: "QR Flow", desc: "Scan or show — earning points takes seconds." },
+          ].map((item, i) => (
+            <div key={i} className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-muted/30 p-8">
+              <div className="flex h-40 w-full items-center justify-center rounded-xl bg-muted">
+                <span className="text-4xl">📱</span>
+              </div>
+              <h3 className="text-base font-bold">{item.label}</h3>
+              <p className="text-sm text-muted-foreground text-center">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Pricing Teaser */}
       <section className="px-6 py-20 text-center">
         <div className="mx-auto max-w-2xl">

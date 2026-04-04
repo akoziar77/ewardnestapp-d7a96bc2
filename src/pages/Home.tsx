@@ -25,6 +25,8 @@ import { Switch } from "@/components/ui/switch";
 import { getWidgetLayout, saveWidgetLayout, type HomeWidget } from "@/lib/homeWidgets";
 import HomeWidgetEditor from "@/components/HomeWidgetEditor";
 import NearbyBrandsWidget from "@/components/NearbyBrandsWidget";
+import PointsBadge from "@/components/home/PointsBadge";
+import ActiveRewardsCarousel from "@/components/home/ActiveRewardsCarousel";
 import { useGeofence } from "@/hooks/useGeofence";
 import {
   Dialog,
@@ -46,6 +48,23 @@ export default function Home() {
   const geofenceActive = typeof window !== "undefined" && localStorage.getItem("geofence_enabled") === "true";
   useGeofence();
 
+  // Active rewards for carousel
+  const { data: activeRewards = [] } = useQuery({
+    queryKey: ["active-rewards-carousel", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("rewards")
+        .select("id, title, points_cost, description, merchant_id, merchants(name)")
+        .eq("active", true)
+        .order("points_cost", { ascending: true })
+        .limit(10);
+      return (data ?? []).map((r: any) => ({
+        ...r,
+        merchantName: r.merchants?.name ?? "",
+      }));
+    },
+    enabled: !!user,
+  });
 
   const handleSaveLayout = (widgets: HomeWidget[]) => {
     setWidgetLayout(widgets);
@@ -286,6 +305,11 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Points Badge */}
+      <div className="px-6 pb-2">
+        <PointsBadge points={totalPoints} tier={profile?.tier ?? "bronze"} />
+      </div>
+
       {/* Show QR to cashier */}
       <div className="px-6 pb-2">
         <Button
@@ -298,7 +322,37 @@ export default function Home() {
         </Button>
       </div>
 
+      {/* Action Row: Scan + Rewards */}
+      <div className="px-6 pb-4 flex gap-3">
+        <Button
+          variant="outline"
+          className="flex-1 h-12 rounded-2xl text-sm font-semibold"
+          onClick={() => navigate("/scan")}
+        >
+          <QrCode className="h-4 w-4 mr-2" />
+          Scan to Earn
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 h-12 rounded-2xl text-sm font-semibold"
+          onClick={() => navigate("/rewards")}
+        >
+          <Gift className="h-4 w-4 mr-2" />
+          Rewards
+        </Button>
+      </div>
+
       {user && <CustomerQRDialog open={qrOpen} onOpenChange={setQrOpen} userId={user.id} />}
+
+      {/* Active Rewards Carousel */}
+      {activeRewards.length > 0 && (
+        <div className="px-6 pb-2">
+          <ActiveRewardsCarousel
+            rewards={activeRewards}
+            onTap={() => navigate("/rewards")}
+          />
+        </div>
+      )}
 
       {/* Render widgets in layout order */}
       {widgetLayout.filter((w) => w.visible).map((widget) => {

@@ -1,12 +1,15 @@
 import { useOutletContext } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Users, Gift, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { TrendingUp, Users, Gift, ArrowUpRight, ArrowDownRight, ScanLine, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 type Ctx = { merchantId: string; merchantName: string };
 
 export default function MerchantOverview() {
   const { merchantId, merchantName } = useOutletContext<Ctx>();
+  const navigate = useNavigate();
 
   const { data: stats } = useQuery({
     queryKey: ["merchant-stats", merchantId],
@@ -97,6 +100,18 @@ export default function MerchantOverview() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">{merchantName}</h1>
         <p className="text-sm text-muted-foreground mt-1">Dashboard overview</p>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="flex gap-3 mb-8">
+        <Button onClick={() => navigate("/merchant/scan")} className="flex-1 h-12 text-sm font-semibold">
+          <ScanLine className="h-4 w-4 mr-2" />
+          Scan Customer
+        </Button>
+        <Button onClick={() => navigate("/merchant/award")} variant="outline" className="flex-1 h-12 text-sm font-semibold">
+          <Plus className="h-4 w-4 mr-2" />
+          Award Points
+        </Button>
       </div>
 
       {/* Stats grid */}
