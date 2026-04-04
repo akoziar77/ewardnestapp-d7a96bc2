@@ -144,7 +144,10 @@ export default function Scan() {
             <div className="relative mx-auto overflow-hidden rounded-3xl border-2 border-primary/20 bg-black">
               <div id="qr-reader" className="w-full" />
             </div>
-            <p className="mt-6 text-center text-sm text-muted-foreground">
+            <p className="mt-4 text-center text-sm font-medium text-muted-foreground">
+              Align merchant QR inside the frame
+            </p>
+            <p className="mt-1 text-center text-xs text-muted-foreground">
               Point your camera at a merchant's QR code to check in and earn points.
             </p>
 

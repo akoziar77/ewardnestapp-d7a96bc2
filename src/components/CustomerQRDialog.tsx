@@ -31,7 +31,7 @@ export default function CustomerQRDialog({ open, onOpenChange, userId }: Props) 
         </DialogHeader>
         <div className="flex flex-col items-center gap-5 py-4">
           <div className="rounded-2xl border border-border bg-white p-5">
-            <QRCodeSVG value={qrValue} size={220} level="M" />
+            <QRCodeSVG value={qrValue} size={260} level="M" />
           </div>
           <p className="text-sm text-muted-foreground">
             Show this QR to the cashier to earn or redeem points.

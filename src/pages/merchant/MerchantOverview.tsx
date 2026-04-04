@@ -102,6 +102,18 @@ export default function MerchantOverview() {
         <p className="text-sm text-muted-foreground mt-1">Dashboard overview</p>
       </div>
 
+      {/* Quick Actions */}
+      <div className="flex gap-3 mb-8">
+        <Button onClick={() => navigate("/merchant/scan")} className="flex-1 h-12 text-sm font-semibold">
+          <ScanLine className="h-4 w-4 mr-2" />
+          Scan Customer
+        </Button>
+        <Button onClick={() => navigate("/merchant/award")} variant="outline" className="flex-1 h-12 text-sm font-semibold">
+          <Plus className="h-4 w-4 mr-2" />
+          Award Points
+        </Button>
+      </div>
+
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         {cards.map((card) => (
